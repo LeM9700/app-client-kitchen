@@ -6,6 +6,7 @@ import 'package:app_client/core/router/app_routes.dart';
 import 'package:app_client/core/theme/app_colors.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/favorites_provider.dart';
+import 'package:app_client/features/cart/providers/cart_provider.dart';
 
 /// Photo-first product card used in catalogue grids and horizontal rows.
 class ProductCard extends ConsumerWidget {
@@ -19,6 +20,8 @@ class ProductCard extends ConsumerWidget {
     final isFavorite = ref.watch(
       favoritesProvider.select((favorites) => favorites.contains(product.id)),
     );
+    final canQuickAdd =
+        product.isAvailable && !product.hasVariants && !product.hasExtras;
 
     return InkWell(
       onTap: () => context.push(AppRoutes.productDetail(product.id.toString())),
@@ -55,6 +58,14 @@ class ProductCard extends ConsumerWidget {
                         ref.read(favoritesProvider.notifier).toggle(product.id),
                   ),
                 ),
+                if (canQuickAdd)
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: _QuickAddButton(
+                      onTap: () => _quickAdd(context, ref),
+                    ),
+                  ),
                 if (!product.isAvailable)
                   Positioned.fill(
                     child: DecoratedBox(
@@ -118,6 +129,13 @@ class ProductCard extends ConsumerWidget {
       ),
     );
   }
+
+  void _quickAdd(BuildContext context, WidgetRef ref) {
+    ref.read(cartProvider.notifier).addItem(product);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Ajouté au panier')),
+    );
+  }
 }
 
 class _FavoriteButton extends StatelessWidget {
@@ -142,6 +160,29 @@ class _FavoriteButton extends StatelessWidget {
             size: 17,
             color: isFavorite ? AppColors.brandRed : const Color(0xFF6E6E6E),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickAddButton extends StatelessWidget {
+  const _QuickAddButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: AppColors.brandRed,
+          shape: BoxShape.circle,
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(6),
+          child: Icon(Icons.add, size: 17, color: Colors.white),
         ),
       ),
     );
