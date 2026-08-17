@@ -162,7 +162,7 @@ class _FilterStrip extends ConsumerWidget {
         itemBuilder: (context, index) {
           if (index == 0) {
             return CategoryChip(
-              label: 'Tout',
+              label: 'Sélection',
               isSelected: selectedCategoryId == null,
               onTap: () =>
                   ref.read(selectedCategoryProvider.notifier).state = null,

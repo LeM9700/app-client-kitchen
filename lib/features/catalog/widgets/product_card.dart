@@ -10,9 +10,19 @@ import 'package:app_client/features/cart/providers/cart_provider.dart';
 
 /// Photo-first product card used in catalogue grids and horizontal rows.
 class ProductCard extends ConsumerWidget {
-  const ProductCard({super.key, required this.product});
+  const ProductCard({super.key, required this.product, this.enableHero = true});
 
   final Product product;
+
+  /// Désactive le [Hero] autour de l'image du produit.
+  ///
+  /// Par défaut `true` pour préserver l'animation de transition vers
+  /// [ProductDetailScreen]. À mettre à `false` quand un même [ProductCard]
+  /// (même `product.id`) peut être rendu plusieurs fois dans le même
+  /// sous-arbre de route (ex. [HorizontalProductRow] utilisé pour la row
+  /// "Incontournables" ET une row catégorie sur la home) — deux [Hero] avec
+  /// le même tag dans le même subtree font planter Flutter.
+  final bool enableHero;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,23 +42,7 @@ class ProductCard extends ConsumerWidget {
           Expanded(
             child: Stack(
               children: [
-                Hero(
-                  tag: 'product-${product.id}',
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: SizedBox.expand(
-                      child: product.imageUrl != null
-                          ? Image.network(
-                              product.imageUrl!,
-                              fit: BoxFit.cover,
-                              cacheWidth: 520,
-                              errorBuilder: (_, __, ___) =>
-                                  const _ProductImagePlaceholder(),
-                            )
-                          : const _ProductImagePlaceholder(),
-                    ),
-                  ),
-                ),
+                _ProductImage(product: product, enableHero: enableHero),
                 Positioned(
                   top: 8,
                   right: 8,
@@ -135,6 +129,34 @@ class ProductCard extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Ajouté au panier')),
     );
+  }
+}
+
+class _ProductImage extends StatelessWidget {
+  const _ProductImage({required this.product, required this.enableHero});
+
+  final Product product;
+  final bool enableHero;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox.expand(
+        child: product.imageUrl != null
+            ? Image.network(
+                product.imageUrl!,
+                fit: BoxFit.cover,
+                cacheWidth: 520,
+                errorBuilder: (_, __, ___) => const _ProductImagePlaceholder(),
+              )
+            : const _ProductImagePlaceholder(),
+      ),
+    );
+
+    if (!enableHero) return image;
+
+    return Hero(tag: 'product-${product.id}', child: image);
   }
 }
 

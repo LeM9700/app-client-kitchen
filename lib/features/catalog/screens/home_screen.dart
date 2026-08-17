@@ -31,8 +31,11 @@ class HomeScreen extends ConsumerWidget {
             SliverToBoxAdapter(
               child: HorizontalProductRow(
                 title: 'Incontournables',
-                productsAsync: ref.watch(featuredProductsProvider),
-                onSeeAll: () => context.push(AppRoutes.search),
+                productsAsync: ref.watch(filteredFeaturedProductsProvider),
+                onSeeAll: () {
+                  ref.read(selectedCategoryProvider.notifier).state = null;
+                  context.push(AppRoutes.search);
+                },
               ),
             ),
             categoriesAsync.when(
@@ -126,6 +129,10 @@ class _HomeHeader extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    // Chevron décoratif désactivé : un vrai sélecteur d'adresse
+                    // est hors périmètre de ce plan (déferré) — il réutiliserait
+                    // l'UI de sélection d'adresse déjà construite pour le
+                    // checkout (features/checkout/screens/steps/step_address.dart).
                     const Icon(Icons.keyboard_arrow_down, size: 18),
                   ],
                 ),
@@ -192,15 +199,18 @@ class _LoyaltyBadge extends ConsumerWidget {
   }
 }
 
-class _SearchEntry extends StatelessWidget {
+class _SearchEntry extends ConsumerWidget {
   const _SearchEntry();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 14),
       child: InkWell(
-        onTap: () => context.push(AppRoutes.search),
+        onTap: () {
+          ref.read(selectedCategoryProvider.notifier).state = null;
+          context.push(AppRoutes.search);
+        },
         borderRadius: BorderRadius.circular(8),
         child: Ink(
           height: 50,

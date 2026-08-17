@@ -44,7 +44,10 @@ class HorizontalProductRow extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(width: 16),
                   itemBuilder: (_, index) => SizedBox(
                     width: 160,
-                    child: ProductCard(product: products[index]),
+                    child: ProductCard(
+                      product: products[index],
+                      enableHero: false,
+                    ),
                   ),
                 ),
               ),

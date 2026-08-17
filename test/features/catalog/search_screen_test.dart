@@ -66,7 +66,7 @@ void main() {
         (tester) async {
       await _pumpSearch(tester);
 
-      expect(find.text('Tout'), findsOneWidget);
+      expect(find.text('Sélection'), findsOneWidget);
       expect(find.text('Pizzas'), findsOneWidget);
       expect(find.text('Desserts'), findsOneWidget);
       expect(find.text('Nearest'), findsNothing);
