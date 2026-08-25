@@ -1,0 +1,25 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  errors:
+    invalid_annotation_target: ignore
+
+linter:
+  rules:
+    # Imports
+    always_use_package_imports: true
+    # Style
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    require_trailing_commas: true
+    # Qualité
+    avoid_print: true
+    avoid_empty_else: true
+    avoid_relative_lib_imports: true
+    cancel_subscriptions: true
+    close_sinks: true
+    # Null safety
+    prefer_null_aware_operators: true

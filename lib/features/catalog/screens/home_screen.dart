@@ -133,7 +133,14 @@ class _HomeHeader extends ConsumerWidget {
                     // est hors périmètre de ce plan (déferré) — il réutiliserait
                     // l'UI de sélection d'adresse déjà construite pour le
                     // checkout (features/checkout/screens/steps/step_address.dart).
-                    const Icon(Icons.keyboard_arrow_down, size: 18),
+                    // Couleur alignée sur la cloche de notifications (grey400)
+                    // pour signaler visuellement qu'il ne s'agit pas d'un
+                    // contrôle interactif.
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: AppColors.grey400,
+                    ),
                   ],
                 ),
                 if (isAuthenticated) ...[

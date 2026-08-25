@@ -103,6 +103,22 @@ void main() {
     });
 
     testWidgets(
+        "le chevron d'adresse n'est plus un bouton tapable et partage le "
+        'style muted de la cloche', (tester) async {
+      await _pumpHome(tester);
+
+      final chevronFinder = find.byIcon(Icons.keyboard_arrow_down);
+      expect(chevronFinder, findsOneWidget);
+      expect(find.byType(IconButton), findsNothing);
+
+      final chevron = tester.widget<Icon>(chevronFinder);
+      final bell = tester.widget<Icon>(
+        find.byIcon(Icons.notifications_none),
+      );
+      expect(chevron.color, equals(bell.color));
+    });
+
+    testWidgets(
         'un produit à la fois vedette et catégorisé ne casse pas la '
         'navigation (pas de collision de tag Hero)', (tester) async {
       await _pumpHome(tester);

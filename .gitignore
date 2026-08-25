@@ -1,0 +1,60 @@
+# ── Dart / Flutter ────────────────────────────────────────────────────────────
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+doc/api/
+
+# Fichiers générés par build_runner — ne pas committer
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ── iOS ───────────────────────────────────────────────────────────────────────
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner/GoogleService-Info.plist
+
+# ── macOS (Flutter generated) ────────────────────────────────────────────────
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# ── Android ───────────────────────────────────────────────────────────────────
+android/.gradle/
+android/local.properties
+android/captures/
+android/app/src/main/google-services.json
+android/key.properties
+*.keystore
+*.jks
+
+# ── Secrets & config sensible ─────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+config/dart-defines.production.json
+firebase_options.dart
+google-services.json
+GoogleService-Info.plist
+
+# ── Coverage ──────────────────────────────────────────────────────────────────
+coverage/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log

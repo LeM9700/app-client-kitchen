@@ -1,0 +1,84 @@
+name: app_client
+description: "App client O'Pizza — commande en ligne pour restaurants"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.22.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navigation
+  go_router: ^14.2.7
+
+  # HTTP
+  dio: ^5.6.0
+
+  # Modèles
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Stockage sécurisé
+  flutter_secure_storage: ^9.2.2
+
+  # Paiement
+  flutter_stripe: ^11.1.0
+
+  # Push notifications
+  firebase_core: ^3.3.0
+  firebase_messaging: ^15.1.0
+
+  # WebSocket
+  web_socket_channel: ^3.0.1
+
+  # Carte (sélection manuelle de point pour l'adresse de livraison — pas de
+  # SDK de géocodage disponible, voir Plan 11 / api-corrections-phase-d.md §3)
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
+  # Connectivité réseau
+  connectivity_plus: ^6.0.3
+
+  # Polices
+  google_fonts: ^6.2.1
+
+  # Utils
+  uuid: ^4.4.2
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.12
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.4.3
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/fonts/
+  # [🔧] La déclaration `fonts:` d'Inter a été retirée : les 4 fichiers .ttf
+  # qu'elle référençait n'ont jamais été ajoutés au dépôt (assets/fonts/ ne
+  # contient qu'un .gitkeep), ce qui fait échouer TOUT build/test avec
+  # "unable to locate asset entry". Aucun code de l'app ne référence
+  # `fontFamily: 'Inter'` (vérifié) — la police par défaut retombe donc sur
+  # la police système tant que ceci n'est pas résolu. Deux options pour
+  # rétablir Inter comme prévu par `app_typography.dart` :
+  # 1. Ajouter les vrais fichiers Inter-{Regular,Medium,SemiBold,Bold}.ttf
+  #    dans assets/fonts/ et remettre ce bloc `fonts:` tel qu'il était.
+  # 2. Remplacer le cas par défaut de `AppTypography.generate()` par
+  #    `GoogleFonts.interTextTheme(base)` (google_fonts est déjà une
+  #    dépendance) — mais ça introduit un appel réseau au premier boot,
+  #    ce que le commentaire d'origine de `app_typography.dart` voulait
+  #    justement éviter.

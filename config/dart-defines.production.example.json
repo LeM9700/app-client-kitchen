@@ -1,0 +1,23 @@
+{
+  "APP_ENV": "production",
+  "API_BASE_URL": "https://api.example.com",
+  "STRIPE_PUBLISHABLE_KEY": "pk_live_REPLACE_WITH_REAL_KEY",
+  "APPLE_MERCHANT_IDENTIFIER": "merchant.com.example.restaurant",
+  "GOOGLE_PAY_TEST_ENV": "false",
+  "TENANT_SLUG": "restaurant-prod",
+  "PRIVACY_POLICY_URL": "https://example.com/privacy",
+  "TERMS_OF_USE_URL": "https://example.com/terms",
+  "FIREBASE_PROJECT_ID": "firebase-project-id",
+  "FIREBASE_MESSAGING_SENDER_ID": "1234567890",
+  "FIREBASE_STORAGE_BUCKET": "firebase-project-id.appspot.com",
+  "FIREBASE_ANDROID_API_KEY": "android-api-key",
+  "FIREBASE_ANDROID_APP_ID": "1:1234567890:android:abcdef",
+  "FIREBASE_IOS_API_KEY": "ios-api-key",
+  "FIREBASE_IOS_APP_ID": "1:1234567890:ios:abcdef",
+  "FIREBASE_IOS_BUNDLE_ID": "com.opizza.appClient",
+  "FIREBASE_WEB_API_KEY": "web-api-key",
+  "FIREBASE_WEB_APP_ID": "1:1234567890:web:abcdef",
+  "FIREBASE_WEB_AUTH_DOMAIN": "firebase-project-id.firebaseapp.com",
+  "FIREBASE_WEB_MEASUREMENT_ID": "G-XXXXXXXXXX",
+  "FIREBASE_WEB_VAPID_KEY": "web-push-vapid-key"
+}
