@@ -68,6 +68,17 @@ abstract final class ApiEndpoints {
   // ── Livraison ─────────────────────────────────────────────────────────────
   static const String deliveryCheck = '/delivery/check';
 
+  // ── Favoris ───────────────────────────────────────────────────────────────
+  // `GET`/`POST /favorites`, `DELETE /favorites/{product_id}` — toutes
+  // authentifiées (`Depends(get_current_user)` côté serveur, n'importe quel
+  // rôle). `POST`/`DELETE` sont idempotents côté serveur (voir
+  // `api-pizza/app/modules/favorites/router.py`) : un toggle client n'a pas
+  // besoin de connaître l'état exact côté serveur avant d'appeler.
+  static const String favorites = '/favorites';
+
+  /// `DELETE /favorites/{product_id}`.
+  static String favorite(int productId) => '/favorites/$productId';
+
   // ── Promotions & Fidélité ─────────────────────────────────────────────────
   static const String promotions = '/promotions';
   static const String promotionsValidate = '/promotions/validate';
