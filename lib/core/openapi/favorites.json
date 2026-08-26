@@ -1,0 +1,134 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pizzeria API — favorites",
+    "version": "1.0.0",
+    "description": "Sous-ensemble scope au module favorites, extrait a la main de api-pizza/app/modules/favorites/ (router.py, schemas.py) — POC de generation de client Dart depuis OpenAPI. Regeneration reelle : demarrer api-pizza en local (`uvicorn app.main:app`) puis `curl http://127.0.0.1:8000/openapi.json` (voir api-pizza/docs/local-testing.md etape 6)."
+  },
+  "servers": [
+    { "url": "/api/v1" }
+  ],
+  "paths": {
+    "/favorites": {
+      "get": {
+        "operationId": "listFavorites",
+        "summary": "Lister mes favoris",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FavoriteResponse" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Non authentifie" }
+        }
+      },
+      "post": {
+        "operationId": "addFavorite",
+        "summary": "Marquer un produit favori",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/FavoriteCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+              }
+            }
+          },
+          "401": { "description": "Non authentifie" },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorites/{product_id}": {
+      "delete": {
+        "operationId": "removeFavorite",
+        "summary": "Retirer un produit des favoris",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Successful Response" },
+          "401": { "description": "Non authentifie" },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    },
+    "schemas": {
+      "FavoriteCreate": {
+        "type": "object",
+        "required": ["product_id"],
+        "properties": {
+          "product_id": { "type": "integer" }
+        }
+      },
+      "FavoriteResponse": {
+        "type": "object",
+        "required": ["id", "product_id", "created_at"],
+        "properties": {
+          "id": { "type": "integer" },
+          "product_id": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "properties": {
+          "loc": { "type": "array", "items": { "type": "string" } },
+          "msg": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      },
+      "HTTPValidationError": {
+        "type": "object",
+        "properties": {
+          "detail": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ValidationError" }
+          }
+        }
+      }
+    }
+  }
+}

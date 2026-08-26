@@ -1,0 +1,8 @@
+targets:
+  $default:
+    builders:
+      swagger_dart_code_generator:
+        options:
+          input_folder: lib/core/openapi/
+          output_folder: lib/core/generated/favorites_client/
+          build_only_models: true
