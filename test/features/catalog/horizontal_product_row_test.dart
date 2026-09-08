@@ -58,7 +58,7 @@ void main() {
     });
 
     testWidgets("se masque silencieusement en cas d'erreur", (tester) async {
-      await _pump(tester, AsyncValue.error('boom', StackTrace.empty));
+      await _pump(tester, const AsyncValue.error('boom', StackTrace.empty));
 
       expect(find.text('Pizzas'), findsNothing);
     });

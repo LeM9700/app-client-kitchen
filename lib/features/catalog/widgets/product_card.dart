@@ -197,7 +197,7 @@ class _QuickAddButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: DecoratedBox(
+      child: const DecoratedBox(
         decoration: const BoxDecoration(
           color: AppColors.brandRed,
           shape: BoxShape.circle,
