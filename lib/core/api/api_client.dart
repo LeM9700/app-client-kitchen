@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_client/core/auth/token_storage.dart';
 import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/errors/app_exception.dart';
+import 'package:app_client/core/providers/auth_session_provider.dart';
 import 'package:app_client/core/providers/auth_token_provider.dart';
 
 /// Client HTTP singleton de l'application.
@@ -11,7 +12,8 @@ import 'package:app_client/core/providers/auth_token_provider.dart';
 /// Responsabilités :
 /// - Attacher le header `X-Tenant-Slug` sur toutes les requêtes.
 /// - Attacher le `Bearer` token si l'utilisateur est authentifié.
-/// - Rafraîchir automatiquement l'access token sur réponse 401.
+/// - Rafraîchir automatiquement la paire access/refresh token (rotation)
+///   sur réponse 401.
 /// - Déconnecter proprement l'utilisateur si le refresh échoue.
 /// - Convertir les [DioException] en [AppException] (via [handleDioError]).
 ///
@@ -148,6 +150,12 @@ class ApiClient {
               final retryResponse = await _dio.fetch<dynamic>(opts);
               return handler.resolve(retryResponse);
             }
+            // [🔒 CORRECTIF] `_tryRefresh` renvoie `null` sans lever
+            // d'exception quand l'API ne renvoie pas de paire complète
+            // (refresh token absent/révoqué) — sans ce branchement, la
+            // session restait "valide" en mémoire (access token jamais nettoyé)
+            // alors qu'aucun renouvellement n'a pu avoir lieu.
+            await _doLogout();
           } catch (_) {
             // Refresh échoué (token révoqué, session expirée) → déconnexion.
             await _doLogout();
@@ -161,9 +169,23 @@ class ApiClient {
     );
   }
 
-  /// Tente de rafraîchir l'access token via [ApiEndpoints.refresh].
+  /// Tente de rafraîchir la paire access/refresh token via
+  /// [ApiEndpoints.refresh].
   ///
-  /// Retourne le nouveau token si le refresh réussit, `null` sinon.
+  /// [🔒 CORRECTIF] L'API pratique une rotation du refresh token à chaque
+  /// appel : le refresh token utilisé dans la requête est immédiatement
+  /// révoqué côté serveur et remplacé par celui renvoyé dans la réponse
+  /// (`TokenResponse.refresh_token`). L'ancien code ne persistait jamais ce
+  /// nouveau refresh token — le prochain renouvellement retentait alors
+  /// l'ancien token révoqué et échouait systématiquement (session invalidée
+  /// prématurément). On persiste donc ici la paire complète, et on ne
+  /// considère le refresh réussi que si l'API a bien renvoyé un nouveau
+  /// refresh token : continuer avec l'ancien serait sinon voué à l'échec au
+  /// prochain cycle.
+  ///
+  /// Met aussi à jour [currentSessionIdProvider] si l'API renvoie un nouvel
+  /// identifiant de session (`session_id`), et retourne le nouvel access
+  /// token si le refresh réussit, `null` sinon.
   Future<String?> _tryRefresh() async {
     final refreshToken = await _storage.getRefreshToken();
     if (refreshToken == null) return null;
@@ -172,16 +194,29 @@ class ApiClient {
       '/auth/refresh',
       data: {'refresh_token': refreshToken},
     );
-    return response.data?['access_token'] as String?;
+    final data = response.data;
+    final newAccessToken = data?['access_token'] as String?;
+    final newRefreshToken = data?['refresh_token'] as String?;
+    if (newAccessToken == null || newRefreshToken == null) return null;
+
+    await _storage.saveRefreshToken(newRefreshToken);
+
+    final newSessionId = data?['session_id'] as int?;
+    if (newSessionId != null) {
+      _ref.read(currentSessionIdProvider.notifier).state = newSessionId;
+    }
+
+    return newAccessToken;
   }
 
-  /// Déconnexion propre : vide l'access token en mémoire et le refresh token
-  /// en storage sécurisé.
+  /// Déconnexion propre : vide l'access token et l'id de session en mémoire,
+  /// et le refresh token en storage sécurisé.
   ///
   /// Le router guard (Plan 05) détecte `accessTokenProvider == null` et
   /// redirige vers `/auth/login`.
   Future<void> _doLogout() async {
     _ref.read(accessTokenProvider.notifier).state = null;
+    _ref.read(currentSessionIdProvider.notifier).state = null;
     await _storage.clearRefreshToken();
   }
 
