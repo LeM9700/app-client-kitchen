@@ -19,6 +19,7 @@ void main() {
         firebaseStorageBucketOverride: '',
         firebaseApiKeyOverride: '',
         firebaseAppIdOverride: '',
+        sentryDsnOverride: '',
       );
 
       expect(errors, contains('APP_ENV must be production in release.'));
@@ -45,6 +46,7 @@ void main() {
       expect(errors, contains('FIREBASE_PROJECT_ID is required.'));
       expect(errors, contains('FIREBASE_MESSAGING_SENDER_ID is required.'));
       expect(errors, contains('FIREBASE_STORAGE_BUCKET is required.'));
+      expect(errors, contains('SENTRY_DSN must be an HTTPS URL.'));
     });
 
     test('accepts a production-safe configuration', () {
@@ -62,6 +64,7 @@ void main() {
         firebaseStorageBucketOverride: 'opizza-prod.appspot.com',
         firebaseApiKeyOverride: 'AIza-prod',
         firebaseAppIdOverride: '1:1234567890:android:abcdef',
+        sentryDsnOverride: 'https://public@o123.ingest.sentry.io/456',
       );
 
       expect(errors, isEmpty);

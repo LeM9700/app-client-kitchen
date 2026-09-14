@@ -19,5 +19,6 @@
   "FIREBASE_WEB_APP_ID": "1:1234567890:web:abcdef",
   "FIREBASE_WEB_AUTH_DOMAIN": "firebase-project-id.firebaseapp.com",
   "FIREBASE_WEB_MEASUREMENT_ID": "G-XXXXXXXXXX",
-  "FIREBASE_WEB_VAPID_KEY": "web-push-vapid-key"
+  "FIREBASE_WEB_VAPID_KEY": "web-push-vapid-key",
+  "SENTRY_DSN": "https://public_key@o0.ingest.sentry.io/0"
 }

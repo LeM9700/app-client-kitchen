@@ -131,6 +131,14 @@ abstract final class Env {
     defaultValue: '',
   );
 
+  /// Sentry DSN for production crash/error reporting. Required in release —
+  /// see [ErrorReporting] in `core/monitoring/error_reporter.dart`, which
+  /// falls back to a no-op reporter when this is empty.
+  static const String sentryDsn = String.fromEnvironment(
+    'SENTRY_DSN',
+    defaultValue: '',
+  );
+
   static String get currentFirebaseApiKey {
     if (kIsWeb) return _firstNonEmpty(firebaseWebApiKey, firebaseApiKey);
     return switch (defaultTargetPlatform) {
@@ -183,6 +191,7 @@ abstract final class Env {
     String? firebaseStorageBucketOverride,
     String? firebaseApiKeyOverride,
     String? firebaseAppIdOverride,
+    String? sentryDsnOverride,
   }) {
     final errors = <String>[];
     final environment = (appEnvironmentOverride ?? appEnvironment).trim();
@@ -204,6 +213,7 @@ abstract final class Env {
     final firebaseKey =
         (firebaseApiKeyOverride ?? currentFirebaseApiKey).trim();
     final firebaseApp = (firebaseAppIdOverride ?? currentFirebaseAppId).trim();
+    final sentryDsnValue = (sentryDsnOverride ?? sentryDsn).trim();
 
     if (environment != 'production') {
       errors.add('APP_ENV must be production in release.');
@@ -275,6 +285,10 @@ abstract final class Env {
       errors.add(
         'FIREBASE_APP_ID or platform-specific Firebase app id is required.',
       );
+    }
+
+    if (!_isHttpsUrl(sentryDsnValue)) {
+      errors.add('SENTRY_DSN must be an HTTPS URL.');
     }
 
     return errors;

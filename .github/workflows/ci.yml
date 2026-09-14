@@ -32,3 +32,101 @@ jobs:
 
       - name: Flutter test
         run: flutter test
+
+  gitleaks:
+    name: secrets scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Required if this repo lives in a GitHub organization. See
+          # RUNBOOK.md "Rotation secrets et signing".
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  osv-scan:
+    name: dependency vulnerability scan (OSV)
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.0.3
+    with:
+      scan-args: |-
+        --lockfile=pubspec.lock
+
+  android-release-build:
+    name: Android signed release build
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.27.0
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code (freezed / json_serializable / riverpod)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Check release signing secrets
+        id: signing
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore release keystore
+        if: steps.signing.outputs.configured == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+          cat > android/key.properties <<KEYPROPS
+          storeFile=app/upload-keystore.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYPROPS
+
+      - name: Build signed App Bundle
+        if: steps.signing.outputs.configured == 'true'
+        run: flutter build appbundle --release
+
+      - name: Signing secrets not configured
+        if: steps.signing.outputs.configured == 'false'
+        run: |
+          echo "::warning::ANDROID_KEYSTORE_BASE64/ANDROID_KEYSTORE_PASSWORD/ANDROID_KEY_ALIAS/ANDROID_KEY_PASSWORD are not set as repo secrets — signed release build skipped. This is not a release-ready CI run until they are added. See RUNBOOK.md."
+
+  ios-build:
+    name: iOS build (no codesign)
+    runs-on: macos-latest
+    needs: analyze-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.27.0
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code (freezed / json_serializable / riverpod)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign

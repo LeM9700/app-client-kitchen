@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/config/firebase_env_options.dart';
@@ -15,6 +16,20 @@ Future<void> main() async {
   await runZonedGuarded<Future<void>>(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      if (Env.sentryDsn.trim().isNotEmpty) {
+        await Sentry.init((options) {
+          options.dsn = Env.sentryDsn;
+          options.environment = Env.appEnvironment;
+          // Performance tracing is not needed for error reporting alone.
+          options.tracesSampleRate = 0.0;
+          // Error capture stays funneled through ErrorReporting below —
+          // this is the base `Sentry.init`, not `SentryFlutter.init`, so no
+          // Flutter-specific auto integrations (FlutterError.onError, etc.)
+          // get installed on top of the existing manual wiring.
+        });
+      }
+
       FlutterError.onError = (details) {
         FlutterError.presentError(details);
         unawaited(ErrorReporting.recordFlutterError(details, fatal: true));

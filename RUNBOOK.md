@@ -6,23 +6,34 @@ externes dans le depot.
 
 ## Preuves CI
 
-La preuve CI valide est le workflow root
-`../.github/workflows/app-client-ci.yml`.
+Ce depot est standalone (remote `LeM9700/app-client-kitchen`) ; la preuve CI
+valide est le workflow de ce depot lui-meme, `.github/workflows/ci.yml`
+(jobs `analyze-and-test`, `gitleaks`, `osv-scan`, `android-release-build`,
+`ios-build`).
 
 Pour une release candidate, archiver :
 
-- run `Format, Analyze, Test` vert ;
-- run OSV vert sur `app-client/pubspec.lock` ;
-- run Gitleaks vert ;
-- artefact Android signe ;
-- build iOS `--no-codesign` vert ;
+- run `analyze-and-test` vert ;
+- run `osv-scan` vert sur `pubspec.lock` ;
+- run `gitleaks` vert ;
+- run `android-release-build` vert avec artefact `.aab` signe produit (pas
+  seulement "skipped" — verifier que le job n'a pas juste affiche
+  l'avertissement "signing secrets not configured") ;
+- run `ios-build` (`--no-codesign`) vert ;
 - log du test `env_release_runtime_test.dart` avec secrets masques par GitHub.
 
-Si le depot est dans une organisation GitHub, ajouter aussi
-`GITLEAKS_LICENSE` aux secrets CI.
+Secrets CI requis dans les parametres du depot GitHub (Settings > Secrets and
+variables > Actions) :
 
-Un run CI n'est pas une preuve si le workflow vient de `app-client/.github/`
-dans le depot root actuel.
+- `GITLEAKS_LICENSE` si le depot est dans une organisation GitHub.
+- `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
+  `ANDROID_KEY_PASSWORD` pour que `android-release-build` produise un
+  artefact signe reel plutot que d'etre saute.
+
+Tant que ces secrets ne sont pas configures, la CI reste verte (le job
+signing se saute proprement) mais **ne prouve pas** un artefact release
+signe — ne pas confondre "CI verte" avec "release verifiee" avant que ces
+secrets existent.
 
 ## Rotation secrets et signing
 
@@ -60,6 +71,9 @@ Android signing :
 - Stripe PaymentSheet teste en staging : paiement, 3DS, annulation, retry.
 - Push notification ouvre uniquement `/orders/<id>/tracking` avec `id` entier
   positif.
+- `SENTRY_DSN` renseigné avec un projet Sentry réel ; une erreur de test
+  declenchee manuellement (ex. bouton debug ou `throw` temporaire) apparait
+  bien dans le dashboard Sentry avant publication.
 
 ## Preuves hors client
 

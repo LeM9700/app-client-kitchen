@@ -58,6 +58,7 @@ Variables attendues :
 - `TERMS_OF_USE_URL=https://...`
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_MESSAGING_SENDER_ID`
+- `SENTRY_DSN` (crash/error reporting en release — voir `lib/core/monitoring/error_reporter.dart`)
 - `FIREBASE_STORAGE_BUCKET`
 - `FIREBASE_ANDROID_API_KEY` / `FIREBASE_ANDROID_APP_ID`
 - `FIREBASE_IOS_API_KEY` / `FIREBASE_IOS_APP_ID` / `FIREBASE_IOS_BUNDLE_ID`
