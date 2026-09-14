@@ -3,8 +3,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:app_client/core/config/env.dart';
+import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
+import 'package:app_client/design_system/kod_mome/neumorphic_surface.dart';
 import 'package:app_client/features/checkout/models/checkout_state.dart';
 import 'package:app_client/features/checkout/providers/checkout_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 final addressMapTileLayerProvider = Provider<Widget>(
   (ref) => TileLayer(
@@ -56,12 +60,11 @@ class _StepAddressState extends ConsumerState<StepAddress> {
   }
 
   void _onCheckZone() {
+    final l10n = AppLocalizations.of(context)!;
     final address = _addressController.text.trim();
     if (address.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Saisissez une adresse de livraison pour continuer.'),
-        ),
+        SnackBar(content: Text(l10n.checkoutAddressMissingError)),
       );
       return;
     }
@@ -69,9 +72,7 @@ class _StepAddressState extends ConsumerState<StepAddress> {
     final point = _selectedPoint;
     if (point == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Placez un point sur la carte pour continuer.'),
-        ),
+        SnackBar(content: Text(l10n.checkoutPinMissingError)),
       );
       return;
     }
@@ -85,10 +86,14 @@ class _StepAddressState extends ConsumerState<StepAddress> {
   @override
   Widget build(BuildContext context) {
     final checkoutState = ref.watch(checkoutProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final isKodMome = Env.isKodMomeBuild;
 
     return Column(
       children: [
         Expanded(
+          // Jamais de surface floutée sur/près de cette carte (coût de
+          // repaint des tuiles + blur cumulé) — voir garde-fous perf du plan.
           child: FlutterMap(
             options: MapOptions(
               initialCenter: _selectedPoint ?? _defaultCenter,
@@ -115,32 +120,65 @@ class _StepAddressState extends ConsumerState<StepAddress> {
             ],
           ),
         ),
-        Padding(
+        Container(
+          color: isKodMome ? KodMomeDesignPack.charcoal : null,
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Saisissez votre adresse, puis touchez la carte pour placer le repère de livraison.',
-                style: Theme.of(context).textTheme.bodySmall,
+                l10n.checkoutAddressInstructions,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isKodMome
+                          ? KodMomeDesignPack.cream.withValues(alpha: 0.75)
+                          : null,
+                    ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Adresse de livraison',
-                  helperText:
-                      'Le repère sert à vérifier la zone, l’adresse est transmise à la commande.',
-                  border: OutlineInputBorder(),
+                style: isKodMome
+                    ? const TextStyle(color: KodMomeDesignPack.cream)
+                    : null,
+                decoration: InputDecoration(
+                  labelText: l10n.checkoutStepAddressTitle,
+                  helperText: l10n.checkoutAddressHelper,
+                  labelStyle: isKodMome
+                      ? TextStyle(
+                          color:
+                              KodMomeDesignPack.cream.withValues(alpha: 0.6),
+                        )
+                      : null,
+                  helperStyle: isKodMome
+                      ? TextStyle(
+                          color:
+                              KodMomeDesignPack.cream.withValues(alpha: 0.5),
+                        )
+                      : null,
+                  enabledBorder: isKodMome
+                      ? OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: KodMomeDesignPack.primary
+                                .withValues(alpha: 0.5),
+                          ),
+                        )
+                      : const OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 textInputAction: TextInputAction.done,
               ),
               if (_selectedPoint != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'Repère : ${_selectedPoint!.latitude.toStringAsFixed(5)}, '
-                  '${_selectedPoint!.longitude.toStringAsFixed(5)}',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  l10n.checkoutPinCoordinates(
+                    _selectedPoint!.latitude.toStringAsFixed(5),
+                    _selectedPoint!.longitude.toStringAsFixed(5),
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isKodMome
+                            ? KodMomeDesignPack.cream.withValues(alpha: 0.75)
+                            : null,
+                      ),
                 ),
               ],
               const SizedBox(height: 12),
@@ -154,20 +192,49 @@ class _StepAddressState extends ConsumerState<StepAddress> {
                   onPressed: () => ref
                       .read(checkoutProvider.notifier)
                       .selectDeliveryMode(DeliveryMode.pickup),
-                  child: const Text('Passer en retrait en boutique'),
+                  child: Text(
+                    l10n.checkoutSwitchToPickup,
+                    style: isKodMome
+                        ? const TextStyle(color: KodMomeDesignPack.primary)
+                        : null,
+                  ),
                 ),
                 const SizedBox(height: 8),
               ],
-              ElevatedButton(
-                onPressed: checkoutState.isLoading ? null : _onCheckZone,
-                child: checkoutState.isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Vérifier la zone'),
-              ),
+              isKodMome
+                  ? NeumorphicButton(
+                      borderRadius: 16,
+                      onTap: checkoutState.isLoading ? () {} : _onCheckZone,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: checkoutState.isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: KodMomeDesignPack.primary,
+                                ),
+                              )
+                            : Text(
+                                l10n.checkoutCheckZoneButton,
+                                style: const TextStyle(
+                                  color: KodMomeDesignPack.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                      ),
+                    )
+                  : ElevatedButton(
+                      onPressed: checkoutState.isLoading ? null : _onCheckZone,
+                      child: checkoutState.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(l10n.checkoutCheckZoneButton),
+                    ),
             ],
           ),
         ),

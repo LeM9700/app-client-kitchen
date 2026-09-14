@@ -96,5 +96,12 @@
   "checkoutRecapPickupOnly": "Preuzimanje direktno u restoranu.",
   "checkoutRecapEstimatedTotal": "Procenjeni ukupan iznos",
   "checkoutRecapFinalAmountNotice": "Konačan iznos izračunava server prilikom kreiranja porudžbine.",
-  "checkoutConfirmOrderButton": "Potvrdi porudžbinu"
+  "checkoutConfirmOrderButton": "Potvrdi porudžbinu",
+
+  "paymentTitle": "Plaćanje",
+  "paymentSecureTitle": "Bezbedno plaćanje",
+  "paymentSecureSubtitle": "Vaše plaćanje je šifrovano i zaštićeno preko Stripe-a.",
+  "paymentRetryButton": "Pokušaj ponovo",
+  "paymentPayNowButton": "Plati sada",
+  "paymentCancelButton": "Otkaži"
 }

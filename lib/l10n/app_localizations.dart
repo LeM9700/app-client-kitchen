@@ -506,6 +506,108 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'À récupérer sur place'**
   String get checkoutPickupSubtitle;
+
+  /// No description provided for @checkoutAddressMissingError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez une adresse de livraison pour continuer.'**
+  String get checkoutAddressMissingError;
+
+  /// No description provided for @checkoutPinMissingError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Placez un point sur la carte pour continuer.'**
+  String get checkoutPinMissingError;
+
+  /// No description provided for @checkoutAddressInstructions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez votre adresse, puis touchez la carte pour placer le repère de livraison.'**
+  String get checkoutAddressInstructions;
+
+  /// No description provided for @checkoutAddressHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le repère sert à vérifier la zone, l\'adresse est transmise à la commande.'**
+  String get checkoutAddressHelper;
+
+  /// No description provided for @checkoutPinCoordinates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repère : {lat}, {lng}'**
+  String checkoutPinCoordinates(String lat, String lng);
+
+  /// No description provided for @checkoutSwitchToPickup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer en retrait en boutique'**
+  String get checkoutSwitchToPickup;
+
+  /// No description provided for @checkoutCheckZoneButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier la zone'**
+  String get checkoutCheckZoneButton;
+
+  /// No description provided for @checkoutRecapArticlesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Articles'**
+  String get checkoutRecapArticlesTitle;
+
+  /// No description provided for @checkoutRecapLineItem.
+  ///
+  /// In fr, this message translates to:
+  /// **'{quantity} × {name}'**
+  String checkoutRecapLineItem(int quantity, String name);
+
+  /// No description provided for @checkoutRecapZone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Zone : {zone}'**
+  String checkoutRecapZone(String zone);
+
+  /// No description provided for @checkoutRecapEstimatedTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Délai estimé : {minutes} min'**
+  String checkoutRecapEstimatedTime(int minutes);
+
+  /// No description provided for @checkoutRecapDeliveryFee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Frais de livraison : {price}'**
+  String checkoutRecapDeliveryFee(String price);
+
+  /// No description provided for @checkoutRecapAddress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse : {address}'**
+  String checkoutRecapAddress(String address);
+
+  /// No description provided for @checkoutRecapPickupOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'À récupérer directement en boutique.'**
+  String get checkoutRecapPickupOnly;
+
+  /// No description provided for @checkoutRecapEstimatedTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total estimé'**
+  String get checkoutRecapEstimatedTotal;
+
+  /// No description provided for @checkoutRecapFinalAmountNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le montant définitif est calculé par le serveur à la création de la commande.'**
+  String get checkoutRecapFinalAmountNotice;
+
+  /// No description provided for @checkoutConfirmOrderButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer la commande'**
+  String get checkoutConfirmOrderButton;
 }
 
 class _AppLocalizationsDelegate

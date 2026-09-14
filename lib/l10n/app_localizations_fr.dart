@@ -225,4 +225,72 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get checkoutPickupSubtitle => 'À récupérer sur place';
+
+  @override
+  String get checkoutAddressMissingError =>
+      'Saisissez une adresse de livraison pour continuer.';
+
+  @override
+  String get checkoutPinMissingError =>
+      'Placez un point sur la carte pour continuer.';
+
+  @override
+  String get checkoutAddressInstructions =>
+      'Saisissez votre adresse, puis touchez la carte pour placer le repère de livraison.';
+
+  @override
+  String get checkoutAddressHelper =>
+      'Le repère sert à vérifier la zone, l\'adresse est transmise à la commande.';
+
+  @override
+  String checkoutPinCoordinates(String lat, String lng) {
+    return 'Repère : $lat, $lng';
+  }
+
+  @override
+  String get checkoutSwitchToPickup => 'Passer en retrait en boutique';
+
+  @override
+  String get checkoutCheckZoneButton => 'Vérifier la zone';
+
+  @override
+  String get checkoutRecapArticlesTitle => 'Articles';
+
+  @override
+  String checkoutRecapLineItem(int quantity, String name) {
+    return '$quantity × $name';
+  }
+
+  @override
+  String checkoutRecapZone(String zone) {
+    return 'Zone : $zone';
+  }
+
+  @override
+  String checkoutRecapEstimatedTime(int minutes) {
+    return 'Délai estimé : $minutes min';
+  }
+
+  @override
+  String checkoutRecapDeliveryFee(String price) {
+    return 'Frais de livraison : $price';
+  }
+
+  @override
+  String checkoutRecapAddress(String address) {
+    return 'Adresse : $address';
+  }
+
+  @override
+  String get checkoutRecapPickupOnly => 'À récupérer directement en boutique.';
+
+  @override
+  String get checkoutRecapEstimatedTotal => 'Total estimé';
+
+  @override
+  String get checkoutRecapFinalAmountNotice =>
+      'Le montant définitif est calculé par le serveur à la création de la commande.';
+
+  @override
+  String get checkoutConfirmOrderButton => 'Confirmer la commande';
 }

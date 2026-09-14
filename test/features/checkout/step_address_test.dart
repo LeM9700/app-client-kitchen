@@ -12,6 +12,7 @@ import 'package:app_client/features/checkout/models/delivery_info.dart';
 import 'package:app_client/features/checkout/providers/checkout_provider.dart';
 import 'package:app_client/features/checkout/repositories/checkout_repository.dart';
 import 'package:app_client/features/checkout/screens/steps/step_address.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 class MockCheckoutRepository extends Mock implements CheckoutRepository {}
 
@@ -54,8 +55,11 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(
-          home: Scaffold(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('fr'),
+          home: const Scaffold(
             body: SizedBox(
               width: 420,
               height: 760,

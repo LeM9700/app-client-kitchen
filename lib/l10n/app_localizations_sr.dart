@@ -225,6 +225,74 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get checkoutPickupSubtitle => 'Preuzmite lično';
+
+  @override
+  String get checkoutAddressMissingError =>
+      'Unesite adresu za dostavu da biste nastavili.';
+
+  @override
+  String get checkoutPinMissingError =>
+      'Postavite tačku na mapi da biste nastavili.';
+
+  @override
+  String get checkoutAddressInstructions =>
+      'Unesite svoju adresu, zatim dodirnite mapu da postavite oznaku za dostavu.';
+
+  @override
+  String get checkoutAddressHelper =>
+      'Oznaka služi za proveru zone, adresa se prosleđuje uz porudžbinu.';
+
+  @override
+  String checkoutPinCoordinates(String lat, String lng) {
+    return 'Oznaka: $lat, $lng';
+  }
+
+  @override
+  String get checkoutSwitchToPickup => 'Pređi na preuzimanje u restoranu';
+
+  @override
+  String get checkoutCheckZoneButton => 'Proveri zonu';
+
+  @override
+  String get checkoutRecapArticlesTitle => 'Stavke';
+
+  @override
+  String checkoutRecapLineItem(int quantity, String name) {
+    return '$quantity × $name';
+  }
+
+  @override
+  String checkoutRecapZone(String zone) {
+    return 'Zona: $zone';
+  }
+
+  @override
+  String checkoutRecapEstimatedTime(int minutes) {
+    return 'Procenjeno vreme: $minutes min';
+  }
+
+  @override
+  String checkoutRecapDeliveryFee(String price) {
+    return 'Troškovi dostave: $price';
+  }
+
+  @override
+  String checkoutRecapAddress(String address) {
+    return 'Adresa: $address';
+  }
+
+  @override
+  String get checkoutRecapPickupOnly => 'Preuzimanje direktno u restoranu.';
+
+  @override
+  String get checkoutRecapEstimatedTotal => 'Procenjeni ukupan iznos';
+
+  @override
+  String get checkoutRecapFinalAmountNotice =>
+      'Konačan iznos izračunava server prilikom kreiranja porudžbine.';
+
+  @override
+  String get checkoutConfirmOrderButton => 'Potvrdi porudžbinu';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -448,4 +516,72 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get checkoutPickupSubtitle => 'Preuzmite lično';
+
+  @override
+  String get checkoutAddressMissingError =>
+      'Unesite adresu za dostavu da biste nastavili.';
+
+  @override
+  String get checkoutPinMissingError =>
+      'Postavite tačku na mapi da biste nastavili.';
+
+  @override
+  String get checkoutAddressInstructions =>
+      'Unesite svoju adresu, zatim dodirnite mapu da postavite oznaku za dostavu.';
+
+  @override
+  String get checkoutAddressHelper =>
+      'Oznaka služi za proveru zone, adresa se prosleđuje uz porudžbinu.';
+
+  @override
+  String checkoutPinCoordinates(String lat, String lng) {
+    return 'Oznaka: $lat, $lng';
+  }
+
+  @override
+  String get checkoutSwitchToPickup => 'Pređi na preuzimanje u restoranu';
+
+  @override
+  String get checkoutCheckZoneButton => 'Proveri zonu';
+
+  @override
+  String get checkoutRecapArticlesTitle => 'Stavke';
+
+  @override
+  String checkoutRecapLineItem(int quantity, String name) {
+    return '$quantity × $name';
+  }
+
+  @override
+  String checkoutRecapZone(String zone) {
+    return 'Zona: $zone';
+  }
+
+  @override
+  String checkoutRecapEstimatedTime(int minutes) {
+    return 'Procenjeno vreme: $minutes min';
+  }
+
+  @override
+  String checkoutRecapDeliveryFee(String price) {
+    return 'Troškovi dostave: $price';
+  }
+
+  @override
+  String checkoutRecapAddress(String address) {
+    return 'Adresa: $address';
+  }
+
+  @override
+  String get checkoutRecapPickupOnly => 'Preuzimanje direktno u restoranu.';
+
+  @override
+  String get checkoutRecapEstimatedTotal => 'Procenjeni ukupan iznos';
+
+  @override
+  String get checkoutRecapFinalAmountNotice =>
+      'Konačan iznos izračunava server prilikom kreiranja porudžbine.';
+
+  @override
+  String get checkoutConfirmOrderButton => 'Potvrdi porudžbinu';
 }

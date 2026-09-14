@@ -144,5 +144,12 @@
   "checkoutRecapPickupOnly": "À récupérer directement en boutique.",
   "checkoutRecapEstimatedTotal": "Total estimé",
   "checkoutRecapFinalAmountNotice": "Le montant définitif est calculé par le serveur à la création de la commande.",
-  "checkoutConfirmOrderButton": "Confirmer la commande"
+  "checkoutConfirmOrderButton": "Confirmer la commande",
+
+  "paymentTitle": "Paiement",
+  "paymentSecureTitle": "Paiement sécurisé",
+  "paymentSecureSubtitle": "Votre paiement est chiffré et sécurisé par Stripe.",
+  "paymentRetryButton": "Réessayer",
+  "paymentPayNowButton": "Payer maintenant",
+  "paymentCancelButton": "Annuler"
 }
