@@ -151,5 +151,20 @@
   "paymentSecureSubtitle": "Votre paiement est chiffré et sécurisé par Stripe.",
   "paymentRetryButton": "Réessayer",
   "paymentPayNowButton": "Payer maintenant",
-  "paymentCancelButton": "Annuler"
+  "paymentCancelButton": "Annuler",
+
+  "trackingOrderTitle": "Commande #{orderId}",
+  "@trackingOrderTitle": {
+    "placeholders": { "orderId": { "type": "int" } }
+  },
+  "trackingRefreshTooltip": "Rafraichir le statut",
+  "trackingLoadErrorMessage": "Impossible de charger la commande.",
+  "trackingViewOrdersButton": "Voir mes commandes",
+  "trackingPaymentConfirmed": "Paiement confirmé",
+  "trackingRealtimeSubtitle": "Suivi de la commande #{orderId} en temps réel.",
+  "@trackingRealtimeSubtitle": {
+    "placeholders": { "orderId": { "type": "int" } }
+  },
+  "trackingConnectingMessage": "Connexion en cours...",
+  "trackingCancelledMessage": "Cette commande a été annulée."
 }

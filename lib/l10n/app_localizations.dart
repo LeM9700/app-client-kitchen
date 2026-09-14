@@ -608,6 +608,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Confirmer la commande'**
   String get checkoutConfirmOrderButton;
+
+  /// No description provided for @paymentTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement'**
+  String get paymentTitle;
+
+  /// No description provided for @paymentSecureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement sécurisé'**
+  String get paymentSecureTitle;
+
+  /// No description provided for @paymentSecureSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre paiement est chiffré et sécurisé par Stripe.'**
+  String get paymentSecureSubtitle;
+
+  /// No description provided for @paymentRetryButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get paymentRetryButton;
+
+  /// No description provided for @paymentPayNowButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payer maintenant'**
+  String get paymentPayNowButton;
+
+  /// No description provided for @paymentCancelButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get paymentCancelButton;
 }
 
 class _AppLocalizationsDelegate

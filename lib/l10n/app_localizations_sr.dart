@@ -293,6 +293,25 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get checkoutConfirmOrderButton => 'Potvrdi porudžbinu';
+
+  @override
+  String get paymentTitle => 'Plaćanje';
+
+  @override
+  String get paymentSecureTitle => 'Bezbedno plaćanje';
+
+  @override
+  String get paymentSecureSubtitle =>
+      'Vaše plaćanje je šifrovano i zaštićeno preko Stripe-a.';
+
+  @override
+  String get paymentRetryButton => 'Pokušaj ponovo';
+
+  @override
+  String get paymentPayNowButton => 'Plati sada';
+
+  @override
+  String get paymentCancelButton => 'Otkaži';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -584,4 +603,23 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get checkoutConfirmOrderButton => 'Potvrdi porudžbinu';
+
+  @override
+  String get paymentTitle => 'Plaćanje';
+
+  @override
+  String get paymentSecureTitle => 'Bezbedno plaćanje';
+
+  @override
+  String get paymentSecureSubtitle =>
+      'Vaše plaćanje je šifrovano i zaštićeno preko Stripe-a.';
+
+  @override
+  String get paymentRetryButton => 'Pokušaj ponovo';
+
+  @override
+  String get paymentPayNowButton => 'Plati sada';
+
+  @override
+  String get paymentCancelButton => 'Otkaži';
 }

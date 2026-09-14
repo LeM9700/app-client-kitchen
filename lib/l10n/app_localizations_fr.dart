@@ -293,4 +293,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get checkoutConfirmOrderButton => 'Confirmer la commande';
+
+  @override
+  String get paymentTitle => 'Paiement';
+
+  @override
+  String get paymentSecureTitle => 'Paiement sécurisé';
+
+  @override
+  String get paymentSecureSubtitle =>
+      'Votre paiement est chiffré et sécurisé par Stripe.';
+
+  @override
+  String get paymentRetryButton => 'Réessayer';
+
+  @override
+  String get paymentPayNowButton => 'Payer maintenant';
+
+  @override
+  String get paymentCancelButton => 'Annuler';
 }
