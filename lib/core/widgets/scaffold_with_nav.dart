@@ -21,10 +21,14 @@ class ScaffoldWithNav extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartProvider).totalQuantity;
 
+    final backgroundColor =
+        Env.isKodMomeBuild ? KodMomeDesignPack.charcoal : null;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth >= 900) {
           return Scaffold(
+            backgroundColor: backgroundColor,
             body: NetworkBanner(
               child: Row(
                 children: [
@@ -41,6 +45,7 @@ class ScaffoldWithNav extends ConsumerWidget {
         }
 
         return Scaffold(
+          backgroundColor: backgroundColor,
           body: NetworkBanner(child: shell),
           bottomNavigationBar: _MobilePillNav(
             selectedIndex: shell.currentIndex,
