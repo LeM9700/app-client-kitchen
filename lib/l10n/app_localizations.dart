@@ -302,6 +302,210 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible de charger ce produit.'**
   String get productLoadErrorMessage;
+
+  /// No description provided for @cartTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Panier'**
+  String get cartTitle;
+
+  /// No description provided for @cartClearButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vider'**
+  String get cartClearButton;
+
+  /// No description provided for @cartEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon panier'**
+  String get cartEmptyTitle;
+
+  /// No description provided for @cartEmptyStateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre panier est vide'**
+  String get cartEmptyStateTitle;
+
+  /// No description provided for @cartEmptyStateSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez des produits depuis le menu.'**
+  String get cartEmptyStateSubtitle;
+
+  /// No description provided for @cartRemoveTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer'**
+  String get cartRemoveTooltip;
+
+  /// No description provided for @cartAddTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get cartAddTooltip;
+
+  /// No description provided for @cartPromoLoginPrompt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous pour utiliser un code promo.'**
+  String get cartPromoLoginPrompt;
+
+  /// No description provided for @cartPromoCodeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code promo'**
+  String get cartPromoCodeLabel;
+
+  /// No description provided for @cartPromoApplyButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appliquer'**
+  String get cartPromoApplyButton;
+
+  /// No description provided for @cartPromoInvalidError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce code promo n\'est pas valide.'**
+  String get cartPromoInvalidError;
+
+  /// No description provided for @cartPromoAppliedLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code \"{code}\" appliqué : -{discount}'**
+  String cartPromoAppliedLabel(String code, String discount);
+
+  /// No description provided for @cartLoyaltyPreview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette commande vous rapportera {points} points fidélité.'**
+  String cartLoyaltyPreview(int points);
+
+  /// No description provided for @cartCheckoutButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commander - {price}'**
+  String cartCheckoutButton(String price);
+
+  /// No description provided for @cartSubtotalLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sous-total'**
+  String get cartSubtotalLabel;
+
+  /// No description provided for @cartDiscountLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remise'**
+  String get cartDiscountLabel;
+
+  /// No description provided for @cartDeliveryFeeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Frais de livraison'**
+  String get cartDeliveryFeeLabel;
+
+  /// No description provided for @cartDeliveryFeeValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au checkout'**
+  String get cartDeliveryFeeValue;
+
+  /// No description provided for @cartTotalLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total'**
+  String get cartTotalLabel;
+
+  /// No description provided for @checkoutStepRevalidationTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérification du panier'**
+  String get checkoutStepRevalidationTitle;
+
+  /// No description provided for @checkoutStepDeliveryModeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livraison ou retrait ?'**
+  String get checkoutStepDeliveryModeTitle;
+
+  /// No description provided for @checkoutStepAddressTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse de livraison'**
+  String get checkoutStepAddressTitle;
+
+  /// No description provided for @checkoutStepRecapTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récapitulatif'**
+  String get checkoutStepRecapTitle;
+
+  /// No description provided for @checkoutGenericTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commander'**
+  String get checkoutGenericTitle;
+
+  /// No description provided for @checkoutBackToCart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour au panier'**
+  String get checkoutBackToCart;
+
+  /// No description provided for @checkoutRevalidationMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Certains articles de votre panier ont changé depuis que vous les avez ajoutés.'**
+  String get checkoutRevalidationMessage;
+
+  /// No description provided for @checkoutContinueButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer'**
+  String get checkoutContinueButton;
+
+  /// No description provided for @checkoutPriceUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix mis à jour : {oldPrice} → {newPrice}'**
+  String checkoutPriceUpdated(String oldPrice, String newPrice);
+
+  /// No description provided for @checkoutItemNoLongerAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet article n\'est plus disponible.'**
+  String get checkoutItemNoLongerAvailable;
+
+  /// No description provided for @checkoutDeliveryModeQuestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment souhaitez-vous récupérer votre commande ?'**
+  String get checkoutDeliveryModeQuestion;
+
+  /// No description provided for @checkoutDeliveryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livraison'**
+  String get checkoutDeliveryTitle;
+
+  /// No description provided for @checkoutDeliverySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livré à votre adresse'**
+  String get checkoutDeliverySubtitle;
+
+  /// No description provided for @checkoutPickupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retrait en boutique'**
+  String get checkoutPickupTitle;
+
+  /// No description provided for @checkoutPickupSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À récupérer sur place'**
+  String get checkoutPickupSubtitle;
 }
 
 class _AppLocalizationsDelegate

@@ -111,4 +111,118 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get productLoadErrorMessage => 'Impossible de charger ce produit.';
+
+  @override
+  String get cartTitle => 'Panier';
+
+  @override
+  String get cartClearButton => 'Vider';
+
+  @override
+  String get cartEmptyTitle => 'Mon panier';
+
+  @override
+  String get cartEmptyStateTitle => 'Votre panier est vide';
+
+  @override
+  String get cartEmptyStateSubtitle => 'Ajoutez des produits depuis le menu.';
+
+  @override
+  String get cartRemoveTooltip => 'Retirer';
+
+  @override
+  String get cartAddTooltip => 'Ajouter';
+
+  @override
+  String get cartPromoLoginPrompt =>
+      'Connectez-vous pour utiliser un code promo.';
+
+  @override
+  String get cartPromoCodeLabel => 'Code promo';
+
+  @override
+  String get cartPromoApplyButton => 'Appliquer';
+
+  @override
+  String get cartPromoInvalidError => 'Ce code promo n\'est pas valide.';
+
+  @override
+  String cartPromoAppliedLabel(String code, String discount) {
+    return 'Code \"$code\" appliqué : -$discount';
+  }
+
+  @override
+  String cartLoyaltyPreview(int points) {
+    return 'Cette commande vous rapportera $points points fidélité.';
+  }
+
+  @override
+  String cartCheckoutButton(String price) {
+    return 'Commander - $price';
+  }
+
+  @override
+  String get cartSubtotalLabel => 'Sous-total';
+
+  @override
+  String get cartDiscountLabel => 'Remise';
+
+  @override
+  String get cartDeliveryFeeLabel => 'Frais de livraison';
+
+  @override
+  String get cartDeliveryFeeValue => 'Au checkout';
+
+  @override
+  String get cartTotalLabel => 'Total';
+
+  @override
+  String get checkoutStepRevalidationTitle => 'Vérification du panier';
+
+  @override
+  String get checkoutStepDeliveryModeTitle => 'Livraison ou retrait ?';
+
+  @override
+  String get checkoutStepAddressTitle => 'Adresse de livraison';
+
+  @override
+  String get checkoutStepRecapTitle => 'Récapitulatif';
+
+  @override
+  String get checkoutGenericTitle => 'Commander';
+
+  @override
+  String get checkoutBackToCart => 'Retour au panier';
+
+  @override
+  String get checkoutRevalidationMessage =>
+      'Certains articles de votre panier ont changé depuis que vous les avez ajoutés.';
+
+  @override
+  String get checkoutContinueButton => 'Continuer';
+
+  @override
+  String checkoutPriceUpdated(String oldPrice, String newPrice) {
+    return 'Prix mis à jour : $oldPrice → $newPrice';
+  }
+
+  @override
+  String get checkoutItemNoLongerAvailable =>
+      'Cet article n\'est plus disponible.';
+
+  @override
+  String get checkoutDeliveryModeQuestion =>
+      'Comment souhaitez-vous récupérer votre commande ?';
+
+  @override
+  String get checkoutDeliveryTitle => 'Livraison';
+
+  @override
+  String get checkoutDeliverySubtitle => 'Livré à votre adresse';
+
+  @override
+  String get checkoutPickupTitle => 'Retrait en boutique';
+
+  @override
+  String get checkoutPickupSubtitle => 'À récupérer sur place';
 }

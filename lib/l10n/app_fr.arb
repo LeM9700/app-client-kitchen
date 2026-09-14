@@ -45,5 +45,61 @@
   "productQuantityLabel": "Quantité",
   "productAddToCartButton": "Ajouter au panier",
   "productUnavailableButton": "Produit indisponible",
-  "productLoadErrorMessage": "Impossible de charger ce produit."
+  "productLoadErrorMessage": "Impossible de charger ce produit.",
+
+  "cartTitle": "Panier",
+  "cartClearButton": "Vider",
+  "cartEmptyTitle": "Mon panier",
+  "cartEmptyStateTitle": "Votre panier est vide",
+  "cartEmptyStateSubtitle": "Ajoutez des produits depuis le menu.",
+  "cartRemoveTooltip": "Retirer",
+  "cartAddTooltip": "Ajouter",
+  "cartPromoLoginPrompt": "Connectez-vous pour utiliser un code promo.",
+  "cartPromoCodeLabel": "Code promo",
+  "cartPromoApplyButton": "Appliquer",
+  "cartPromoInvalidError": "Ce code promo n'est pas valide.",
+  "cartPromoAppliedLabel": "Code \"{code}\" appliqué : -{discount}",
+  "@cartPromoAppliedLabel": {
+    "placeholders": {
+      "code": { "type": "String" },
+      "discount": { "type": "String" }
+    }
+  },
+  "cartLoyaltyPreview": "Cette commande vous rapportera {points} points fidélité.",
+  "@cartLoyaltyPreview": {
+    "placeholders": { "points": { "type": "int" } }
+  },
+  "cartCheckoutButton": "Commander - {price}",
+  "@cartCheckoutButton": {
+    "placeholders": { "price": { "type": "String" } }
+  },
+  "cartSubtotalLabel": "Sous-total",
+  "cartDiscountLabel": "Remise",
+  "cartDeliveryFeeLabel": "Frais de livraison",
+  "cartDeliveryFeeValue": "Au checkout",
+  "cartTotalLabel": "Total",
+
+  "checkoutStepRevalidationTitle": "Vérification du panier",
+  "checkoutStepDeliveryModeTitle": "Livraison ou retrait ?",
+  "checkoutStepAddressTitle": "Adresse de livraison",
+  "checkoutStepRecapTitle": "Récapitulatif",
+  "checkoutGenericTitle": "Commander",
+  "checkoutBackToCart": "Retour au panier",
+
+  "checkoutRevalidationMessage": "Certains articles de votre panier ont changé depuis que vous les avez ajoutés.",
+  "checkoutContinueButton": "Continuer",
+  "checkoutPriceUpdated": "Prix mis à jour : {oldPrice} → {newPrice}",
+  "@checkoutPriceUpdated": {
+    "placeholders": {
+      "oldPrice": { "type": "String" },
+      "newPrice": { "type": "String" }
+    }
+  },
+  "checkoutItemNoLongerAvailable": "Cet article n'est plus disponible.",
+
+  "checkoutDeliveryModeQuestion": "Comment souhaitez-vous récupérer votre commande ?",
+  "checkoutDeliveryTitle": "Livraison",
+  "checkoutDeliverySubtitle": "Livré à votre adresse",
+  "checkoutPickupTitle": "Retrait en boutique",
+  "checkoutPickupSubtitle": "À récupérer sur place"
 }

@@ -111,6 +111,120 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get productLoadErrorMessage => 'Nije moguće učitati ovaj proizvod.';
+
+  @override
+  String get cartTitle => 'Korpa';
+
+  @override
+  String get cartClearButton => 'Isprazni';
+
+  @override
+  String get cartEmptyTitle => 'Moja korpa';
+
+  @override
+  String get cartEmptyStateTitle => 'Vaša korpa je prazna';
+
+  @override
+  String get cartEmptyStateSubtitle => 'Dodajte proizvode sa menija.';
+
+  @override
+  String get cartRemoveTooltip => 'Ukloni';
+
+  @override
+  String get cartAddTooltip => 'Dodaj';
+
+  @override
+  String get cartPromoLoginPrompt =>
+      'Prijavite se da biste koristili promo kod.';
+
+  @override
+  String get cartPromoCodeLabel => 'Promo kod';
+
+  @override
+  String get cartPromoApplyButton => 'Primeni';
+
+  @override
+  String get cartPromoInvalidError => 'Ovaj promo kod nije validan.';
+
+  @override
+  String cartPromoAppliedLabel(String code, String discount) {
+    return 'Kod \"$code\" primenjen: -$discount';
+  }
+
+  @override
+  String cartLoyaltyPreview(int points) {
+    return 'Ova narudžbina će vam doneti $points poena vernosti.';
+  }
+
+  @override
+  String cartCheckoutButton(String price) {
+    return 'Poruči - $price';
+  }
+
+  @override
+  String get cartSubtotalLabel => 'Međuzbir';
+
+  @override
+  String get cartDiscountLabel => 'Popust';
+
+  @override
+  String get cartDeliveryFeeLabel => 'Troškovi dostave';
+
+  @override
+  String get cartDeliveryFeeValue => 'Na plaćanju';
+
+  @override
+  String get cartTotalLabel => 'Ukupno';
+
+  @override
+  String get checkoutStepRevalidationTitle => 'Provera korpe';
+
+  @override
+  String get checkoutStepDeliveryModeTitle => 'Dostava ili preuzimanje?';
+
+  @override
+  String get checkoutStepAddressTitle => 'Adresa za dostavu';
+
+  @override
+  String get checkoutStepRecapTitle => 'Pregled porudžbine';
+
+  @override
+  String get checkoutGenericTitle => 'Poruči';
+
+  @override
+  String get checkoutBackToCart => 'Nazad na korpu';
+
+  @override
+  String get checkoutRevalidationMessage =>
+      'Neki proizvodi iz vaše korpe su se promenili od kada ste ih dodali.';
+
+  @override
+  String get checkoutContinueButton => 'Nastavi';
+
+  @override
+  String checkoutPriceUpdated(String oldPrice, String newPrice) {
+    return 'Cena ažurirana: $oldPrice → $newPrice';
+  }
+
+  @override
+  String get checkoutItemNoLongerAvailable =>
+      'Ovaj proizvod više nije dostupan.';
+
+  @override
+  String get checkoutDeliveryModeQuestion =>
+      'Kako želite da preuzmete porudžbinu?';
+
+  @override
+  String get checkoutDeliveryTitle => 'Dostava';
+
+  @override
+  String get checkoutDeliverySubtitle => 'Dostavljeno na vašu adresu';
+
+  @override
+  String get checkoutPickupTitle => 'Preuzimanje u restoranu';
+
+  @override
+  String get checkoutPickupSubtitle => 'Preuzmite lično';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -220,4 +334,118 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get productLoadErrorMessage => 'Nije moguće učitati ovaj proizvod.';
+
+  @override
+  String get cartTitle => 'Korpa';
+
+  @override
+  String get cartClearButton => 'Isprazni';
+
+  @override
+  String get cartEmptyTitle => 'Moja korpa';
+
+  @override
+  String get cartEmptyStateTitle => 'Vaša korpa je prazna';
+
+  @override
+  String get cartEmptyStateSubtitle => 'Dodajte proizvode sa menija.';
+
+  @override
+  String get cartRemoveTooltip => 'Ukloni';
+
+  @override
+  String get cartAddTooltip => 'Dodaj';
+
+  @override
+  String get cartPromoLoginPrompt =>
+      'Prijavite se da biste koristili promo kod.';
+
+  @override
+  String get cartPromoCodeLabel => 'Promo kod';
+
+  @override
+  String get cartPromoApplyButton => 'Primeni';
+
+  @override
+  String get cartPromoInvalidError => 'Ovaj promo kod nije validan.';
+
+  @override
+  String cartPromoAppliedLabel(String code, String discount) {
+    return 'Kod \"$code\" primenjen: -$discount';
+  }
+
+  @override
+  String cartLoyaltyPreview(int points) {
+    return 'Ova narudžbina će vam doneti $points poena vernosti.';
+  }
+
+  @override
+  String cartCheckoutButton(String price) {
+    return 'Poruči - $price';
+  }
+
+  @override
+  String get cartSubtotalLabel => 'Međuzbir';
+
+  @override
+  String get cartDiscountLabel => 'Popust';
+
+  @override
+  String get cartDeliveryFeeLabel => 'Troškovi dostave';
+
+  @override
+  String get cartDeliveryFeeValue => 'Na plaćanju';
+
+  @override
+  String get cartTotalLabel => 'Ukupno';
+
+  @override
+  String get checkoutStepRevalidationTitle => 'Provera korpe';
+
+  @override
+  String get checkoutStepDeliveryModeTitle => 'Dostava ili preuzimanje?';
+
+  @override
+  String get checkoutStepAddressTitle => 'Adresa za dostavu';
+
+  @override
+  String get checkoutStepRecapTitle => 'Pregled porudžbine';
+
+  @override
+  String get checkoutGenericTitle => 'Poruči';
+
+  @override
+  String get checkoutBackToCart => 'Nazad na korpu';
+
+  @override
+  String get checkoutRevalidationMessage =>
+      'Neki proizvodi iz vaše korpe su se promenili od kada ste ih dodali.';
+
+  @override
+  String get checkoutContinueButton => 'Nastavi';
+
+  @override
+  String checkoutPriceUpdated(String oldPrice, String newPrice) {
+    return 'Cena ažurirana: $oldPrice → $newPrice';
+  }
+
+  @override
+  String get checkoutItemNoLongerAvailable =>
+      'Ovaj proizvod više nije dostupan.';
+
+  @override
+  String get checkoutDeliveryModeQuestion =>
+      'Kako želite da preuzmete porudžbinu?';
+
+  @override
+  String get checkoutDeliveryTitle => 'Dostava';
+
+  @override
+  String get checkoutDeliverySubtitle => 'Dostavljeno na vašu adresu';
+
+  @override
+  String get checkoutPickupTitle => 'Preuzimanje u restoranu';
+
+  @override
+  String get checkoutPickupSubtitle => 'Preuzmite lično';
 }
