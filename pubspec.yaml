@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # State management
   flutter_riverpod: ^2.5.1
@@ -51,7 +53,7 @@ dependencies:
 
   # Utils
   uuid: ^4.4.2
-  intl: ^0.19.0
+  intl: ^0.20.2
   sentry_flutter: ^8.14.2
 
 dev_dependencies:
@@ -69,8 +71,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     - assets/images/
+    - assets/images/kod-mome/
     - assets/fonts/
   # [🔧] La déclaration `fonts:` d'Inter a été retirée : les 4 fichiers .ttf
   # qu'elle référençait n'ont jamais été ajoutés au dépôt (assets/fonts/ ne

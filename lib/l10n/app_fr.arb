@@ -1,0 +1,7 @@
+{
+  "@@locale": "fr",
+  "appTitle": "O'Pizza",
+  "@appTitle": {
+    "description": "Nom affiché de l'application (titre système/onglet)."
+  }
+}

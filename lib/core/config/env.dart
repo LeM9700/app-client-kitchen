@@ -40,6 +40,11 @@ abstract final class Env {
     defaultValue: 'pizza_test',
   );
 
+  /// Gates the Kod Mome bespoke design (dark/glass/neumorphic, Serbian
+  /// locale) — a one-off treatment for this tenant only, not a generalized
+  /// per-tenant design-token system. See `lib/core/theme/kod_mome/`.
+  static const bool isKodMomeBuild = tenantSlug == 'kod-mome';
+
   /// Public legal document URLs shown in the account area.
   static const String privacyPolicyUrl = String.fromEnvironment(
     'PRIVACY_POLICY_URL',

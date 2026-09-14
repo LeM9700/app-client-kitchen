@@ -11,6 +11,7 @@ import 'package:app_client/core/config/firebase_env_options.dart';
 import 'package:app_client/core/monitoring/error_reporter.dart';
 import 'package:app_client/core/router/app_router.dart';
 import 'package:app_client/core/theme/tenant_theme_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 Future<void> main() async {
   await runZonedGuarded<Future<void>>(
@@ -93,10 +94,15 @@ class AppRoot extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: "O'Pizza",
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       theme: theme,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: Env.isKodMomeBuild
+          ? const Locale.fromSubtags(languageCode: 'sr', scriptCode: 'Latn')
+          : const Locale('fr'),
     );
   }
 }
