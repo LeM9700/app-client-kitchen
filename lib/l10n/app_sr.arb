@@ -1,4 +1,36 @@
 {
   "@@locale": "sr",
-  "appTitle": "Kod Mome"
+  "appTitle": "Kod Mome",
+
+  "homeDeliverTo": "Dostava na",
+  "homeDeliveryAddressPlaceholder": "Adresa za dostavu",
+  "homeSearchPlaceholder": "Šta želite da naručite?",
+  "homeFeaturedSectionTitle": "Najpopularnije",
+  "loyaltyPointsLabel": "{points} poena",
+
+  "productRowSeeAll": "Pogledaj sve",
+
+  "promoViewOffer": "Pogledaj ponudu",
+
+  "allergenExcludeLabel": "Isključi alergene",
+  "allergenClearLabel": "Obriši",
+  "allergenGluten": "Gluten",
+  "allergenCrustaceans": "Rakovi",
+  "allergenEggs": "Jaja",
+  "allergenFish": "Riba",
+  "allergenPeanuts": "Kikiriki",
+  "allergenSoybeans": "Soja",
+  "allergenMilk": "Mleko",
+  "allergenNuts": "Orašasti plodovi",
+  "allergenCelery": "Celer",
+  "allergenMustard": "Slačica",
+  "allergenSesame": "Susam",
+  "allergenSulphites": "Sulfiti",
+  "allergenLupin": "Lupin",
+  "allergenMolluscs": "Mekušci",
+
+  "productUnavailable": "Nedostupno",
+  "productAvailableToday": "Dostupno danas",
+  "productTemporarilyUnavailable": "Trenutno nedostupno",
+  "productAddedToCart": "Dodato u korpu"
 }

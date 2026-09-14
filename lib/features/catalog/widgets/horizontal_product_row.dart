@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/widgets/shimmer_skeleton.dart';
+import 'package:app_client/design_system/kod_mome/gold_foil_text.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/widgets/product_card.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 /// Row horizontale de produits réutilisable pour les sections de la home
 /// (Incontournables, catégories). Se masque silencieusement en cas d'erreur
@@ -74,15 +77,24 @@ class _RowHeader extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
+            child: Env.isKodMomeBuild
+                ? GoldFoilText(
+                    title,
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900),
+                  )
+                : Text(
+                    title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
           ),
           if (onSeeAll != null)
-            TextButton(onPressed: onSeeAll, child: const Text('Voir tout')),
+            TextButton(
+              onPressed: onSeeAll,
+              child: Text(AppLocalizations.of(context)!.productRowSeeAll),
+            ),
         ],
       ),
     );

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/router/app_routes.dart';
 import 'package:app_client/core/theme/app_colors.dart';
+import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
 import 'package:app_client/core/widgets/shimmer_skeleton.dart';
 import 'package:app_client/features/promotions/models/promotion.dart';
 import 'package:app_client/features/promotions/providers/promotions_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 /// Hero carrousel de la home — met en avant les promotions actives.
 ///
@@ -79,6 +82,14 @@ class _HeroSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final background = Env.isKodMomeBuild
+        ? const LinearGradient(
+            colors: [KodMomeDesignPack.secondary, KodMomeDesignPack.charcoalDeep],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : null;
 
     return InkWell(
       onTap: () => context.push(AppRoutes.promotions),
@@ -86,21 +97,29 @@ class _HeroSlide extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.brandRed,
+          color: Env.isKodMomeBuild ? null : AppColors.brandRed,
+          gradient: background,
           borderRadius: BorderRadius.circular(16),
+          border: Env.isKodMomeBuild
+              ? Border.all(color: KodMomeDesignPack.primary, width: 1)
+              : null,
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.16),
+                color: Env.isKodMomeBuild
+                    ? KodMomeDesignPack.primary
+                    : Colors.white.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 promotion.displayDiscount,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: Env.isKodMomeBuild
+                      ? KodMomeDesignPack.charcoalDeep
+                      : Colors.white,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -114,17 +133,21 @@ class _HeroSlide extends StatelessWidget {
                   Text(
                     promotion.displayTitle,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
+                      color: Env.isKodMomeBuild
+                          ? KodMomeDesignPack.cream
+                          : Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    "Voir l'offre",
+                  Text(
+                    l10n.promoViewOffer,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Env.isKodMomeBuild
+                          ? KodMomeDesignPack.primary
+                          : Colors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
@@ -157,7 +180,11 @@ class _Dots extends StatelessWidget {
           width: isActive ? 18 : 6,
           height: 6,
           decoration: BoxDecoration(
-            color: isActive ? AppColors.brandRed : AppColors.grey200,
+            color: isActive
+                ? (Env.isKodMomeBuild
+                    ? KodMomeDesignPack.primary
+                    : AppColors.brandRed)
+                : AppColors.grey200,
             borderRadius: BorderRadius.circular(3),
           ),
         );

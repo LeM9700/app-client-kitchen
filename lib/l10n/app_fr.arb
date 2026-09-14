@@ -3,5 +3,40 @@
   "appTitle": "O'Pizza",
   "@appTitle": {
     "description": "Nom affiché de l'application (titre système/onglet)."
-  }
+  },
+
+  "homeDeliverTo": "Livrer a",
+  "homeDeliveryAddressPlaceholder": "Adresse de livraison",
+  "homeSearchPlaceholder": "Que souhaitez-vous commander ?",
+  "homeFeaturedSectionTitle": "Incontournables",
+  "loyaltyPointsLabel": "{points} points",
+  "@loyaltyPointsLabel": {
+    "placeholders": { "points": { "type": "int" } }
+  },
+
+  "productRowSeeAll": "Voir tout",
+
+  "promoViewOffer": "Voir l'offre",
+
+  "allergenExcludeLabel": "Exclure les allergènes",
+  "allergenClearLabel": "Effacer",
+  "allergenGluten": "Gluten",
+  "allergenCrustaceans": "Crustacés",
+  "allergenEggs": "Œufs",
+  "allergenFish": "Poisson",
+  "allergenPeanuts": "Arachides",
+  "allergenSoybeans": "Soja",
+  "allergenMilk": "Lait",
+  "allergenNuts": "Fruits à coque",
+  "allergenCelery": "Céleri",
+  "allergenMustard": "Moutarde",
+  "allergenSesame": "Sésame",
+  "allergenSulphites": "Sulfites",
+  "allergenLupin": "Lupin",
+  "allergenMolluscs": "Mollusques",
+
+  "productUnavailable": "Indisponible",
+  "productAvailableToday": "Disponible aujourd'hui",
+  "productTemporarilyUnavailable": "Momentanement indisponible",
+  "productAddedToCart": "Ajouté au panier"
 }

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app_client/core/widgets/shimmer_skeleton.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/widgets/horizontal_product_row.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 const _products = [
   Product(id: 1, name: 'Margherita', price: 10),
@@ -20,6 +21,9 @@ Future<void> _pump(
   return tester.pumpWidget(
     ProviderScope(
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
         home: Scaffold(
           body: HorizontalProductRow(
             title: 'Pizzas',

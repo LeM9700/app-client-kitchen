@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:app_client/core/router/app_routes.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 import 'package:app_client/features/catalog/models/category.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
@@ -58,7 +59,12 @@ Future<ProviderContainer> _pumpHome(WidgetTester tester) async {
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp.router(routerConfig: router),
+      child: MaterialApp.router(
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+      ),
     ),
   );
   await tester.pumpAndSettle();

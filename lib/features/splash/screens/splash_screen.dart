@@ -8,7 +8,9 @@ import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/providers/api_client_provider.dart';
 import 'package:app_client/core/router/app_router.dart';
 import 'package:app_client/core/router/app_routes.dart';
+import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
 import 'package:app_client/core/theme/tenant_theme_provider.dart';
+import 'package:app_client/design_system/kod_mome/medallion.dart';
 import 'package:app_client/features/tracking/services/push_notification_service.dart';
 
 /// Écran de démarrage — exécute la séquence de boot de l'application.
@@ -76,6 +78,31 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (Env.isKodMomeBuild) {
+      return const Scaffold(
+        backgroundColor: KodMomeDesignPack.charcoal,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              KodMomeMedallion.splash(),
+              SizedBox(height: 32),
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    KodMomeDesignPack.primary,
+                  ),
+                  strokeWidth: 2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
 

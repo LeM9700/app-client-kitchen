@@ -6,6 +6,7 @@ import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/favorites_provider.dart';
 import 'package:app_client/features/catalog/widgets/product_card.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 const _product = Product(id: 1, name: 'Margherita', price: 10);
 const _simpleProduct = Product(id: 1, name: 'Margherita', price: 10);
@@ -23,8 +24,11 @@ Future<ProviderContainer> _pumpCard(WidgetTester tester) async {
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(
-        home: Scaffold(
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+        home: const Scaffold(
           body: SizedBox(height: 240, child: ProductCard(product: _product)),
         ),
       ),
@@ -45,6 +49,9 @@ Future<ProviderContainer> _pumpCardFor(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
         home: Scaffold(
           body: SizedBox(height: 240, child: ProductCard(product: product)),
         ),

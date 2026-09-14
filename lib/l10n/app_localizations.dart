@@ -104,6 +104,168 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'O\'Pizza'**
   String get appTitle;
+
+  /// No description provided for @homeDeliverTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livrer a'**
+  String get homeDeliverTo;
+
+  /// No description provided for @homeDeliveryAddressPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse de livraison'**
+  String get homeDeliveryAddressPlaceholder;
+
+  /// No description provided for @homeSearchPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Que souhaitez-vous commander ?'**
+  String get homeSearchPlaceholder;
+
+  /// No description provided for @homeFeaturedSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incontournables'**
+  String get homeFeaturedSectionTitle;
+
+  /// No description provided for @loyaltyPointsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{points} points'**
+  String loyaltyPointsLabel(int points);
+
+  /// No description provided for @productRowSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tout'**
+  String get productRowSeeAll;
+
+  /// No description provided for @promoViewOffer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir l\'offre'**
+  String get promoViewOffer;
+
+  /// No description provided for @allergenExcludeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exclure les allergènes'**
+  String get allergenExcludeLabel;
+
+  /// No description provided for @allergenClearLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get allergenClearLabel;
+
+  /// No description provided for @allergenGluten.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gluten'**
+  String get allergenGluten;
+
+  /// No description provided for @allergenCrustaceans.
+  ///
+  /// In fr, this message translates to:
+  /// **'Crustacés'**
+  String get allergenCrustaceans;
+
+  /// No description provided for @allergenEggs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Œufs'**
+  String get allergenEggs;
+
+  /// No description provided for @allergenFish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poisson'**
+  String get allergenFish;
+
+  /// No description provided for @allergenPeanuts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arachides'**
+  String get allergenPeanuts;
+
+  /// No description provided for @allergenSoybeans.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soja'**
+  String get allergenSoybeans;
+
+  /// No description provided for @allergenMilk.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lait'**
+  String get allergenMilk;
+
+  /// No description provided for @allergenNuts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fruits à coque'**
+  String get allergenNuts;
+
+  /// No description provided for @allergenCelery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Céleri'**
+  String get allergenCelery;
+
+  /// No description provided for @allergenMustard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moutarde'**
+  String get allergenMustard;
+
+  /// No description provided for @allergenSesame.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sésame'**
+  String get allergenSesame;
+
+  /// No description provided for @allergenSulphites.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sulfites'**
+  String get allergenSulphites;
+
+  /// No description provided for @allergenLupin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lupin'**
+  String get allergenLupin;
+
+  /// No description provided for @allergenMolluscs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mollusques'**
+  String get allergenMolluscs;
+
+  /// No description provided for @productUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indisponible'**
+  String get productUnavailable;
+
+  /// No description provided for @productAvailableToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponible aujourd\'hui'**
+  String get productAvailableToday;
+
+  /// No description provided for @productTemporarilyUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Momentanement indisponible'**
+  String get productTemporarilyUnavailable;
+
+  /// No description provided for @productAddedToCart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouté au panier'**
+  String get productAddedToCart;
 }
 
 class _AppLocalizationsDelegate

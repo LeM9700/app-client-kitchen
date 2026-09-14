@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/theme/app_colors.dart';
+import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
 import 'package:app_client/core/widgets/network_banner.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
 
@@ -72,28 +74,66 @@ class _MobilePillNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
+    final barColor =
+        Env.isKodMomeBuild ? KodMomeDesignPack.charcoal : AppColors.brandRed;
+
+    final bar = DecoratedBox(
+      decoration: BoxDecoration(
+        color: barColor,
+        borderRadius: BorderRadius.circular(42),
+        border: Env.isKodMomeBuild
+            ? Border.all(color: KodMomeDesignPack.primary, width: 1)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: barColor.withValues(alpha: 0.24),
+            blurRadius: 22,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: onDestinationSelected,
+        height: 78,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        backgroundColor: Colors.transparent,
+        indicatorColor: Env.isKodMomeBuild ? KodMomeDesignPack.primary : null,
+        destinations: _destinations(cartCount),
+      ),
+    );
+
+    if (!Env.isKodMomeBuild) {
+      return SafeArea(
+        minimum: EdgeInsets.fromLTRB(24, 0, 24, bottom > 0 ? 8 : 12),
+        child: bar,
+      );
+    }
 
     return SafeArea(
       minimum: EdgeInsets.fromLTRB(24, 0, 24, bottom > 0 ? 8 : 12),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.brandRed,
-          borderRadius: BorderRadius.circular(42),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.brandRed.withValues(alpha: 0.24),
-              blurRadius: 22,
-              offset: const Offset(0, 8),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          navigationBarTheme: NavigationBarThemeData(
+            iconTheme: WidgetStateProperty.resolveWith(
+              (states) => IconThemeData(
+                color: states.contains(WidgetState.selected)
+                    ? KodMomeDesignPack.charcoalDeep
+                    : KodMomeDesignPack.cream.withValues(alpha: 0.75),
+              ),
             ),
-          ],
+            labelTextStyle: WidgetStateProperty.resolveWith(
+              (states) => TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: states.contains(WidgetState.selected)
+                    ? KodMomeDesignPack.primary
+                    : KodMomeDesignPack.cream.withValues(alpha: 0.75),
+              ),
+            ),
+          ),
         ),
-        child: NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: onDestinationSelected,
-          height: 78,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: _destinations(cartCount),
-        ),
+        child: bar,
       ),
     );
   }
@@ -112,26 +152,35 @@ class _DesktopRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const railColor =
+        Env.isKodMomeBuild ? KodMomeDesignPack.charcoal : AppColors.brandRed;
+    const onRailColor =
+        Env.isKodMomeBuild ? KodMomeDesignPack.cream : Colors.white;
+    const selectedColor =
+        Env.isKodMomeBuild ? KodMomeDesignPack.primary : Colors.white;
+    const onSelectedColor =
+        Env.isKodMomeBuild ? KodMomeDesignPack.charcoalDeep : AppColors.brandRed;
+
     return Container(
       width: 116,
-      color: AppColors.brandRed,
+      color: railColor,
       child: SafeArea(
         child: NavigationRail(
-          backgroundColor: AppColors.brandRed,
+          backgroundColor: railColor,
           selectedIndex: selectedIndex,
           onDestinationSelected: onDestinationSelected,
           labelType: NavigationRailLabelType.all,
-          indicatorColor: Colors.white,
-          selectedIconTheme: const IconThemeData(color: AppColors.brandRed),
-          unselectedIconTheme: const IconThemeData(color: Colors.white),
+          indicatorColor: selectedColor,
+          selectedIconTheme: const IconThemeData(color: onSelectedColor),
+          unselectedIconTheme: const IconThemeData(color: onRailColor),
           selectedLabelTextStyle: const TextStyle(
-            color: Colors.white,
+            color: onRailColor,
             fontWeight: FontWeight.w700,
           ),
-          unselectedLabelTextStyle: const TextStyle(color: Colors.white),
-          leading: const Padding(
-            padding: EdgeInsets.only(top: 12, bottom: 24),
-            child: Icon(Icons.local_pizza, color: Colors.white, size: 34),
+          unselectedLabelTextStyle: const TextStyle(color: onRailColor),
+          leading: Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 24),
+            child: Icon(Icons.local_pizza, color: onRailColor, size: 34),
           ),
           destinations: [
             const NavigationRailDestination(

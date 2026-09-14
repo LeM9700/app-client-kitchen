@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/router/app_routes.dart';
 import 'package:app_client/core/theme/app_colors.dart';
+import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
+import 'package:app_client/design_system/kod_mome/glass_surface.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/favorites_provider.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 /// Photo-first product card used in catalogue grids and horizontal rows.
 class ProductCard extends ConsumerWidget {
@@ -27,107 +31,122 @@ class ProductCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isFavorite = ref.watch(
       favoritesProvider.select((favorites) => favorites.contains(product.id)),
     );
     final canQuickAdd =
         product.isAvailable && !product.hasVariants && !product.hasExtras;
+    final priceColor =
+        Env.isKodMomeBuild ? KodMomeDesignPack.primary : AppColors.priceGreen;
+    final secondaryTextColor =
+        Env.isKodMomeBuild ? KodMomeDesignPack.cream.withValues(alpha: 0.65) : AppColors.grey700;
 
-    return InkWell(
-      onTap: () => context.push(AppRoutes.productDetail(product.id.toString())),
-      borderRadius: BorderRadius.circular(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                _ProductImage(product: product, enableHero: enableHero),
+    final card = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              _ProductImage(product: product, enableHero: enableHero),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: _FavoriteButton(
+                  isFavorite: isFavorite,
+                  onTap: () =>
+                      ref.read(favoritesProvider.notifier).toggle(product.id),
+                ),
+              ),
+              if (canQuickAdd)
                 Positioned(
-                  top: 8,
+                  bottom: 8,
                   right: 8,
-                  child: _FavoriteButton(
-                    isFavorite: isFavorite,
-                    onTap: () =>
-                        ref.read(favoritesProvider.notifier).toggle(product.id),
+                  child: _QuickAddButton(
+                    onTap: () => _quickAdd(context, ref, l10n),
                   ),
                 ),
-                if (canQuickAdd)
-                  Positioned(
-                    bottom: 8,
-                    right: 8,
-                    child: _QuickAddButton(
-                      onTap: () => _quickAdd(context, ref),
+              if (!product.isAvailable)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.42),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ),
-                if (!product.isAvailable)
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.42),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Indisponible',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+                    child: Center(
+                      child: Text(
+                        l10n.productUnavailable,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
-          const SizedBox(height: 8),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          product.name,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: Env.isKodMomeBuild ? KodMomeDesignPack.cream : null,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 2),
+        if (product.description != null && product.description!.isNotEmpty)
           Text(
-            product.name,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
+            product.description!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: secondaryTextColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          )
+        else
+          Text(
+            product.isAvailable
+                ? l10n.productAvailableToday
+                : l10n.productTemporarilyUnavailable,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: secondaryTextColor,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
-          if (product.description != null && product.description!.isNotEmpty)
-            Text(
-              product.description!,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.grey700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )
-          else
-            Text(
-              product.isAvailable
-                  ? "Disponible aujourd'hui"
-                  : 'Momentanement indisponible',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.grey700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          const SizedBox(height: 3),
-          Text(
-            product.displayPrice,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: AppColors.priceGreen,
-              fontWeight: FontWeight.w800,
-            ),
+        const SizedBox(height: 3),
+        Text(
+          product.displayPrice,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: priceColor,
+            fontWeight: FontWeight.w800,
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+
+    final content = Env.isKodMomeBuild
+        ? KodMomeGlassSurface(
+            padding: const EdgeInsets.all(8),
+            child: card,
+          )
+        : card;
+
+    return InkWell(
+      onTap: () => context.push(AppRoutes.productDetail(product.id.toString())),
+      borderRadius: BorderRadius.circular(10),
+      child: content,
     );
   }
 
-  void _quickAdd(BuildContext context, WidgetRef ref) {
+  void _quickAdd(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     ref.read(cartProvider.notifier).addItem(product);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Ajouté au panier')),
+      SnackBar(content: Text(l10n.productAddedToCart)),
     );
   }
 }

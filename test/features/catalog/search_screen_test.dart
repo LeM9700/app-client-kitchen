@@ -6,6 +6,7 @@ import 'package:app_client/features/catalog/models/category.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
 import 'package:app_client/features/catalog/screens/search_screen.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 const _pizzaCategory = Category(id: 1, name: 'Pizzas');
 const _dessertCategory = Category(id: 2, name: 'Desserts');
@@ -36,7 +37,12 @@ Future<ProviderContainer> _pumpSearch(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: SearchScreen()),
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+        home: const SearchScreen(),
+      ),
     ),
   );
   await tester.pumpAndSettle();

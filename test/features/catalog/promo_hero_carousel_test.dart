@@ -7,6 +7,7 @@ import 'package:app_client/core/router/app_routes.dart';
 import 'package:app_client/features/catalog/widgets/promo_hero_carousel.dart';
 import 'package:app_client/features/promotions/models/promotion.dart';
 import 'package:app_client/features/promotions/providers/promotions_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 const _promo1 = Promotion(
   id: 1,
@@ -46,7 +47,12 @@ Future<void> _pump(
       overrides: [
         promotionsProvider.overrideWith((ref) async => promotions),
       ],
-      child: MaterialApp.router(routerConfig: router),
+      child: MaterialApp.router(
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+      ),
     ),
   );
   await tester.pumpAndSettle();

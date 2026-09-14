@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 /// Les 14 allergènes majeurs définis par le règlement UE 1169/2011.
 ///
-/// Clé : code interne API. Valeur : libellé affiché.
+/// Clé : code interne API. Valeur : libellé affiché (français — utilisé
+/// par [AllergenBadge] sur la fiche produit, pas encore localisée).
 const kEuAllergens = <String, String>{
   'gluten': 'Gluten',
   'crustaceans': 'Crustacés',
@@ -23,6 +25,26 @@ const kEuAllergens = <String, String>{
   'molluscs': 'Mollusques',
 };
 
+/// Mêmes 14 allergènes, libellés localisés — utilisé uniquement par
+/// [AllergenFilterBar] (écran retouché). [kEuAllergens] reste la source
+/// française utilisée par les écrans pas encore localisés.
+Map<String, String> _allergenLabels(AppLocalizations l10n) => {
+      'gluten': l10n.allergenGluten,
+      'crustaceans': l10n.allergenCrustaceans,
+      'eggs': l10n.allergenEggs,
+      'fish': l10n.allergenFish,
+      'peanuts': l10n.allergenPeanuts,
+      'soybeans': l10n.allergenSoybeans,
+      'milk': l10n.allergenMilk,
+      'nuts': l10n.allergenNuts,
+      'celery': l10n.allergenCelery,
+      'mustard': l10n.allergenMustard,
+      'sesame': l10n.allergenSesame,
+      'sulphites': l10n.allergenSulphites,
+      'lupin': l10n.allergenLupin,
+      'molluscs': l10n.allergenMolluscs,
+    };
+
 /// Barre de filtrage par allergène.
 ///
 /// Affichée en bandeau horizontal scrollable sous les chips catégories.
@@ -37,6 +59,8 @@ class AllergenFilterBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeFilters = ref.watch(activeAllergenFiltersProvider);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final labels = _allergenLabels(l10n);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +76,7 @@ class AllergenFilterBar extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'Exclure les allergènes',
+                l10n.allergenExcludeLabel,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -68,7 +92,7 @@ class AllergenFilterBar extends ConsumerWidget {
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Text('Effacer'),
+                  child: Text(l10n.allergenClearLabel),
                 ),
               ],
             ],
@@ -83,7 +107,7 @@ class AllergenFilterBar extends ConsumerWidget {
             itemCount: kEuAllergens.length,
             itemBuilder: (context, index) {
               final code = kEuAllergens.keys.elementAt(index);
-              final label = kEuAllergens.values.elementAt(index);
+              final label = labels[code] ?? code;
               final isActive = activeFilters.contains(code);
 
               return FilterChip(
