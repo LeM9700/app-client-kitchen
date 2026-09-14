@@ -266,6 +266,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouté au panier'**
   String get productAddedToCart;
+
+  /// No description provided for @productContainsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contient'**
+  String get productContainsLabel;
+
+  /// No description provided for @productExtrasLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppléments'**
+  String get productExtrasLabel;
+
+  /// No description provided for @productQuantityLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité'**
+  String get productQuantityLabel;
+
+  /// No description provided for @productAddToCartButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter au panier'**
+  String get productAddToCartButton;
+
+  /// No description provided for @productUnavailableButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Produit indisponible'**
+  String get productUnavailableButton;
+
+  /// No description provided for @productLoadErrorMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger ce produit.'**
+  String get productLoadErrorMessage;
 }
 
 class _AppLocalizationsDelegate

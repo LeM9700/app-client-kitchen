@@ -7,6 +7,7 @@ import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
 import 'package:app_client/features/catalog/screens/product_detail_screen.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 const _mediumVariant = ProductVariant(id: 10, name: 'Moyenne');
 const _largeVariant = ProductVariant(
@@ -66,6 +67,9 @@ Future<ProviderContainer> _pumpProductDetail(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
         home: ProductDetailScreen(productId: product.id.toString()),
       ),
     ),

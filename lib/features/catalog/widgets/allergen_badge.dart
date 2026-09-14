@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:app_client/features/catalog/widgets/allergen_filter_bar.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 /// Badge d'allergène affiché sur la fiche produit.
 ///
-/// Utilise [kEuAllergens] défini dans [allergen_filter_bar.dart] pour
-/// convertir le code API en libellé lisible.
+/// Utilise [allergenLabels] défini dans [allergen_filter_bar.dart] pour
+/// convertir le code API en libellé localisé.
 ///
 /// Design : fond coloré discret, icône + texte. L'accent visuel est
 /// intentionnellement modéré — informatif, pas alarmiste.
@@ -17,7 +18,8 @@ class AllergenBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = kEuAllergens[code] ?? code;
+    final l10n = AppLocalizations.of(context)!;
+    final label = allergenLabels(l10n)[code] ?? kEuAllergens[code] ?? code;
     final theme = Theme.of(context);
 
     return Container(

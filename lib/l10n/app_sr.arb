@@ -32,5 +32,12 @@
   "productUnavailable": "Nedostupno",
   "productAvailableToday": "Dostupno danas",
   "productTemporarilyUnavailable": "Trenutno nedostupno",
-  "productAddedToCart": "Dodato u korpu"
+  "productAddedToCart": "Dodato u korpu",
+
+  "productContainsLabel": "Sadrži",
+  "productExtrasLabel": "Dodaci",
+  "productQuantityLabel": "Količina",
+  "productAddToCartButton": "Dodaj u korpu",
+  "productUnavailableButton": "Proizvod nedostupan",
+  "productLoadErrorMessage": "Nije moguće učitati ovaj proizvod."
 }

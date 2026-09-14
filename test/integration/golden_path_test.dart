@@ -27,6 +27,7 @@ import 'package:app_client/features/payment/repositories/payment_repository.dart
 import 'package:app_client/features/payment/screens/payment_screen.dart';
 import 'package:app_client/features/payment/services/stripe_payment_sheet_client.dart';
 import 'package:app_client/features/tracking/models/order_status.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 class MockCatalogRepository extends Mock implements CatalogRepository {}
 
@@ -176,8 +177,11 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: container,
-            child: const MaterialApp(
-              home: ProductDetailScreen(productId: '1'),
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('fr'),
+              home: const ProductDetailScreen(productId: '1'),
             ),
           ),
         );
@@ -195,7 +199,12 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: container,
-            child: MaterialApp.router(routerConfig: buildCheckoutRouter()),
+            child: MaterialApp.router(
+              routerConfig: buildCheckoutRouter(),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('fr'),
+            ),
           ),
         );
         await tester.pumpAndSettle();

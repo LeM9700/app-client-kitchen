@@ -6,8 +6,8 @@ import 'package:app_client/l10n/app_localizations.dart';
 
 /// Les 14 allergènes majeurs définis par le règlement UE 1169/2011.
 ///
-/// Clé : code interne API. Valeur : libellé affiché (français — utilisé
-/// par [AllergenBadge] sur la fiche produit, pas encore localisée).
+/// Clé : code interne API. Valeur : libellé affiché en français — fallback
+/// utilisé par [AllergenBadge] pour un code inconnu de [allergenLabels].
 const kEuAllergens = <String, String>{
   'gluten': 'Gluten',
   'crustaceans': 'Crustacés',
@@ -25,10 +25,9 @@ const kEuAllergens = <String, String>{
   'molluscs': 'Mollusques',
 };
 
-/// Mêmes 14 allergènes, libellés localisés — utilisé uniquement par
-/// [AllergenFilterBar] (écran retouché). [kEuAllergens] reste la source
-/// française utilisée par les écrans pas encore localisés.
-Map<String, String> _allergenLabels(AppLocalizations l10n) => {
+/// Mêmes 14 allergènes, libellés localisés — utilisé par [AllergenFilterBar]
+/// et [AllergenBadge].
+Map<String, String> allergenLabels(AppLocalizations l10n) => {
       'gluten': l10n.allergenGluten,
       'crustaceans': l10n.allergenCrustaceans,
       'eggs': l10n.allergenEggs,
@@ -60,7 +59,7 @@ class AllergenFilterBar extends ConsumerWidget {
     final activeFilters = ref.watch(activeAllergenFiltersProvider);
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final labels = _allergenLabels(l10n);
+    final labels = allergenLabels(l10n);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

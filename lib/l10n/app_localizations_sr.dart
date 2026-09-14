@@ -93,6 +93,24 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get productAddedToCart => 'Dodato u korpu';
+
+  @override
+  String get productContainsLabel => 'Sadrži';
+
+  @override
+  String get productExtrasLabel => 'Dodaci';
+
+  @override
+  String get productQuantityLabel => 'Količina';
+
+  @override
+  String get productAddToCartButton => 'Dodaj u korpu';
+
+  @override
+  String get productUnavailableButton => 'Proizvod nedostupan';
+
+  @override
+  String get productLoadErrorMessage => 'Nije moguće učitati ovaj proizvod.';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -184,4 +202,22 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get productAddedToCart => 'Dodato u korpu';
+
+  @override
+  String get productContainsLabel => 'Sadrži';
+
+  @override
+  String get productExtrasLabel => 'Dodaci';
+
+  @override
+  String get productQuantityLabel => 'Količina';
+
+  @override
+  String get productAddToCartButton => 'Dodaj u korpu';
+
+  @override
+  String get productUnavailableButton => 'Proizvod nedostupan';
+
+  @override
+  String get productLoadErrorMessage => 'Nije moguće učitati ovaj proizvod.';
 }

@@ -38,5 +38,12 @@
   "productUnavailable": "Indisponible",
   "productAvailableToday": "Disponible aujourd'hui",
   "productTemporarilyUnavailable": "Momentanement indisponible",
-  "productAddedToCart": "Ajouté au panier"
+  "productAddedToCart": "Ajouté au panier",
+
+  "productContainsLabel": "Contient",
+  "productExtrasLabel": "Suppléments",
+  "productQuantityLabel": "Quantité",
+  "productAddToCartButton": "Ajouter au panier",
+  "productUnavailableButton": "Produit indisponible",
+  "productLoadErrorMessage": "Impossible de charger ce produit."
 }

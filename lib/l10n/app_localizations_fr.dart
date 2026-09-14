@@ -93,4 +93,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get productAddedToCart => 'Ajouté au panier';
+
+  @override
+  String get productContainsLabel => 'Contient';
+
+  @override
+  String get productExtrasLabel => 'Suppléments';
+
+  @override
+  String get productQuantityLabel => 'Quantité';
+
+  @override
+  String get productAddToCartButton => 'Ajouter au panier';
+
+  @override
+  String get productUnavailableButton => 'Produit indisponible';
+
+  @override
+  String get productLoadErrorMessage => 'Impossible de charger ce produit.';
 }
