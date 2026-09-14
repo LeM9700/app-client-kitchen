@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:app_client/core/config/env.dart';
+import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
 import 'package:app_client/features/checkout/models/checkout_state.dart';
 import 'package:app_client/features/checkout/providers/checkout_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 /// Étape 1 : choix entre livraison et retrait en boutique.
 ///
@@ -14,6 +17,8 @@ class StepDeliveryMode extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedMode =
         ref.watch(checkoutProvider.select((s) => s.deliveryMode));
+    final l10n = AppLocalizations.of(context)!;
+    final isKodMome = Env.isKodMomeBuild;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -21,14 +26,16 @@ class StepDeliveryMode extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Comment souhaitez-vous récupérer votre commande ?',
-            style: Theme.of(context).textTheme.titleMedium,
+            l10n.checkoutDeliveryModeQuestion,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: isKodMome ? KodMomeDesignPack.cream : null,
+                ),
           ),
           const SizedBox(height: 16),
           _ModeCard(
             icon: Icons.delivery_dining,
-            title: 'Livraison',
-            subtitle: 'Livré à votre adresse',
+            title: l10n.checkoutDeliveryTitle,
+            subtitle: l10n.checkoutDeliverySubtitle,
             selected: selectedMode == DeliveryMode.delivery,
             onTap: () => ref
                 .read(checkoutProvider.notifier)
@@ -37,8 +44,8 @@ class StepDeliveryMode extends ConsumerWidget {
           const SizedBox(height: 12),
           _ModeCard(
             icon: Icons.storefront,
-            title: 'Retrait en boutique',
-            subtitle: 'À récupérer sur place',
+            title: l10n.checkoutPickupTitle,
+            subtitle: l10n.checkoutPickupSubtitle,
             selected: selectedMode == DeliveryMode.pickup,
             onTap: () => ref
                 .read(checkoutProvider.notifier)

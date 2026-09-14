@@ -101,5 +101,48 @@
   "checkoutDeliveryTitle": "Livraison",
   "checkoutDeliverySubtitle": "Livré à votre adresse",
   "checkoutPickupTitle": "Retrait en boutique",
-  "checkoutPickupSubtitle": "À récupérer sur place"
+  "checkoutPickupSubtitle": "À récupérer sur place",
+
+  "checkoutAddressMissingError": "Saisissez une adresse de livraison pour continuer.",
+  "checkoutPinMissingError": "Placez un point sur la carte pour continuer.",
+  "checkoutAddressInstructions": "Saisissez votre adresse, puis touchez la carte pour placer le repère de livraison.",
+  "checkoutAddressHelper": "Le repère sert à vérifier la zone, l'adresse est transmise à la commande.",
+  "checkoutPinCoordinates": "Repère : {lat}, {lng}",
+  "@checkoutPinCoordinates": {
+    "placeholders": {
+      "lat": { "type": "String" },
+      "lng": { "type": "String" }
+    }
+  },
+  "checkoutSwitchToPickup": "Passer en retrait en boutique",
+  "checkoutCheckZoneButton": "Vérifier la zone",
+
+  "checkoutRecapArticlesTitle": "Articles",
+  "checkoutRecapLineItem": "{quantity} × {name}",
+  "@checkoutRecapLineItem": {
+    "placeholders": {
+      "quantity": { "type": "int" },
+      "name": { "type": "String" }
+    }
+  },
+  "checkoutRecapZone": "Zone : {zone}",
+  "@checkoutRecapZone": {
+    "placeholders": { "zone": { "type": "String" } }
+  },
+  "checkoutRecapEstimatedTime": "Délai estimé : {minutes} min",
+  "@checkoutRecapEstimatedTime": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "checkoutRecapDeliveryFee": "Frais de livraison : {price}",
+  "@checkoutRecapDeliveryFee": {
+    "placeholders": { "price": { "type": "String" } }
+  },
+  "checkoutRecapAddress": "Adresse : {address}",
+  "@checkoutRecapAddress": {
+    "placeholders": { "address": { "type": "String" } }
+  },
+  "checkoutRecapPickupOnly": "À récupérer directement en boutique.",
+  "checkoutRecapEstimatedTotal": "Total estimé",
+  "checkoutRecapFinalAmountNotice": "Le montant définitif est calculé par le serveur à la création de la commande.",
+  "checkoutConfirmOrderButton": "Confirmer la commande"
 }

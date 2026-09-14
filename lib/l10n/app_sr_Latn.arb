@@ -77,5 +77,24 @@
   "checkoutDeliveryTitle": "Dostava",
   "checkoutDeliverySubtitle": "Dostavljeno na vašu adresu",
   "checkoutPickupTitle": "Preuzimanje u restoranu",
-  "checkoutPickupSubtitle": "Preuzmite lično"
+  "checkoutPickupSubtitle": "Preuzmite lično",
+
+  "checkoutAddressMissingError": "Unesite adresu za dostavu da biste nastavili.",
+  "checkoutPinMissingError": "Postavite tačku na mapi da biste nastavili.",
+  "checkoutAddressInstructions": "Unesite svoju adresu, zatim dodirnite mapu da postavite oznaku za dostavu.",
+  "checkoutAddressHelper": "Oznaka služi za proveru zone, adresa se prosleđuje uz porudžbinu.",
+  "checkoutPinCoordinates": "Oznaka: {lat}, {lng}",
+  "checkoutSwitchToPickup": "Pređi na preuzimanje u restoranu",
+  "checkoutCheckZoneButton": "Proveri zonu",
+
+  "checkoutRecapArticlesTitle": "Stavke",
+  "checkoutRecapLineItem": "{quantity} × {name}",
+  "checkoutRecapZone": "Zona: {zone}",
+  "checkoutRecapEstimatedTime": "Procenjeno vreme: {minutes} min",
+  "checkoutRecapDeliveryFee": "Troškovi dostave: {price}",
+  "checkoutRecapAddress": "Adresa: {address}",
+  "checkoutRecapPickupOnly": "Preuzimanje direktno u restoranu.",
+  "checkoutRecapEstimatedTotal": "Procenjeni ukupan iznos",
+  "checkoutRecapFinalAmountNotice": "Konačan iznos izračunava server prilikom kreiranja porudžbine.",
+  "checkoutConfirmOrderButton": "Potvrdi porudžbinu"
 }
