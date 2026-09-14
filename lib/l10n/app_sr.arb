@@ -103,5 +103,14 @@
   "paymentSecureSubtitle": "Vaše plaćanje je šifrovano i zaštićeno preko Stripe-a.",
   "paymentRetryButton": "Pokušaj ponovo",
   "paymentPayNowButton": "Plati sada",
-  "paymentCancelButton": "Otkaži"
+  "paymentCancelButton": "Otkaži",
+
+  "trackingOrderTitle": "Porudžbina #{orderId}",
+  "trackingRefreshTooltip": "Osveži status",
+  "trackingLoadErrorMessage": "Nije moguće učitati porudžbinu.",
+  "trackingViewOrdersButton": "Moje porudžbine",
+  "trackingPaymentConfirmed": "Plaćanje potvrđeno",
+  "trackingRealtimeSubtitle": "Praćenje porudžbine #{orderId} uživo.",
+  "trackingConnectingMessage": "Povezivanje u toku...",
+  "trackingCancelledMessage": "Ova porudžbina je otkazana."
 }

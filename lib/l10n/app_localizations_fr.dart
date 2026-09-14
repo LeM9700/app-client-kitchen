@@ -312,4 +312,32 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get paymentCancelButton => 'Annuler';
+
+  @override
+  String trackingOrderTitle(int orderId) {
+    return 'Commande #$orderId';
+  }
+
+  @override
+  String get trackingRefreshTooltip => 'Rafraichir le statut';
+
+  @override
+  String get trackingLoadErrorMessage => 'Impossible de charger la commande.';
+
+  @override
+  String get trackingViewOrdersButton => 'Voir mes commandes';
+
+  @override
+  String get trackingPaymentConfirmed => 'Paiement confirmé';
+
+  @override
+  String trackingRealtimeSubtitle(int orderId) {
+    return 'Suivi de la commande #$orderId en temps réel.';
+  }
+
+  @override
+  String get trackingConnectingMessage => 'Connexion en cours...';
+
+  @override
+  String get trackingCancelledMessage => 'Cette commande a été annulée.';
 }

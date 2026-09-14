@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/router/app_routes.dart';
+import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
 import 'package:app_client/core/widgets/error_view.dart';
+import 'package:app_client/design_system/kod_mome/glass_surface.dart';
+import 'package:app_client/design_system/kod_mome/medallion.dart';
+import 'package:app_client/design_system/kod_mome/neumorphic_surface.dart';
 import 'package:app_client/features/orders/models/order.dart';
 import 'package:app_client/features/tracking/models/order_status.dart';
 import 'package:app_client/features/tracking/providers/tracking_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 /// Écran de suivi de commande en temps réel — connexion WebSocket
 /// (`TrackingNotifier`) + polling de secours, timeline des 8 statuts réels
@@ -20,13 +26,19 @@ class TrackingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trackingState = ref.watch(trackingProvider(orderId));
     final order = trackingState.order;
+    final l10n = AppLocalizations.of(context)!;
+    final isKodMome = Env.isKodMomeBuild;
 
     return Scaffold(
+      backgroundColor: isKodMome ? KodMomeDesignPack.charcoal : null,
       appBar: AppBar(
-        title: Text('Commande #$orderId'),
+        backgroundColor: isKodMome ? KodMomeDesignPack.charcoal : null,
+        foregroundColor: isKodMome ? KodMomeDesignPack.cream : null,
+        title: Text(l10n.trackingOrderTitle(orderId)),
         actions: [
           IconButton(
-            tooltip: 'Rafraichir le statut',
+            tooltip: l10n.trackingRefreshTooltip,
+            color: isKodMome ? KodMomeDesignPack.primary : null,
             onPressed: trackingState.isLoadingOrder
                 ? null
                 : () async {
@@ -40,9 +52,12 @@ class TrackingScreen extends ConsumerWidget {
                     );
                   },
             icon: trackingState.isLoadingOrder
-                ? const SizedBox.square(
+                ? SizedBox.square(
                     dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: isKodMome ? KodMomeDesignPack.primary : null,
+                    ),
                   )
                 : const Icon(Icons.refresh),
           ),
@@ -57,9 +72,13 @@ class TrackingScreen extends ConsumerWidget {
           Expanded(
             child: order == null
                 ? (trackingState.isLoadingOrder
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: isKodMome ? KodMomeDesignPack.primary : null,
+                        ),
+                      )
                     : ErrorView(
-                        message: 'Impossible de charger la commande.',
+                        message: l10n.trackingLoadErrorMessage,
                         onRetry: () =>
                             ref.invalidate(trackingProvider(orderId)),
                       ))
@@ -71,10 +90,25 @@ class TrackingScreen extends ConsumerWidget {
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: () => context.go(AppRoutes.orders),
-                  child: const Text('Voir mes commandes'),
-                ),
+                child: isKodMome
+                    ? NeumorphicButton(
+                        borderRadius: 16,
+                        onTap: () => context.go(AppRoutes.orders),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: Text(
+                            l10n.trackingViewOrdersButton,
+                            style: const TextStyle(
+                              color: KodMomeDesignPack.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      )
+                    : ElevatedButton(
+                        onPressed: () => context.go(AppRoutes.orders),
+                        child: Text(l10n.trackingViewOrdersButton),
+                      ),
               ),
             ),
         ],
@@ -96,6 +130,60 @@ class _OrderConfirmationHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final isKodMome = Env.isKodMomeBuild;
+
+    final titleText = _isPaid ? l10n.trackingPaymentConfirmed : order.status.label;
+    final subtitleText = l10n.trackingRealtimeSubtitle(order.id);
+
+    final row = Row(
+      children: [
+        // Moment de célébration : le suivi est le seul écran de confirmation
+        // du flux (pas d'écran "succès paiement" séparé, voir la doc
+        // décision d'architecture n°4 de payment_screen.dart).
+        if (isKodMome && _isPaid)
+          const Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: KodMomeMedallion.success(size: 48),
+          )
+        else
+          Icon(
+            _isPaid ? Icons.check_circle_outline : Icons.receipt_long_outlined,
+            color: isKodMome ? KodMomeDesignPack.primary : colorScheme.primary,
+          ),
+        if (!(isKodMome && _isPaid)) const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                titleText,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isKodMome ? KodMomeDesignPack.cream : null,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitleText,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: isKodMome
+                      ? KodMomeDesignPack.cream.withValues(alpha: 0.7)
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (isKodMome) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: KodMomeGlassSurface(child: row),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -109,35 +197,7 @@ class _OrderConfirmationHeader extends StatelessWidget {
             color: colorScheme.primary.withValues(alpha: 0.25),
           ),
         ),
-        child: Row(
-          children: [
-            Icon(
-              _isPaid
-                  ? Icons.check_circle_outline
-                  : Icons.receipt_long_outlined,
-              color: colorScheme.primary,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isPaid ? 'Paiement confirmé' : order.status.label,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Suivi de la commande #${order.id} en temps réel.',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        child: row,
       ),
     );
   }
@@ -164,7 +224,7 @@ class _ConnectionBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              message ?? 'Connexion en cours...',
+              message ?? AppLocalizations.of(context)!.trackingConnectingMessage,
               style: const TextStyle(fontSize: 12),
               textAlign: TextAlign.center,
             ),
@@ -181,6 +241,8 @@ class _CancelledView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isKodMome = Env.isKodMomeBuild;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -194,12 +256,18 @@ class _CancelledView extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               OrderStatusCode.cancelled.label,
-              style: theme.textTheme.titleLarge,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: isKodMome ? KodMomeDesignPack.cream : null,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Cette commande a été annulée.',
-              style: theme.textTheme.bodyMedium,
+              AppLocalizations.of(context)!.trackingCancelledMessage,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isKodMome
+                    ? KodMomeDesignPack.cream.withValues(alpha: 0.7)
+                    : null,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -256,9 +324,34 @@ class _StatusStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isKodMome = Env.isKodMomeBuild;
     final isHighlighted = isDone || isActive;
-    final color =
-        isHighlighted ? theme.colorScheme.primary : const Color(0xFF9E9E9E);
+    final color = isHighlighted
+        ? (isKodMome ? KodMomeDesignPack.primary : theme.colorScheme.primary)
+        : (isKodMome
+            ? KodMomeDesignPack.cream.withValues(alpha: 0.35)
+            : const Color(0xFF9E9E9E));
+
+    final circle = Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: isHighlighted ? color : color.withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+        boxShadow: isKodMome && isHighlighted
+            ? [
+                BoxShadow(
+                  color: KodMomeDesignPack.primary.withValues(alpha: 0.4),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: Center(
+        child: Text(status.icon, style: const TextStyle(fontSize: 16)),
+      ),
+    );
 
     return IntrinsicHeight(
       child: Row(
@@ -268,24 +361,16 @@ class _StatusStep extends StatelessWidget {
             width: 32,
             child: Column(
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color:
-                        isHighlighted ? color : color.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child:
-                        Text(status.icon, style: const TextStyle(fontSize: 16)),
-                  ),
-                ),
+                circle,
                 if (!isLast)
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: isDone ? color : const Color(0xFFE5E5E5),
+                      color: isDone
+                          ? color
+                          : (isKodMome
+                              ? KodMomeDesignPack.cream.withValues(alpha: 0.15)
+                              : const Color(0xFFE5E5E5)),
                     ),
                   ),
               ],
@@ -298,7 +383,11 @@ class _StatusStep extends StatelessWidget {
               child: Text(
                 status.label,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: isHighlighted ? null : const Color(0xFF9E9E9E),
+                  color: isKodMome
+                      ? (isHighlighted
+                          ? KodMomeDesignPack.cream
+                          : KodMomeDesignPack.cream.withValues(alpha: 0.4))
+                      : (isHighlighted ? null : const Color(0xFF9E9E9E)),
                   fontWeight: isActive ? FontWeight.bold : null,
                 ),
               ),

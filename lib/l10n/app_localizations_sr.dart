@@ -312,6 +312,34 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get paymentCancelButton => 'Otkaži';
+
+  @override
+  String trackingOrderTitle(int orderId) {
+    return 'Porudžbina #$orderId';
+  }
+
+  @override
+  String get trackingRefreshTooltip => 'Osveži status';
+
+  @override
+  String get trackingLoadErrorMessage => 'Nije moguće učitati porudžbinu.';
+
+  @override
+  String get trackingViewOrdersButton => 'Moje porudžbine';
+
+  @override
+  String get trackingPaymentConfirmed => 'Plaćanje potvrđeno';
+
+  @override
+  String trackingRealtimeSubtitle(int orderId) {
+    return 'Praćenje porudžbine #$orderId uživo.';
+  }
+
+  @override
+  String get trackingConnectingMessage => 'Povezivanje u toku...';
+
+  @override
+  String get trackingCancelledMessage => 'Ova porudžbina je otkazana.';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -622,4 +650,32 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get paymentCancelButton => 'Otkaži';
+
+  @override
+  String trackingOrderTitle(int orderId) {
+    return 'Porudžbina #$orderId';
+  }
+
+  @override
+  String get trackingRefreshTooltip => 'Osveži status';
+
+  @override
+  String get trackingLoadErrorMessage => 'Nije moguće učitati porudžbinu.';
+
+  @override
+  String get trackingViewOrdersButton => 'Moje porudžbine';
+
+  @override
+  String get trackingPaymentConfirmed => 'Plaćanje potvrđeno';
+
+  @override
+  String trackingRealtimeSubtitle(int orderId) {
+    return 'Praćenje porudžbine #$orderId uživo.';
+  }
+
+  @override
+  String get trackingConnectingMessage => 'Povezivanje u toku...';
+
+  @override
+  String get trackingCancelledMessage => 'Ova porudžbina je otkazana.';
 }

@@ -644,6 +644,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Annuler'**
   String get paymentCancelButton;
+
+  /// No description provided for @trackingOrderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commande #{orderId}'**
+  String trackingOrderTitle(int orderId);
+
+  /// No description provided for @trackingRefreshTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rafraichir le statut'**
+  String get trackingRefreshTooltip;
+
+  /// No description provided for @trackingLoadErrorMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger la commande.'**
+  String get trackingLoadErrorMessage;
+
+  /// No description provided for @trackingViewOrdersButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir mes commandes'**
+  String get trackingViewOrdersButton;
+
+  /// No description provided for @trackingPaymentConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement confirmé'**
+  String get trackingPaymentConfirmed;
+
+  /// No description provided for @trackingRealtimeSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivi de la commande #{orderId} en temps réel.'**
+  String trackingRealtimeSubtitle(int orderId);
+
+  /// No description provided for @trackingConnectingMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion en cours...'**
+  String get trackingConnectingMessage;
+
+  /// No description provided for @trackingCancelledMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette commande a été annulée.'**
+  String get trackingCancelledMessage;
 }
 
 class _AppLocalizationsDelegate
