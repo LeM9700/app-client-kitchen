@@ -6,6 +6,11 @@ on:
   push:
     branches: [main]
 
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 jobs:
   analyze-and-test:
     name: flutter analyze & test
