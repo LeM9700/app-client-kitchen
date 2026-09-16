@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -680,7 +681,13 @@ class _ContactActionButton extends StatelessWidget {
 
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final opened = await launchUrl(
+        uri,
+        mode: kIsWeb
+            ? LaunchMode.platformDefault
+            : LaunchMode.externalApplication,
+        webOnlyWindowName: '_blank',
+      );
       if (!opened) {
         messenger.showSnackBar(
           const SnackBar(content: Text('Impossible d\'ouvrir ce contact.')),
