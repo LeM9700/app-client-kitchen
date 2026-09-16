@@ -22,12 +22,14 @@ class PaymentState {
     this.error,
     this.clientSecret,
     this.providerPaymentId,
+    this.wasCancelled = false,
   });
 
   final PaymentStatus status;
   final String? error;
   final String? clientSecret;
   final String? providerPaymentId;
+  final bool wasCancelled;
 }
 
 class PaymentNotifier extends StateNotifier<PaymentState> {
@@ -39,6 +41,8 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
   final Ref _ref;
 
   Future<bool> pay(int orderId) async {
+    if (state.status == PaymentStatus.loading) return false;
+
     if (!supportsNativeStripePaymentSheet) {
       if (_supportsLocalWebTestPayment) {
         return _payLocalWebTest(orderId);
@@ -56,6 +60,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
       status: PaymentStatus.loading,
       clientSecret: state.clientSecret,
       providerPaymentId: state.providerPaymentId,
+      wasCancelled: false,
     );
     _ref.read(analyticsReporterProvider).track(
       'payment_started',
@@ -84,6 +89,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
           status: PaymentStatus.loading,
           clientSecret: clientSecret,
           providerPaymentId: providerPaymentId,
+          wasCancelled: false,
         );
       }
 
@@ -109,6 +115,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
         status: PaymentStatus.idle,
         clientSecret: state.clientSecret,
         providerPaymentId: state.providerPaymentId,
+        wasCancelled: true,
       );
       _ref.read(analyticsReporterProvider).track(
         'payment_cancelled',

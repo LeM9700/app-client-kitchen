@@ -21,7 +21,8 @@ void main() {
       expect(response.createdAt, DateTime.parse('2026-08-25T10:30:00Z'));
     });
 
-    test('FavoriteCreate.toJson produit le payload attendu par POST /favorites', () {
+    test('FavoriteCreate.toJson produit le payload attendu par POST /favorites',
+        () {
       const create = FavoriteCreate(productId: 42);
 
       expect(create.toJson(), {'product_id': 42});

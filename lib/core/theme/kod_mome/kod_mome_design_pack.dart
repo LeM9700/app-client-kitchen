@@ -15,7 +15,8 @@ abstract final class KodMomeDesignPack {
   static const Color secondary = Color(0xFF5B1220);
   static const Color charcoal = Color(0xFF1A1714); // fond principal
   static const Color charcoalDeep = Color(0xFF171310); // fond le plus sombre
-  static const Color cream = Color(0xFFF2E9D8); // texte clair / liseré médaillon
+  static const Color cream =
+      Color(0xFFF2E9D8); // texte clair / liseré médaillon
   static const Color orangeAccent = Color(0xFFD98A3D); // médaillon
   static const Color redAccent = Color(0xFFC0272D); // accent promo/erreur
 

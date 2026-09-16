@@ -18,15 +18,21 @@ class CatalogRepository {
 
   final ApiClient _client;
 
+  List<Map<String, dynamic>> _itemsFromPayload(Object? data) {
+    if (data is List) {
+      return data.cast<Map<String, dynamic>>();
+    }
+    if (data is Map<String, dynamic> && data['items'] is List) {
+      return (data['items'] as List).cast<Map<String, dynamic>>();
+    }
+    throw const FormatException('Format de catalogue inattendu.');
+  }
+
   /// Retourne toutes les catégories actives triées par [sortOrder].
   Future<List<Category>> getCategories() async {
     try {
-      final response =
-          await _client.get<List<dynamic>>(ApiEndpoints.categories);
-      return (response.data as List)
-          .cast<Map<String, dynamic>>()
-          .map(Category.fromJson)
-          .toList();
+      final response = await _client.get<dynamic>(ApiEndpoints.categories);
+      return _itemsFromPayload(response.data).map(Category.fromJson).toList();
     } on DioException catch (e) {
       throw ApiClient.handleDioError(e);
     }
@@ -35,13 +41,10 @@ class CatalogRepository {
   /// Retourne les produits d'une catégorie, triés par [sortOrder].
   Future<List<Product>> getProductsByCategory(int categoryId) async {
     try {
-      final response = await _client.get<List<dynamic>>(
+      final response = await _client.get<dynamic>(
         ApiEndpoints.productsByCategory(categoryId),
       );
-      return (response.data as List)
-          .cast<Map<String, dynamic>>()
-          .map(Product.fromJson)
-          .toList();
+      return _itemsFromPayload(response.data).map(Product.fromJson).toList();
     } on DioException catch (e) {
       throw ApiClient.handleDioError(e);
     }
@@ -88,11 +91,28 @@ class CatalogRepository {
   Future<List<Product>> getFeaturedProducts() async {
     try {
       final response =
-          await _client.get<List<dynamic>>(ApiEndpoints.featuredProducts);
-      return (response.data as List)
-          .cast<Map<String, dynamic>>()
-          .map(Product.fromJson)
-          .toList();
+          await _client.get<dynamic>(ApiEndpoints.featuredProducts);
+      return _itemsFromPayload(response.data).map(Product.fromJson).toList();
+    } on DioException catch (e) {
+      throw ApiClient.handleDioError(e);
+    }
+  }
+
+  /// Retourne tous les produits actifs, toutes catégories confondues, sans
+  /// filtre — section "Tout le menu" de l'accueil. [pageSize] à 100 (max
+  /// serveur) couvre le catalogue d'un restaurant en une seule page ; au-delà,
+  /// seule la première page est retournée (pas de pagination infinie ici).
+  ///
+  /// Contrairement à [getFeaturedProducts]/[getProductsByCategory], cet
+  /// endpoint renvoie une enveloppe paginée (`{items, total, page, ...}`),
+  /// pas une liste brute.
+  Future<List<Product>> getAllProducts({int pageSize = 100}) async {
+    try {
+      final response = await _client.get<dynamic>(
+        ApiEndpoints.products,
+        queryParameters: {'page_size': pageSize},
+      );
+      return _itemsFromPayload(response.data).map(Product.fromJson).toList();
     } on DioException catch (e) {
       throw ApiClient.handleDioError(e);
     }

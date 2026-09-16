@@ -4,10 +4,17 @@ import 'package:go_router/go_router.dart';
 
 import 'package:app_client/core/providers/auth_token_provider.dart';
 import 'package:app_client/core/router/app_routes.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/core/widgets/scaffold_with_nav.dart';
 import 'package:app_client/features/account/screens/account_screen.dart';
 import 'package:app_client/features/account/screens/change_password_screen.dart';
+import 'package:app_client/features/account/screens/favorites_screen.dart';
 import 'package:app_client/features/account/screens/profile_edit_screen.dart';
+import 'package:app_client/features/account/screens/settings_screen.dart';
 import 'package:app_client/features/account/screens/sessions_screen.dart';
 import 'package:app_client/features/auth/screens/login_screen.dart';
 import 'package:app_client/features/auth/screens/register_screen.dart';
@@ -19,8 +26,10 @@ import 'package:app_client/features/catalog/screens/product_detail_screen.dart';
 import 'package:app_client/features/catalog/screens/search_screen.dart';
 import 'package:app_client/features/legal/screens/legal_document_screen.dart';
 import 'package:app_client/features/loyalty/screens/loyalty_screen.dart';
+import 'package:app_client/features/notifications/screens/notifications_screen.dart';
 import 'package:app_client/features/orders/screens/order_detail_screen.dart';
 import 'package:app_client/features/orders/screens/order_history_screen.dart';
+import 'package:app_client/features/onboarding/screens/onboarding_screen.dart';
 import 'package:app_client/features/payment/screens/payment_screen.dart';
 import 'package:app_client/features/promotions/screens/promotions_screen.dart';
 import 'package:app_client/features/splash/screens/splash_screen.dart';
@@ -68,30 +77,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     // ──────────────────────────────────────────────────────────────────────
     redirect: (context, state) {
       final isAuthenticated = ref.read(accessTokenProvider) != null;
-      final location = state.uri.toString();
-
-      // Chemins protégés — auth obligatoire
-      const protectedPrefixes = [
-        AppRoutes.checkout,
-        AppRoutes.payment,
-        AppRoutes.orders,
-        AppRoutes.account,
-        AppRoutes.loyalty,
-      ];
-
-      final requiresAuth = protectedPrefixes.any((p) => location.startsWith(p));
-
-      if (requiresAuth && !isAuthenticated) {
-        // Préserver la destination pour redirection post-login.
-        return '${AppRoutes.login}?redirect=${Uri.encodeComponent(location)}';
-      }
-
-      // Rediriger depuis les écrans auth si déjà connecté.
-      if (isAuthenticated && location.startsWith('/auth/')) {
-        return AppRoutes.home;
-      }
-
-      return null;
+      return appRouterRedirect(
+        isAuthenticated: isAuthenticated,
+        location: state.uri.toString(),
+      );
     },
 
     routes: [
@@ -99,6 +88,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.splash,
         builder: (_, __) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboarding,
+        builder: (_, __) => const OnboardingScreen(),
       ),
 
       // ── Auth (hors shell) ────────────────────────────────────────────────
@@ -117,6 +110,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (_, __) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (_, __) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.privacy,
@@ -170,7 +167,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'search',
-                    builder: (_, __) => const SearchScreen(),
+                    builder: (_, state) => SearchScreen(
+                      initialQuery: state.uri.queryParameters['q'],
+                    ),
                   ),
                   GoRoute(
                     path: 'promotions',
@@ -253,6 +252,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (_, __) => const LoyaltyScreen(),
                   ),
                   GoRoute(
+                    path: 'favorites',
+                    builder: (_, __) => const FavoritesScreen(),
+                  ),
+                  GoRoute(
                     path: 'profile/edit',
                     builder: (_, __) => const ProfileEditScreen(),
                   ),
@@ -263,6 +266,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'sessions',
                     builder: (_, __) => const SessionsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'settings',
+                    builder: (_, __) => const SettingsScreen(),
                   ),
                 ],
               ),
@@ -311,17 +318,40 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
 
-    errorBuilder: (_, state) => Scaffold(
-      appBar: AppBar(title: const Text('Erreur')),
-      body: Center(
-        child: Text(
-          'Page introuvable\n${state.error}',
-          textAlign: TextAlign.center,
-        ),
-      ),
+    errorBuilder: (_, __) => const _RouteMessageScreen(
+      title: 'Page introuvable',
+      message: 'Cette page n’existe pas ou n’est plus disponible.',
+      actionLabel: 'Retour au menu',
+      actionRoute: AppRoutes.home,
     ),
   );
 });
+
+String? appRouterRedirect({
+  required bool isAuthenticated,
+  required String location,
+}) {
+  const protectedPrefixes = [
+    AppRoutes.checkout,
+    AppRoutes.payment,
+    AppRoutes.orders,
+    AppRoutes.account,
+    AppRoutes.loyalty,
+    AppRoutes.notifications,
+  ];
+
+  final requiresAuth = protectedPrefixes.any((p) => location.startsWith(p));
+
+  if (requiresAuth && !isAuthenticated) {
+    return '${AppRoutes.login}?redirect=${Uri.encodeComponent(location)}';
+  }
+
+  if (isAuthenticated && location.startsWith('/auth/')) {
+    return AppRoutes.home;
+  }
+
+  return null;
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Ecran de message pour les routes de compatibilite ou les parametres invalides.
@@ -343,32 +373,43 @@ class _RouteMessageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      backgroundColor: KitchenColors.paper,
+      appBar: AppBar(
+        backgroundColor: KitchenColors.paper,
+        foregroundColor: KitchenColors.espresso,
+        title: Text(title, style: KitchenTypography.title),
+      ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.info_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              if (actionLabel != null && actionRoute != null) ...[
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () => context.go(actionRoute!),
-                  child: Text(actionLabel!),
+          padding: const EdgeInsets.all(KitchenSpacing.lg),
+          child: KitchenSurface(
+            padding: const EdgeInsets.all(KitchenSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.info_outline,
+                  size: 48,
+                  color: KitchenColors.cognac,
                 ),
+                const SizedBox(height: KitchenSpacing.md),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: KitchenTypography.body.copyWith(
+                    color: KitchenColors.textMuted,
+                  ),
+                ),
+                if (actionLabel != null && actionRoute != null) ...[
+                  const SizedBox(height: KitchenSpacing.lg),
+                  KitchenEmbossedButton(
+                    onPressed: () => context.go(actionRoute!),
+                    semanticLabel: actionLabel,
+                    child: Text(actionLabel!),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

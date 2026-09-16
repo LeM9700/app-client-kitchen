@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:app_client/core/theme/app_colors.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
 
 /// Génère l'échelle typographique à partir de la font family du tenant.
 ///
@@ -79,5 +80,47 @@ abstract final class AppTypography {
           fontWeight: FontWeight.w500,
           letterSpacing: 0.5,
         ),
+      );
+}
+
+abstract final class KitchenTypography {
+  static TextStyle get display => GoogleFonts.cormorantGaramond(
+        color: KitchenColors.textPrimary,
+        fontSize: 42,
+        fontWeight: FontWeight.w700,
+        height: 1,
+        letterSpacing: 0,
+      );
+
+  static TextStyle get title => GoogleFonts.cormorantGaramond(
+        color: KitchenColors.textPrimary,
+        fontSize: 30,
+        fontWeight: FontWeight.w700,
+        height: 1.05,
+        letterSpacing: 0,
+      );
+
+  static TextStyle get body => GoogleFonts.manrope(
+        color: KitchenColors.textPrimary,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        height: 1.45,
+        letterSpacing: 0,
+      );
+
+  static TextStyle get label => GoogleFonts.manrope(
+        color: KitchenColors.textPrimary,
+        fontSize: 13,
+        fontWeight: FontWeight.w800,
+        height: 1.1,
+        letterSpacing: 0,
+      );
+
+  static TextStyle get signature => GoogleFonts.caveat(
+        color: KitchenColors.brown700,
+        fontSize: 30,
+        fontWeight: FontWeight.w600,
+        height: 0.95,
+        letterSpacing: 0,
       );
 }

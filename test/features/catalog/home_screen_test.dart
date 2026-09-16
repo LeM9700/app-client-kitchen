@@ -10,6 +10,7 @@ import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
 import 'package:app_client/features/catalog/screens/home_screen.dart';
 import 'package:app_client/features/catalog/widgets/product_card.dart';
+import 'package:app_client/features/checkout/providers/client_location_provider.dart';
 import 'package:app_client/features/promotions/providers/promotions_provider.dart';
 
 const _pizzaCategory = Category(id: 1, name: 'Pizzas');
@@ -32,10 +33,17 @@ Future<ProviderContainer> _pumpHome(WidgetTester tester) async {
         (ref) async => [_pizzaCategory, _dessertCategory],
       ),
       featuredProductsProvider.overrideWith((ref) async => [_tiramisu]),
-      productsByCategoryProvider(1)
-          .overrideWith((ref) async => [_margherita]),
+      productsByCategoryProvider(1).overrideWith((ref) async => [_margherita]),
       productsByCategoryProvider(2).overrideWith((ref) async => [_tiramisu]),
+      allProductsProvider.overrideWith((ref) async => [_margherita, _tiramisu]),
       promotionsProvider.overrideWith((ref) async => []),
+      clientLocationProvider.overrideWith(
+        (ref) => const ClientLocation(
+          address: '12 rue de la Paix',
+          lat: 48.8566,
+          lng: 2.3522,
+        ),
+      ),
     ],
   );
   addTearDown(container.dispose);
@@ -49,9 +57,16 @@ Future<ProviderContainer> _pumpHome(WidgetTester tester) async {
         builder: (_, __) => const Scaffold(body: Text('Search screen')),
       ),
       GoRoute(
+        path: AppRoutes.login,
+        builder: (_, __) => const Scaffold(body: Text('Login screen')),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (_, __) => const Scaffold(body: Text('Notifications screen')),
+      ),
+      GoRoute(
         path: '/home/product/:id',
-        builder: (_, __) =>
-            const Scaffold(body: Text('Product detail screen')),
+        builder: (_, __) => const Scaffold(body: Text('Product detail screen')),
       ),
     ],
   );
@@ -82,13 +97,18 @@ void main() {
       expect(find.text('Tiramisu'), findsWidgets);
     });
 
-    testWidgets('affiche une row par catégorie, nommée dynamiquement',
+    testWidgets('affiche les categories comme raccourcis vers la recherche',
         (tester) async {
-      await _pumpHome(tester);
+      final container = await _pumpHome(tester);
 
-      expect(find.text('Pizzas'), findsWidgets);
-      expect(find.text('Desserts'), findsWidgets);
-      expect(find.text('Margherita'), findsWidgets);
+      expect(find.text('Pizzas'), findsOneWidget);
+      expect(find.text('Desserts'), findsOneWidget);
+
+      await tester.tap(find.text('Pizzas'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(selectedCategoryProvider), _pizzaCategory.id);
+      expect(find.text('Search screen'), findsOneWidget);
     });
 
     testWidgets('ne montre plus le vocabulaire marketplace multi-restaurants',
@@ -100,37 +120,52 @@ void main() {
       expect(find.text('Best Rating'), findsNothing);
     });
 
-    testWidgets("la cloche notifications n'est plus un bouton tapable",
+    testWidgets(
+        'la cloche notifications redirige vers login quand non connecte',
         (tester) async {
       await _pumpHome(tester);
 
-      expect(find.byIcon(Icons.notifications_none), findsOneWidget);
-      expect(find.byType(IconButton), findsNothing);
+      expect(find.byIcon(Icons.notifications_none_rounded), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.notifications_none_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Connectez-vous'), findsOneWidget);
+      expect(find.text('Login screen'), findsOneWidget);
     });
 
-    testWidgets(
-        "le chevron d'adresse n'est plus un bouton tapable et partage le "
-        'style muted de la cloche', (tester) async {
+    testWidgets("affiche la position exacte du client", (tester) async {
+      await _pumpHome(tester);
+
+      expect(find.text('Position client'), findsOneWidget);
+      expect(find.text('12 rue de la Paix'), findsOneWidget);
+      expect(find.text('48.85660, 2.35220'), findsOneWidget);
+    });
+
+    testWidgets("le chevron d'adresse reste decoratif et non tapable",
+        (tester) async {
       await _pumpHome(tester);
 
       final chevronFinder = find.byIcon(Icons.keyboard_arrow_down);
       expect(chevronFinder, findsOneWidget);
-      expect(find.byType(IconButton), findsNothing);
-
-      final chevron = tester.widget<Icon>(chevronFinder);
-      final bell = tester.widget<Icon>(
-        find.byIcon(Icons.notifications_none),
+      expect(
+        find.ancestor(of: chevronFinder, matching: find.byType(IconButton)),
+        findsNothing,
       );
-      expect(chevron.color, equals(bell.color));
     });
 
     testWidgets(
-        'un produit à la fois vedette et catégorisé ne casse pas la '
+        'un produit a la fois vedette et categorise ne casse pas la '
         'navigation (pas de collision de tag Hero)', (tester) async {
       await _pumpHome(tester);
 
-      // _tiramisu est à la fois dans Incontournables (featured) et dans la
-      // row Desserts (categoryId: 2) → il est rendu deux fois sur cet écran.
+      await tester.scrollUntilVisible(
+        find.byType(ProductCard).first,
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
       await tester.tap(find.byType(ProductCard).first);
       await tester.pumpAndSettle();
 
@@ -138,31 +173,41 @@ void main() {
     });
   });
 
-  group('HomeScreen — reset de selectedCategoryProvider', () {
+  group('HomeScreen - reset de selectedCategoryProvider', () {
     testWidgets(
-        '"Voir tout" sur Incontournables réinitialise la catégorie '
-        'sélectionnée avant de naviguer', (tester) async {
+        '"Voir tout" sur Incontournables reinitialise la categorie '
+        'selectionnee avant de naviguer', (tester) async {
       final container = await _pumpHome(tester);
       container.read(selectedCategoryProvider.notifier).state =
           _dessertCategory.id;
 
-      await tester.tap(find.text('Voir tout').first);
+      await tester.scrollUntilVisible(
+        find.text('Incontournables'),
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Voir tout').first);
       await tester.pumpAndSettle();
 
       expect(container.read(selectedCategoryProvider), isNull);
+      expect(find.text('Search screen'), findsOneWidget);
     });
 
     testWidgets(
-        'la barre de recherche réinitialise la catégorie sélectionnée '
+        'la barre de recherche reinitialise la categorie selectionnee '
         'avant de naviguer', (tester) async {
       final container = await _pumpHome(tester);
       container.read(selectedCategoryProvider.notifier).state =
           _dessertCategory.id;
 
-      await tester.tap(find.text('Que souhaitez-vous commander ?'));
+      await tester.enterText(find.byType(TextField), 'mar');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
       await tester.pumpAndSettle();
 
       expect(container.read(selectedCategoryProvider), isNull);
+      expect(find.text('Search screen'), findsOneWidget);
     });
   });
 }

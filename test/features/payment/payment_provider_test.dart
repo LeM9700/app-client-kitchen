@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -131,6 +133,7 @@ void main() {
       final state = container.read(paymentProvider);
       expect(paid, false);
       expect(state.status, PaymentStatus.idle);
+      expect(state.wasCancelled, true);
       expect(state.clientSecret, _intent.clientSecret);
       expect(state.providerPaymentId, _intent.providerPaymentId);
       expect(container.read(cartProvider).isEmpty, false);
@@ -250,6 +253,28 @@ void main() {
       expect(state.error, isNull);
       expect(state.clientSecret, isNull);
       expect(state.providerPaymentId, isNull);
+      expect(state.wasCancelled, false);
+    });
+
+    test('pay ignore un appel concurrent pendant le chargement', () async {
+      final intentCompleter = Completer<PaymentIntentResult>();
+      when(() => mockRepo.createPaymentIntent(_orderId))
+          .thenAnswer((_) => intentCompleter.future);
+      when(() => mockRepo.confirmPayment(_intent.providerPaymentId))
+          .thenAnswer((_) async {});
+      stubSuccessfulSheet();
+
+      final notifier = container.read(paymentProvider.notifier);
+      final first = notifier.pay(_orderId);
+      expect(container.read(paymentProvider).status, PaymentStatus.loading);
+
+      final second = await notifier.pay(_orderId);
+      expect(second, false);
+
+      intentCompleter.complete(_intent);
+      expect(await first, true);
+      verify(() => mockRepo.createPaymentIntent(_orderId)).called(1);
+      verify(() => mockSheet.presentPaymentSheet()).called(1);
     });
   });
 }

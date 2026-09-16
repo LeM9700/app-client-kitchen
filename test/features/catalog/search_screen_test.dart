@@ -22,9 +22,8 @@ Future<ProviderContainer> _pumpSearch(
       categoriesProvider.overrideWith(
         (ref) async => [_pizzaCategory, _dessertCategory],
       ),
-      featuredProductsProvider.overrideWith((ref) async => [_margherita]),
-      productsByCategoryProvider(1)
-          .overrideWith((ref) async => [_margherita]),
+      allProductsProvider.overrideWith((ref) async => [_margherita]),
+      productsByCategoryProvider(1).overrideWith((ref) async => [_margherita]),
     ],
   );
   addTearDown(container.dispose);
@@ -37,11 +36,11 @@ Future<ProviderContainer> _pumpSearch(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('fr'),
-        home: const SearchScreen(),
+        locale: Locale('fr'),
+        home: SearchScreen(),
       ),
     ),
   );
@@ -72,7 +71,7 @@ void main() {
         (tester) async {
       await _pumpSearch(tester);
 
-      expect(find.text('Sélection'), findsOneWidget);
+      expect(find.text('Tout'), findsOneWidget);
       expect(find.text('Pizzas'), findsOneWidget);
       expect(find.text('Desserts'), findsOneWidget);
       expect(find.text('Nearest'), findsNothing);

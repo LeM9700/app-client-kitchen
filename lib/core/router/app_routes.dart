@@ -4,10 +4,14 @@ abstract final class AppRoutes {
   // Splash
   static const String splash = '/';
 
+  // Onboarding (public, hors bottom nav)
+  static const String onboarding = '/onboarding';
+
   // Catalogue (bottom nav — branche 0)
   static const String home = '/home';
   static const String search = '/home/search';
   static const String promotions = '/home/promotions';
+  static const String notifications = '/notifications';
 
   /// Génère le chemin vers la fiche produit : `/home/product/{id}`.
   static String productDetail(String productId) => '/home/product/$productId';
@@ -29,7 +33,9 @@ abstract final class AppRoutes {
   static const String profileEdit = '/account/profile/edit';
   static const String changePassword = '/account/change-password';
   static const String sessions = '/account/sessions';
+  static const String settings = '/account/settings';
   static const String loyalty = '/account/loyalty';
+  static const String favorites = '/account/favorites';
 
   // Auth (hors bottom nav)
   static const String login = '/auth/login';

@@ -216,6 +216,48 @@ void main() {
   });
 
   // ──────────────────────────────────────────────────────────────────────────
+  // deleteAccount()
+  // ──────────────────────────────────────────────────────────────────────────
+
+  group('deleteAccount()', () {
+    test(
+        'DELETE /customer/me avec mot de passe puis clearAll uniquement en succès',
+        () async {
+      Map<String, dynamic>? sentBody;
+      when(
+        () => mockClient.delete<void>(
+          any(),
+          data: any(named: 'data'),
+        ),
+      ).thenAnswer((invocation) async {
+        sentBody = invocation.namedArguments[#data] as Map<String, dynamic>;
+        return _response<void>(null, statusCode: 204);
+      });
+      when(() => mockStorage.clearAll()).thenAnswer((_) async {});
+
+      await repo.deleteAccount(password: 'ValidPass1!');
+
+      expect(sentBody, {'password': 'ValidPass1!'});
+      verify(() => mockStorage.clearAll()).called(1);
+    });
+
+    test('échec serveur → ne clear pas le storage local', () async {
+      when(
+        () => mockClient.delete<void>(
+          any(),
+          data: any(named: 'data'),
+        ),
+      ).thenThrow(_dioError(401, {'detail': 'Invalid password'}));
+
+      await expectLater(
+        repo.deleteAccount(password: 'WrongPass1!'),
+        throwsA(isA<AuthException>()),
+      );
+      verifyNever(() => mockStorage.clearAll());
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
   // forgotPassword()
   // ──────────────────────────────────────────────────────────────────────────
 

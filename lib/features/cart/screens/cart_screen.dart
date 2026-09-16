@@ -2,27 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/core/providers/auth_token_provider.dart';
 import 'package:app_client/core/router/app_routes.dart';
-import 'package:app_client/core/theme/app_colors.dart';
-import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
-import 'package:app_client/core/widgets/empty_state.dart';
-import 'package:app_client/design_system/kod_mome/glass_surface.dart';
-import 'package:app_client/design_system/kod_mome/gold_foil_text.dart';
-import 'package:app_client/design_system/kod_mome/medallion.dart';
-import 'package:app_client/design_system/kod_mome/neumorphic_surface.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/utils/price_formatter.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_brand_logo.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/cart/models/cart_item.dart';
 import 'package:app_client/features/cart/models/cart_state.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 
-String _formatPrice(double price) => '${price.toStringAsFixed(2)} €';
-
-/// Écran panier — 100% local (voir décision d'architecture Plan 09), aucun
-/// appel API tant que le checkout n'est pas lancé, hors aperçus code
-/// promo/fidélité (lecture seule, authentifiés).
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
 
@@ -31,29 +27,30 @@ class CartScreen extends ConsumerWidget {
     final cart = ref.watch(cartProvider);
     final isAuthenticated = ref.watch(accessTokenProvider) != null;
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
 
     if (cart.isEmpty) {
       return const _EmptyCart();
     }
 
-    final checkoutLabel =
-        l10n.cartCheckoutButton(_formatPrice(cart.total));
+    final checkoutLabel = l10n.cartCheckoutButton(formatPrice(cart.total));
 
     return Scaffold(
-      backgroundColor: isKodMome ? KodMomeDesignPack.charcoal : null,
+      backgroundColor: KitchenColors.paper,
       appBar: AppBar(
-        backgroundColor: isKodMome ? KodMomeDesignPack.charcoal : null,
-        foregroundColor: isKodMome ? KodMomeDesignPack.cream : null,
-        title: Text(l10n.cartTitle),
+        backgroundColor: KitchenColors.paper,
+        foregroundColor: KitchenColors.espresso,
+        title: Text(
+          l10n.cartTitle,
+          style: KitchenTypography.title.copyWith(fontSize: 28),
+        ),
         actions: [
           TextButton(
             onPressed: () => ref.read(cartProvider.notifier).clear(),
             child: Text(
               l10n.cartClearButton,
-              style: isKodMome
-                  ? const TextStyle(color: KodMomeDesignPack.primary)
-                  : null,
+              style: KitchenTypography.label.copyWith(
+                color: KitchenColors.cognac,
+              ),
             ),
           ),
         ],
@@ -62,9 +59,13 @@ class CartScreen extends ConsumerWidget {
         children: [
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+              padding: const EdgeInsets.fromLTRB(
+                KitchenSpacing.lg,
+                KitchenSpacing.md,
+                KitchenSpacing.lg,
+                KitchenSpacing.lg,
+              ),
               children: [
-                // Liste des items
                 ...cart.itemList.map(
                   (item) => _CartItemTile(
                     item: item,
@@ -78,49 +79,41 @@ class CartScreen extends ConsumerWidget {
                         ref.read(cartProvider.notifier).removeItem(item.key),
                   ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // Code promo (uniquement si connecté)
+                const SizedBox(height: KitchenSpacing.md),
                 if (isAuthenticated)
                   _PromoCodeField(orderTotal: cart.subtotal)
                 else
                   const _PromoLoginPrompt(),
-
-                const SizedBox(height: 16),
-
-                // Aperçu fidélité (uniquement si connecté)
+                const SizedBox(height: KitchenSpacing.md),
                 if (isAuthenticated)
                   _LoyaltyPreview(orderAmount: cart.subtotal),
-
-                const SizedBox(height: 16),
-
-                // Récapitulatif
+                const SizedBox(height: KitchenSpacing.md),
                 _CartSummary(cart: cart),
               ],
             ),
           ),
-
-          // Bouton checkout
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-              child: isKodMome
-                  ? NeumorphicButton(
-                      borderRadius: 16,
-                      onTap: () => context.push(AppRoutes.checkout),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
-                        child: GoldFoilText(
-                          checkoutLabel,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    )
-                  : ElevatedButton(
-                      onPressed: () => context.push(AppRoutes.checkout),
-                      child: Text(checkoutLabel),
-                    ),
+            top: false,
+            minimum: const EdgeInsets.fromLTRB(
+              KitchenSpacing.lg,
+              KitchenSpacing.sm,
+              KitchenSpacing.lg,
+              KitchenSpacing.md,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: KitchenEmbossedButton(
+                onPressed: () => context.push(AppRoutes.checkout),
+                semanticLabel: checkoutLabel,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.shopping_bag_outlined),
+                    const SizedBox(width: KitchenSpacing.sm),
+                    Flexible(child: Text(checkoutLabel)),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -129,10 +122,6 @@ class CartScreen extends ConsumerWidget {
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Panier vide
-// ──────────────────────────────────────────────────────────────────────────────
-
 class _EmptyCart extends StatelessWidget {
   const _EmptyCart();
 
@@ -140,55 +129,47 @@ class _EmptyCart extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    if (Env.isKodMomeBuild) {
-      return Scaffold(
-        backgroundColor: KodMomeDesignPack.charcoal,
-        appBar: AppBar(
-          backgroundColor: KodMomeDesignPack.charcoal,
-          foregroundColor: KodMomeDesignPack.cream,
-          title: Text(l10n.cartEmptyTitle),
+    return Scaffold(
+      backgroundColor: KitchenColors.paper,
+      appBar: AppBar(
+        backgroundColor: KitchenColors.paper,
+        foregroundColor: KitchenColors.espresso,
+        title: Text(
+          l10n.cartEmptyTitle,
+          style: KitchenTypography.title.copyWith(fontSize: 28),
         ),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const KodMomeMedallion.empty(),
-              const SizedBox(height: 20),
-              Text(
-                l10n.cartEmptyStateTitle,
-                style: const TextStyle(
-                  color: KodMomeDesignPack.cream,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(KitchenSpacing.lg),
+          child: KitchenSurface(
+            padding: const EdgeInsets.all(KitchenSpacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const KitchenBrandLogo(size: 96),
+                const SizedBox(height: KitchenSpacing.lg),
+                Text(
+                  l10n.cartEmptyStateTitle,
+                  style: KitchenTypography.title.copyWith(fontSize: 26),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                l10n.cartEmptyStateSubtitle,
-                style: TextStyle(
-                  color: KodMomeDesignPack.cream.withValues(alpha: 0.65),
+                const SizedBox(height: KitchenSpacing.xs),
+                Text(
+                  l10n.cartEmptyStateSubtitle,
+                  style: KitchenTypography.body.copyWith(
+                    color: KitchenColors.textMuted,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.cartEmptyTitle)),
-      body: EmptyState(
-        title: l10n.cartEmptyStateTitle,
-        subtitle: l10n.cartEmptyStateSubtitle,
-        icon: Icons.shopping_bag_outlined,
       ),
     );
   }
 }
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Ligne panier
-// ──────────────────────────────────────────────────────────────────────────────
 
 class _CartItemTile extends StatelessWidget {
   const _CartItemTile({
@@ -206,37 +187,35 @@ class _CartItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
     final selectedExtras = item.product.extras
         .where((extra) => item.selectedExtraIds.contains(extra.id))
         .toList();
-    final nameColor = isKodMome ? KodMomeDesignPack.cream : null;
-    final mutedColor =
-        isKodMome ? KodMomeDesignPack.cream.withValues(alpha: 0.65) : null;
 
-    final row = Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox(
-              width: 84,
-              height: 84,
-              child: item.product.imageUrl != null
-                  ? Image.network(
-                      item.product.imageUrl!,
-                      fit: BoxFit.cover,
-                      cacheWidth: 220,
-                      errorBuilder: (_, __, ___) =>
-                          const _CartImagePlaceholder(),
-                    )
-                  : const _CartImagePlaceholder(),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KitchenSpacing.md),
+      child: KitchenSurface(
+        padding: const EdgeInsets.all(KitchenSpacing.sm),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(KitchenRadius.md),
+              child: SizedBox(
+                width: 86,
+                height: 86,
+                child: item.product.imageUrl != null
+                    ? Image.network(
+                        item.product.imageUrl!,
+                        fit: BoxFit.cover,
+                        cacheWidth: 220,
+                        errorBuilder: (_, __, ___) =>
+                            const _CartImagePlaceholder(),
+                      )
+                    : const _CartImagePlaceholder(),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 2),
+            const SizedBox(width: KitchenSpacing.md),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -246,16 +225,16 @@ class _CartItemTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           item.product.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(color: nameColor),
+                          style: KitchenTypography.body.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete_outline, color: mutedColor),
+                        icon: const Icon(Icons.delete_outline),
+                        color: KitchenColors.textMuted,
                         tooltip: l10n.cartRemoveTooltip,
                         visualDensity: VisualDensity.compact,
                         onPressed: onRemove,
@@ -265,22 +244,22 @@ class _CartItemTile extends StatelessWidget {
                   if (item.selectedVariant != null)
                     Text(
                       item.selectedVariant!.name,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: mutedColor),
+                      style: KitchenTypography.body.copyWith(
+                        color: KitchenColors.textMuted,
+                        fontSize: 13,
+                      ),
                     ),
                   if (selectedExtras.isNotEmpty)
                     Text(
-                      selectedExtras.map((e) => e.name).join(', '),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: mutedColor),
+                      selectedExtras.map((extra) => extra.name).join(', '),
+                      style: KitchenTypography.body.copyWith(
+                        color: KitchenColors.textMuted,
+                        fontSize: 13,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: KitchenSpacing.sm),
                   Row(
                     children: [
                       _StepperButton(
@@ -289,14 +268,13 @@ class _CartItemTile extends StatelessWidget {
                         tooltip: l10n.cartRemoveTooltip,
                       ),
                       SizedBox(
-                        width: 30,
+                        width: 34,
                         child: Text(
                           '${item.quantity}',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(color: nameColor),
+                          style: KitchenTypography.body.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
                       _StepperButton(
@@ -305,46 +283,21 @@ class _CartItemTile extends StatelessWidget {
                         tooltip: l10n.cartAddTooltip,
                       ),
                       const Spacer(),
-                      isKodMome
-                          ? GoldFoilText(
-                              _formatPrice(item.totalPrice),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w800),
-                            )
-                          : Text(
-                              _formatPrice(item.totalPrice),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w800),
-                            ),
+                      Text(
+                        formatPrice(item.totalPrice),
+                        style: KitchenTypography.label.copyWith(
+                          color: KitchenColors.cognac,
+                          fontSize: 14,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
-          ),
-        ],
-      );
-
-    if (isKodMome) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 14),
-        child: KodMomeGlassSurface(
-          padding: const EdgeInsets.all(8),
-          child: row,
+          ],
         ),
-      );
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.grey100,
-        borderRadius: BorderRadius.circular(8),
       ),
-      child: row,
     );
   }
 }
@@ -362,22 +315,17 @@ class _StepperButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isKodMome = Env.isKodMomeBuild;
-
     return SizedBox.square(
-      dimension: 26,
+      dimension: 34,
       child: IconButton.filledTonal(
         onPressed: onPressed,
         icon: Icon(icon, size: 16),
         padding: EdgeInsets.zero,
         tooltip: tooltip,
-        style: isKodMome
-            ? IconButton.styleFrom(
-                backgroundColor:
-                    KodMomeDesignPack.primary.withValues(alpha: 0.16),
-                foregroundColor: KodMomeDesignPack.primary,
-              )
-            : null,
+        style: IconButton.styleFrom(
+          backgroundColor: KitchenColors.cognac.withValues(alpha: 0.12),
+          foregroundColor: KitchenColors.espresso,
+        ),
       ),
     );
   }
@@ -388,19 +336,17 @@ class _CartImagePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.white,
-      child: Icon(
-        Icons.local_pizza_outlined,
-        color: Theme.of(context).colorScheme.primary,
+    return const ColoredBox(
+      color: KitchenColors.flour,
+      child: Center(
+        child: Icon(
+          Icons.local_pizza_outlined,
+          color: KitchenColors.cognac,
+        ),
       ),
     );
   }
 }
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Code promo
-// ──────────────────────────────────────────────────────────────────────────────
 
 class _PromoLoginPrompt extends StatelessWidget {
   const _PromoLoginPrompt();
@@ -408,42 +354,35 @@ class _PromoLoginPrompt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
-    final textColor = isKodMome ? KodMomeDesignPack.cream : null;
 
-    final row = Row(
-      children: [
-        Icon(Icons.lock_outline, size: 20, color: textColor),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            l10n.cartPromoLoginPrompt,
-            style: TextStyle(color: textColor),
+    return KitchenSurface(
+      elevation: KitchenElevation.inset,
+      padding: const EdgeInsets.all(KitchenSpacing.md),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.lock_outline,
+            size: 20,
+            color: KitchenColors.cognac,
           ),
-        ),
-      ],
-    );
-
-    if (isKodMome) {
-      return KodMomeGlassSurface(padding: const EdgeInsets.all(12), child: row);
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+          const SizedBox(width: KitchenSpacing.sm),
+          Expanded(
+            child: Text(
+              l10n.cartPromoLoginPrompt,
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.textMuted,
+              ),
+            ),
+          ),
+        ],
       ),
-      child: row,
     );
   }
 }
 
-/// Champ code promo — appelle `POST /promotions/validate` (preview lecture
-/// seule, voir Décision d'architecture n°3). Réservé aux utilisateurs
-/// connectés : [CartScreen] n'affiche ce widget que si authentifié.
 class _PromoCodeField extends ConsumerStatefulWidget {
   const _PromoCodeField({required this.orderTotal});
+
   final double orderTotal;
 
   @override
@@ -477,8 +416,8 @@ class _PromoCodeFieldState extends ConsumerState<_PromoCodeField> {
       } else {
         notifier.setPromoError(invalidPromoMessage);
       }
-    } on AppException catch (e) {
-      notifier.setPromoError(e.message);
+    } on AppException catch (error) {
+      notifier.setPromoError(error.message);
     } finally {
       notifier.setValidatingPromo(false);
     }
@@ -488,93 +427,83 @@ class _PromoCodeFieldState extends ConsumerState<_PromoCodeField> {
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
-
-    final field = Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _controller,
-            textCapitalization: TextCapitalization.characters,
-            style: isKodMome
-                ? const TextStyle(color: KodMomeDesignPack.cream)
-                : null,
-            decoration: InputDecoration(
-              labelText: l10n.cartPromoCodeLabel,
-              labelStyle: isKodMome
-                  ? TextStyle(
-                      color: KodMomeDesignPack.cream.withValues(alpha: 0.6),
-                    )
-                  : null,
-              filled: false,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-            ),
-            enabled: !cart.isValidatingPromo,
-            onSubmitted: (_) => _validate(),
-          ),
-        ),
-        const SizedBox(width: 8),
-        FilledButton(
-          onPressed: cart.isValidatingPromo ? null : _validate,
-          style: FilledButton.styleFrom(
-            backgroundColor:
-                isKodMome ? KodMomeDesignPack.primary : Colors.white,
-            foregroundColor:
-                isKodMome ? KodMomeDesignPack.charcoalDeep : AppColors.black,
-            minimumSize: const Size(88, 44),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-          child: cart.isValidatingPromo
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(l10n.cartPromoApplyButton),
-        ),
-      ],
-    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        isKodMome
-            ? KodMomeGlassSurface(
-                padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-                child: field,
-              )
-            : Container(
-                padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-                decoration: BoxDecoration(
-                  color: AppColors.grey100,
-                  borderRadius: BorderRadius.circular(8),
+        KitchenSurface(
+          elevation: KitchenElevation.inset,
+          padding: const EdgeInsets.fromLTRB(
+            KitchenSpacing.md,
+            KitchenSpacing.xs,
+            KitchenSpacing.xs,
+            KitchenSpacing.xs,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  textCapitalization: TextCapitalization.characters,
+                  style: KitchenTypography.body,
+                  cursorColor: KitchenColors.cognac,
+                  decoration: InputDecoration(
+                    labelText: l10n.cartPromoCodeLabel,
+                    labelStyle: KitchenTypography.body.copyWith(
+                      color: KitchenColors.textMuted,
+                    ),
+                    filled: false,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  enabled: !cart.isValidatingPromo,
+                  onSubmitted: (_) => _validate(),
                 ),
-                child: field,
               ),
+              const SizedBox(width: KitchenSpacing.xs),
+              FilledButton(
+                onPressed: cart.isValidatingPromo ? null : _validate,
+                style: FilledButton.styleFrom(
+                  backgroundColor: KitchenColors.cognac,
+                  foregroundColor: KitchenColors.whiteWarm,
+                  minimumSize: const Size(96, 44),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: KitchenSpacing.sm,
+                  ),
+                ),
+                child: cart.isValidatingPromo
+                    ? const KitchenLoadingIndicator(
+                        size: 28,
+                        color: KitchenColors.whiteWarm,
+                      )
+                    : Text(l10n.cartPromoApplyButton),
+              ),
+            ],
+          ),
+        ),
         if (cart.promoError != null)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: KitchenSpacing.xs),
             child: Text(
               cart.promoError!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.terracotta,
+                fontSize: 13,
+              ),
             ),
           ),
         if (cart.promoCode != null && cart.promoDiscount != null)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: KitchenSpacing.xs),
             child: Text(
               l10n.cartPromoAppliedLabel(
                 cart.promoCode!,
-                _formatPrice(cart.promoDiscount!),
+                formatPrice(cart.promoDiscount!),
               ),
-              style: TextStyle(
-                color: isKodMome
-                    ? KodMomeDesignPack.primary
-                    : Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
+              style: KitchenTypography.label.copyWith(
+                color: KitchenColors.olive,
               ),
             ),
           ),
@@ -583,128 +512,94 @@ class _PromoCodeFieldState extends ConsumerState<_PromoCodeField> {
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Aperçu fidélité
-// ──────────────────────────────────────────────────────────────────────────────
-
-/// Aperçu des points fidélité gagnés pour cette commande, via
-/// [loyaltyPreviewProvider]. Réservé aux utilisateurs connectés.
 class _LoyaltyPreview extends ConsumerWidget {
   const _LoyaltyPreview({required this.orderAmount});
+
   final double orderAmount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preview = ref.watch(loyaltyPreviewProvider(orderAmount));
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
 
     return preview.when(
-      data: (data) {
-        final row = Row(
+      data: (data) => KitchenSurface(
+        elevation: KitchenElevation.inset,
+        padding: const EdgeInsets.all(KitchenSpacing.md),
+        child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.stars_rounded,
               size: 20,
-              color: isKodMome ? KodMomeDesignPack.primary : null,
+              color: KitchenColors.cognac,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: KitchenSpacing.sm),
             Expanded(
               child: Text(
                 l10n.cartLoyaltyPreview(data.totalPoints),
-                style: isKodMome
-                    ? const TextStyle(color: KodMomeDesignPack.cream)
-                    : null,
+                style: KitchenTypography.body.copyWith(
+                  color: KitchenColors.textMuted,
+                ),
               ),
             ),
           ],
-        );
-
-        if (isKodMome) {
-          return KodMomeGlassSurface(padding: const EdgeInsets.all(12), child: row);
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: row,
-        );
-      },
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
-        child: LinearProgressIndicator(),
+        ),
       ),
-      // Aperçu non bloquant : une erreur ici ne doit pas gêner le panier.
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: KitchenSpacing.sm),
+        child: Center(
+          child: KitchenLoadingIndicator(
+            color: KitchenColors.cognac,
+            size: 34,
+          ),
+        ),
+      ),
       error: (_, __) => const SizedBox.shrink(),
     );
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Récapitulatif
-// ──────────────────────────────────────────────────────────────────────────────
-
 class _CartSummary extends StatelessWidget {
   const _CartSummary({required this.cart});
+
   final CartState cart;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SummaryRow(
-          label: l10n.cartSubtotalLabel,
-          value: _formatPrice(cart.subtotal),
-        ),
-        if (cart.promoDiscount != null)
+    return KitchenSurface(
+      padding: const EdgeInsets.all(KitchenSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           _SummaryRow(
-            label:
-                '${l10n.cartDiscountLabel}${cart.promoCode != null ? ' (${cart.promoCode})' : ''}',
-            value: '-${_formatPrice(cart.promoDiscount!)}',
+            label: l10n.cartSubtotalLabel,
+            value: formatPrice(cart.subtotal),
           ),
-        _SummaryRow(
-          label: l10n.cartDeliveryFeeLabel,
-          value: l10n.cartDeliveryFeeValue,
-        ),
-        Divider(
-          height: 24,
-          color: isKodMome
-              ? KodMomeDesignPack.cream.withValues(alpha: 0.2)
-              : null,
-        ),
-        _SummaryRow(
-          label: l10n.cartTotalLabel,
-          value: _formatPrice(cart.total),
-          emphasize: true,
-        ),
-      ],
-    );
-
-    if (isKodMome) {
-      // Seule surface avec vrai flou (BackdropFilter) de cet écran — la
-      // barre "Commander" est neumorphique, pas glass. Voir les garde-fous
-      // perf du plan Kod Mome (une surface héro max par écran).
-      return KodMomeGlassSurface(
-        variant: KodMomeGlassVariant.hero,
-        padding: const EdgeInsets.all(14),
-        child: content,
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.grey100,
-        borderRadius: BorderRadius.circular(8),
+          if (cart.promoDiscount != null)
+            _SummaryRow(
+              label:
+                  '${l10n.cartDiscountLabel}${cart.promoCode != null ? ' (${cart.promoCode})' : ''}',
+              value: '-${formatPrice(cart.promoDiscount!)}',
+            ),
+          _SummaryRow(
+            label: l10n.cartDeliveryFeeLabel,
+            value: l10n.cartDeliveryFeeValue,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: KitchenSpacing.sm),
+            child: Divider(
+              color: KitchenColors.brown700.withValues(alpha: 0.16),
+            ),
+          ),
+          _SummaryRow(
+            label: l10n.cartTotalLabel,
+            value: formatPrice(cart.total),
+            emphasize: true,
+          ),
+        ],
       ),
-      child: content,
     );
   }
 }
@@ -722,25 +617,22 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isKodMome = Env.isKodMomeBuild;
-    final baseColor = isKodMome
-        ? (emphasize
-            ? KodMomeDesignPack.primary
-            : KodMomeDesignPack.cream.withValues(alpha: 0.85))
-        : null;
-    final style = (emphasize
-            ? Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                )
-            : Theme.of(context).textTheme.bodyMedium)
-        ?.copyWith(color: baseColor);
+    final style = emphasize
+        ? KitchenTypography.label.copyWith(
+            color: KitchenColors.cognac,
+            fontSize: 16,
+          )
+        : KitchenTypography.body.copyWith(
+            color: KitchenColors.textMuted,
+          );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: KitchenSpacing.xxs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: style),
+          Flexible(child: Text(label, style: style)),
+          const SizedBox(width: KitchenSpacing.md),
           Text(value, style: style),
         ],
       ),

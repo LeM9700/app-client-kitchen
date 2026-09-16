@@ -4,9 +4,18 @@ import 'package:go_router/go_router.dart';
 
 import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/core/router/app_routes.dart';
-import 'package:app_client/core/theme/app_colors.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_brand_logo.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_photo_background.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_text_field.dart';
 import 'package:app_client/core/widgets/legal_links.dart';
 import 'package:app_client/features/auth/providers/auth_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key, this.redirectTo});
@@ -35,6 +44,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _fieldErrors = {});
 
+    final fallbackMessage = AppLocalizations.of(context)!.authLoginFailedError;
+
     await ref.read(authNotifierProvider.notifier).login(
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text,
@@ -49,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           setState(() => _fieldErrors = e.fieldErrors);
           return;
         }
-        final message = e is AppException ? e.message : 'Connexion impossible.';
+        final message = e is AppException ? e.message : fallbackMessage;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
@@ -61,256 +72,206 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authNotifierProvider).isLoading;
-    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.brandRed,
-      body: SafeArea(
-        bottom: false,
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              const SizedBox(height: 22),
-              const _PizzaHero(),
-              const SizedBox(height: 12),
-              Text(
-                "O'Pizza",
-                textAlign: TextAlign.center,
-                style: theme.textTheme.displaySmall?.copyWith(
-                  color: const Color(0xFFFFC227),
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              Text(
-                'Food app',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  letterSpacing: 0,
-                ),
-              ),
-              const SizedBox(height: 28),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 36),
-                child: Column(
-                  children: [
-                    _OutlinedAuthField(
-                      controller: _emailCtrl,
-                      label: 'Email',
-                      icon: Icons.person,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      errorText: _fieldErrors['email'],
-                      validator: (v) => (v == null || !v.contains('@'))
-                          ? 'Email invalide'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _OutlinedAuthField(
-                      controller: _passwordCtrl,
-                      label: 'Mot de passe',
-                      icon: Icons.lock,
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      errorText: _fieldErrors['password'],
-                      onSubmitted: (_) => _submit(),
-                      suffixIcon: IconButton(
-                        color: Colors.white,
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
-                      ),
-                      validator: (v) => (v == null || v.length < 8)
-                          ? '8 caracteres minimum'
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 26),
-              _BottomAuthPanel(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextButton(
-                      onPressed: () => context.push(AppRoutes.forgotPassword),
-                      child: const Text('Mot de passe oublie ?'),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: isLoading ? null : _submit,
-                      child: isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Se connecter'),
-                    ),
-                    const SizedBox(height: 18),
-                    Center(
-                      child: Text(
-                        'ou',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.brandGreen,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    OutlinedButton(
-                      onPressed: () => context.push(
-                        '${AppRoutes.register}'
-                        '${widget.redirectTo != null ? '?redirect=${Uri.encodeComponent(widget.redirectTo!)}' : ''}',
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: AppColors.brandRedSoft,
-                        side: const BorderSide(color: AppColors.grey400),
-                      ),
-                      child: const Text('Creer un compte'),
-                    ),
-                    const SizedBox(height: 16),
-                    const LegalLinks(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomAuthPanel extends StatelessWidget {
-  const _BottomAuthPanel({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        36,
-        20,
-        36,
-        24 + MediaQuery.of(context).padding.bottom,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(38)),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _OutlinedAuthField extends StatelessWidget {
-  const _OutlinedAuthField({
-    required this.controller,
-    required this.label,
-    required this.icon,
-    this.keyboardType,
-    this.textInputAction,
-    this.obscureText = false,
-    this.errorText,
-    this.suffixIcon,
-    this.validator,
-    this.onSubmitted,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-  final TextInputType? keyboardType;
-  final TextInputAction? textInputAction;
-  final bool obscureText;
-  final String? errorText;
-  final Widget? suffixIcon;
-  final String? Function(String?)? validator;
-  final ValueChanged<String>? onSubmitted;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      obscureText: obscureText,
-      onFieldSubmitted: onSubmitted,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        errorText: errorText,
-        prefixIcon: Icon(icon, color: Colors.white70),
-        suffixIcon: suffixIcon,
-        filled: false,
-        labelStyle: const TextStyle(color: Colors.white70),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-        ),
-      ),
-      validator: validator,
-    );
-  }
-}
-
-class _PizzaHero extends StatelessWidget {
-  const _PizzaHero();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 230,
-      child: Stack(
+      resizeToAvoidBottomInset: true,
+      body: KitchenPhotoBackground(
+        assetPath: KitchenAssets.loginBackground,
         alignment: Alignment.center,
-        children: [
-          Container(
-            width: 190,
-            height: 190,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.34),
-              shape: BoxShape.circle,
-            ),
-          ),
-          Transform.rotate(
-            angle: -0.34,
-            child: Icon(
-              Icons.local_pizza,
-              size: 180,
-              color: const Color(0xFFFFD36A),
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.20),
-                  blurRadius: 14,
-                  offset: const Offset(0, 8),
+        overlayColor: KitchenColors.paperLight.withValues(alpha: 0.38),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  18,
+                  24,
+                  24 + MediaQuery.paddingOf(context).bottom,
                 ),
-              ],
-            ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 42,
+                      maxWidth: 430,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: AutofillGroup(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: KitchenSpacing.md),
+                            const Center(
+                              child: KitchenBrandLogo(size: 92, light: true),
+                            ),
+                            const SizedBox(height: 18),
+                            Text(
+                              'KOD MOME',
+                              textAlign: TextAlign.center,
+                              style: KitchenTypography.display.copyWith(
+                                fontSize: 39,
+                                color: KitchenColors.espresso,
+                              ),
+                            ),
+                            Text(
+                              'PIZZAS DE CARACTERE\nA TOUT MOMENT',
+                              textAlign: TextAlign.center,
+                              style: KitchenTypography.label.copyWith(
+                                color: KitchenColors.brown700,
+                                fontSize: 12,
+                                height: 1.32,
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                            Text(
+                              'Bienvenue !',
+                              textAlign: TextAlign.center,
+                              style: KitchenTypography.title.copyWith(
+                                fontSize: 31,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Connectez-vous pour continuer\nvotre experience gourmande.',
+                              textAlign: TextAlign.center,
+                              style: KitchenTypography.body.copyWith(
+                                color: KitchenColors.textMuted,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 26),
+                            KitchenSurface(
+                              elevation: KitchenElevation.flat,
+                              borderRadius:
+                                  BorderRadius.circular(KitchenRadius.xl),
+                              padding: const EdgeInsets.fromLTRB(
+                                18,
+                                20,
+                                18,
+                                20,
+                              ),
+                              color:
+                                  KitchenColors.paper.withValues(alpha: 0.76),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  KitchenTextField(
+                                    controller: _emailCtrl,
+                                    label: l10n.authEmailLabel,
+                                    prefixIcon: Icons.email_outlined,
+                                    keyboardType: TextInputType.emailAddress,
+                                    textInputAction: TextInputAction.next,
+                                    autofillHints: const [
+                                      AutofillHints.email,
+                                      AutofillHints.username,
+                                    ],
+                                    errorText: _fieldErrors['email'],
+                                    validator: (v) =>
+                                        (v == null || !v.contains('@'))
+                                            ? l10n.authEmailInvalidError
+                                            : null,
+                                  ),
+                                  const SizedBox(height: 14),
+                                  KitchenTextField(
+                                    controller: _passwordCtrl,
+                                    label: l10n.authPasswordLabel,
+                                    prefixIcon: Icons.lock_outline,
+                                    obscureText: _obscurePassword,
+                                    textInputAction: TextInputAction.done,
+                                    autofillHints: const [
+                                      AutofillHints.password,
+                                    ],
+                                    errorText: _fieldErrors['password'],
+                                    onSubmitted: (_) => _submit(),
+                                    suffixIcon: IconButton(
+                                      tooltip: _obscurePassword
+                                          ? 'Afficher le mot de passe'
+                                          : 'Masquer le mot de passe',
+                                      color: KitchenColors.espresso,
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                      ),
+                                      onPressed: () => setState(
+                                        () => _obscurePassword =
+                                            !_obscurePassword,
+                                      ),
+                                    ),
+                                    validator: (v) =>
+                                        (v == null || v.length < 8)
+                                            ? l10n.authPasswordMinLength
+                                            : null,
+                                  ),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TextButton(
+                                      onPressed: () => context.push(
+                                        AppRoutes.forgotPassword,
+                                      ),
+                                      child: Text(l10n.authForgotPasswordLink),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  KitchenEmbossedButton(
+                                    onPressed: isLoading ? null : _submit,
+                                    isLoading: isLoading,
+                                    semanticLabel: l10n.authLoginSubmitButton,
+                                    child: Text(
+                                      l10n.authLoginSubmitButton.toUpperCase(),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
+                                  Text(
+                                    l10n.authOrDivider.toUpperCase(),
+                                    textAlign: TextAlign.center,
+                                    style: KitchenTypography.label.copyWith(
+                                      color: KitchenColors.textMuted,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  TextButton(
+                                    onPressed: () {
+                                      final redirect = widget.redirectTo;
+                                      context.push(
+                                        '${AppRoutes.register}'
+                                        '${redirect != null ? '?redirect=${Uri.encodeComponent(redirect)}' : ''}',
+                                      );
+                                    },
+                                    child: Text(l10n.authCreateAccountButton),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Theme(
+                              data: Theme.of(context).copyWith(
+                                textButtonTheme: TextButtonThemeData(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: KitchenColors.espresso,
+                                    textStyle: KitchenTypography.label.copyWith(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              child: const LegalLinks(),
+                            ),
+                            const SizedBox(height: KitchenSpacing.md),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
-        ],
+        ),
       ),
     );
   }

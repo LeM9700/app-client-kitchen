@@ -8,6 +8,7 @@ import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
 import 'package:app_client/features/catalog/repositories/catalog_repository.dart';
 import 'package:app_client/features/checkout/models/checkout_state.dart';
+import 'package:app_client/features/checkout/providers/client_location_provider.dart';
 import 'package:app_client/features/checkout/repositories/checkout_repository.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -161,6 +162,11 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         deliveryInfo: info,
         currentStep: CheckoutStep.recap,
       );
+      _ref.read(clientLocationProvider.notifier).state = ClientLocation(
+        address: displayAddress,
+        lat: lat,
+        lng: lng,
+      );
     } on DeliveryZoneUnreachableException {
       // [TECH DEBT corrigé] Pas de champ `deliverable` — l'API répond 422
       // DELIVERY_ZONE_UNREACHABLE quand aucune zone ne couvre le point. Traduit ici en état UX.
@@ -185,6 +191,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   // ── Étape 3 : Récapitulatif + création commande ───────────────────────────
 
   Future<int?> createOrder() async {
+    if (state.isLoading) return null;
+
     // [TECH DEBT corrigé] La clé est générée une seule fois et réutilisée à chaque tentative —
     // voir la note sur CheckoutState.idempotencyKey.
     final idempotencyKey = state.idempotencyKey ?? const Uuid().v4();

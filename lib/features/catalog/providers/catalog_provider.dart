@@ -118,6 +118,31 @@ final filteredFeaturedProductsProvider =
   );
 });
 
+/// Tous les produits, toutes catégories confondues — section "Tout le menu"
+/// de la home (utile en particulier pour un tenant à catégorie unique, ex.
+/// Kod Mome n'a qu'une catégorie "Pizzas" côté backend aujourd'hui).
+final allProductsProvider = FutureProvider<List<Product>>((ref) {
+  return ref.read(catalogRepositoryProvider).getAllProducts();
+});
+
+/// Même logique que [filteredFeaturedProductsProvider] mais pour
+/// [allProductsProvider].
+final filteredAllProductsProvider =
+    Provider.autoDispose<AsyncValue<List<Product>>>((ref) {
+  final productsAsync = ref.watch(allProductsProvider);
+  final allergenFilters = ref.watch(activeAllergenFiltersProvider);
+
+  if (allergenFilters.isEmpty) return productsAsync;
+
+  return productsAsync.whenData(
+    (products) => products
+        .where(
+          (p) => !allergenFilters.any((a) => p.allergens.contains(a)),
+        )
+        .toList(),
+  );
+});
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Recherche avec debounce
 // ──────────────────────────────────────────────────────────────────────────────

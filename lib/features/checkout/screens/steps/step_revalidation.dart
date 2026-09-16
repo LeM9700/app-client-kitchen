@@ -2,22 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:app_client/core/config/env.dart';
-import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
-import 'package:app_client/design_system/kod_mome/glass_surface.dart';
-import 'package:app_client/design_system/kod_mome/gold_foil_text.dart';
-import 'package:app_client/design_system/kod_mome/neumorphic_surface.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/utils/price_formatter.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/checkout/models/checkout_state.dart';
 import 'package:app_client/features/checkout/providers/checkout_provider.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 
-String _formatPrice(double price) => '${price.toStringAsFixed(2)} €';
+String _formatPrice(double price) => formatPrice(price);
 
-/// Étape 0 (invisible si rien n'a changé) : revalidation des prix et
-/// disponibilités du panier. `CheckoutScreen` déclenche `revalidateCart()`
-/// à l'ouverture — `revalidateCart` avance automatiquement à
-/// `CheckoutStep.deliveryMode` si aucune alerte, donc cet écran n'est visible
-/// que pendant le chargement ou si des alertes existent.
+/// Etape 0 : revalidation prix/disponibilite du panier.
 class StepRevalidation extends ConsumerWidget {
   const StepRevalidation({super.key});
 
@@ -25,12 +23,21 @@ class StepRevalidation extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final checkoutState = ref.watch(checkoutProvider);
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
 
     if (checkoutState.isRevalidating || checkoutState.priceAlerts.isEmpty) {
       return Center(
-        child: CircularProgressIndicator(
-          color: isKodMome ? KodMomeDesignPack.primary : null,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const KitchenLoadingIndicator(color: KitchenColors.cognac),
+            const SizedBox(height: KitchenSpacing.md),
+            Text(
+              'Verification du panier...',
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.textMuted,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -39,58 +46,50 @@ class StepRevalidation extends ConsumerWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(KitchenSpacing.lg),
             children: [
               Text(
-                l10n.checkoutRevalidationMessage,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isKodMome
-                          ? KodMomeDesignPack.cream.withValues(alpha: 0.85)
-                          : null,
-                    ),
+                'Quelques details ont change',
+                style: KitchenTypography.title.copyWith(fontSize: 30),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: KitchenSpacing.xs),
+              Text(
+                l10n.checkoutRevalidationMessage,
+                style: KitchenTypography.body.copyWith(
+                  color: KitchenColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: KitchenSpacing.lg),
               ...checkoutState.priceAlerts.map(
                 (alert) => _PriceAlertTile(alert: alert),
               ),
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              isKodMome
-                  ? NeumorphicButton(
-                      borderRadius: 16,
-                      onTap: () => ref
-                          .read(checkoutProvider.notifier)
-                          .dismissAlertsAndContinue(),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
-                        child: GoldFoilText(
-                          l10n.checkoutContinueButton,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    )
-                  : ElevatedButton(
-                      onPressed: () => ref
-                          .read(checkoutProvider.notifier)
-                          .dismissAlertsAndContinue(),
-                      child: Text(l10n.checkoutContinueButton),
-                    ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => context.pop(),
-                child: Text(
-                  l10n.checkoutBackToCart,
-                  style: isKodMome
-                      ? const TextStyle(color: KodMomeDesignPack.primary)
-                      : null,
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(KitchenSpacing.lg),
+            child: Column(
+              children: [
+                KitchenEmbossedButton(
+                  onPressed: () => ref
+                      .read(checkoutProvider.notifier)
+                      .dismissAlertsAndContinue(),
+                  semanticLabel: 'Continuer avec le panier mis a jour',
+                  child: Text(l10n.checkoutContinueButton),
                 ),
-              ),
-            ],
+                const SizedBox(height: KitchenSpacing.xs),
+                TextButton(
+                  onPressed: () => context.pop(),
+                  style: TextButton.styleFrom(
+                    foregroundColor: KitchenColors.cognac,
+                    minimumSize: const Size(44, 44),
+                  ),
+                  child: Text(l10n.checkoutBackToCart),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -107,47 +106,51 @@ class _PriceAlertTile extends StatelessWidget {
     final priceChanged = alert.oldPrice != alert.newPrice;
     final becameUnavailable = alert.wasAvailable && !alert.isAvailable;
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          alert.item.product.name,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: isKodMome ? KodMomeDesignPack.cream : null,
-              ),
-        ),
-        const SizedBox(height: 4),
-        if (priceChanged)
-          Text(
-            l10n.checkoutPriceUpdated(
-              _formatPrice(alert.oldPrice),
-              _formatPrice(alert.newPrice),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KitchenSpacing.sm),
+      child: KitchenSurface(
+        padding: const EdgeInsets.all(KitchenSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.info_outline,
+              color: KitchenColors.cognac,
             ),
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        if (becameUnavailable)
-          Text(
-            l10n.checkoutItemNoLongerAvailable,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-      ],
-    );
-
-    if (isKodMome) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: KodMomeGlassSurface(
-          padding: const EdgeInsets.all(12),
-          child: content,
+            const SizedBox(width: KitchenSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    alert.item.product.name,
+                    style: KitchenTypography.label.copyWith(fontSize: 15),
+                  ),
+                  const SizedBox(height: KitchenSpacing.xxs),
+                  if (priceChanged)
+                    Text(
+                      l10n.checkoutPriceUpdated(
+                        _formatPrice(alert.oldPrice),
+                        _formatPrice(alert.newPrice),
+                      ),
+                      style: KitchenTypography.body.copyWith(
+                        color: KitchenColors.terracotta,
+                      ),
+                    ),
+                  if (becameUnavailable)
+                    Text(
+                      l10n.checkoutItemNoLongerAvailable,
+                      style: KitchenTypography.body.copyWith(
+                        color: KitchenColors.terracotta,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
-      );
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(padding: const EdgeInsets.all(12), child: content),
+      ),
     );
   }
 }

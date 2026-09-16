@@ -47,8 +47,10 @@ class TenantBrandingNotifier extends StateNotifier<TenantBranding> {
   Future<void> load(String slug) async {
     try {
       final branding = await _repository.fetchBranding(slug);
+      if (!mounted) return;
       state = branding;
     } catch (error, stackTrace) {
+      if (!mounted) return;
       // Keep the app usable with the initial theme, but keep a redacted trace.
       unawaited(
         ErrorReporting.recordError(

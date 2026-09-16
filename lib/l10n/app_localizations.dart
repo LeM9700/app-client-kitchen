@@ -129,6 +129,12 @@ abstract class AppLocalizations {
   /// **'Incontournables'**
   String get homeFeaturedSectionTitle;
 
+  /// No description provided for @homeAllMenuSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout le menu'**
+  String get homeAllMenuSectionTitle;
+
   /// No description provided for @loyaltyPointsLabel.
   ///
   /// In fr, this message translates to:
@@ -302,6 +308,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible de charger ce produit.'**
   String get productLoadErrorMessage;
+
+  /// No description provided for @productSizeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taille'**
+  String get productSizeLabel;
 
   /// No description provided for @cartTitle.
   ///
@@ -692,6 +704,186 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Cette commande a été annulée.'**
   String get trackingCancelledMessage;
+
+  /// No description provided for @authEmailLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email'**
+  String get authEmailLabel;
+
+  /// No description provided for @authEmailInvalidError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email invalide'**
+  String get authEmailInvalidError;
+
+  /// No description provided for @authPasswordLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get authPasswordLabel;
+
+  /// No description provided for @authPasswordMinLength.
+  ///
+  /// In fr, this message translates to:
+  /// **'8 caractères minimum'**
+  String get authPasswordMinLength;
+
+  /// No description provided for @authForgotPasswordLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe oublié ?'**
+  String get authForgotPasswordLink;
+
+  /// No description provided for @authLoginSubmitButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get authLoginSubmitButton;
+
+  /// No description provided for @authOrDivider.
+  ///
+  /// In fr, this message translates to:
+  /// **'ou'**
+  String get authOrDivider;
+
+  /// No description provided for @authCreateAccountButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un compte'**
+  String get authCreateAccountButton;
+
+  /// No description provided for @authRegisterHeading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Allons-y\nCréez\nvotre\ncompte'**
+  String get authRegisterHeading;
+
+  /// No description provided for @authLegalAcceptRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Merci d\'accepter les conditions avant de continuer.'**
+  String get authLegalAcceptRequired;
+
+  /// No description provided for @authCloseTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get authCloseTooltip;
+
+  /// No description provided for @authFullNameLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom complet'**
+  String get authFullNameLabel;
+
+  /// No description provided for @authFullNameRequiredError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom requis'**
+  String get authFullNameRequiredError;
+
+  /// No description provided for @authRegisterSubmitButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'S\'inscrire'**
+  String get authRegisterSubmitButton;
+
+  /// No description provided for @authHaveAccountPrompt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez un compte ?'**
+  String get authHaveAccountPrompt;
+
+  /// No description provided for @authForgotTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de\nPASSE ?'**
+  String get authForgotTitle;
+
+  /// No description provided for @authEmailSentTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email\nenvoyé'**
+  String get authEmailSentTitle;
+
+  /// No description provided for @authEmailSentBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Si un compte est associé à {email}, les instructions arrivent dans quelques minutes.'**
+  String authEmailSentBody(String email);
+
+  /// No description provided for @authForgotBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de souci, nous vous enverrons les instructions pour réinitialiser votre accès.'**
+  String get authForgotBody;
+
+  /// No description provided for @authEnterEmailHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrer votre email'**
+  String get authEnterEmailHint;
+
+  /// No description provided for @authResetPasswordButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser le mot de passe'**
+  String get authResetPasswordButton;
+
+  /// No description provided for @authBackToLoginLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à la connexion'**
+  String get authBackToLoginLink;
+
+  /// No description provided for @authCheckoutCartSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{{count} article} other{{count} articles}} · {price}'**
+  String authCheckoutCartSummary(int count, String price);
+
+  /// No description provided for @authCheckoutLoginPrompt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous pour finaliser votre commande.'**
+  String get authCheckoutLoginPrompt;
+
+  /// No description provided for @authTabLogin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je me connecte'**
+  String get authTabLogin;
+
+  /// No description provided for @authTabRegister.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je crée un compte'**
+  String get authTabRegister;
+
+  /// No description provided for @authPhoneLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléphone (optionnel)'**
+  String get authPhoneLabel;
+
+  /// No description provided for @authCheckoutRegisterButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer mon compte'**
+  String get authCheckoutRegisterButton;
+
+  /// No description provided for @authLoginFailedError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion impossible.'**
+  String get authLoginFailedError;
+
+  /// No description provided for @authRegisterFailedError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscription impossible.'**
+  String get authRegisterFailedError;
 }
 
 class _AppLocalizationsDelegate

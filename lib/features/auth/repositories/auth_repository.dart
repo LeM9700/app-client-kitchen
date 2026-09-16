@@ -191,6 +191,23 @@ class AuthRepository {
     }
   }
 
+  /// Supprime logiquement le compte client via `DELETE /customer/me`.
+  ///
+  /// Le serveur exige le mot de passe courant. Contrairement à [logout], les
+  /// tokens locaux ne sont effacés qu'après succès serveur : en cas d'erreur
+  /// de mot de passe ou réseau, l'utilisateur reste authentifié.
+  Future<void> deleteAccount({required String password}) async {
+    try {
+      await _client.delete<void>(
+        ApiEndpoints.customerMe,
+        data: {'password': password},
+      );
+      await _storage.clearAll();
+    } on DioException catch (e) {
+      throw ApiClient.handleDioError(e);
+    }
+  }
+
   /// Change le mot de passe de l'utilisateur connecté.
   ///
   /// `POST /auth/change-password` `{current_password, new_password}`

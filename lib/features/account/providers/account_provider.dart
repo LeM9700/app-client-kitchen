@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app_client/core/providers/auth_session_provider.dart';
+import 'package:app_client/core/providers/auth_token_provider.dart';
 import 'package:app_client/features/account/models/session.dart';
 import 'package:app_client/features/auth/providers/auth_provider.dart';
 
@@ -108,4 +109,29 @@ class ProfileEditNotifier extends StateNotifier<AsyncValue<void>> {
 final profileEditNotifierProvider =
     StateNotifierProvider.autoDispose<ProfileEditNotifier, AsyncValue<void>>(
   (ref) => ProfileEditNotifier(ref),
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Suppression de compte — `DELETE /customer/me`.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class DeleteAccountNotifier extends StateNotifier<AsyncValue<void>> {
+  DeleteAccountNotifier(this._ref) : super(const AsyncValue.data(null));
+
+  final Ref _ref;
+
+  Future<void> deleteAccount({required String password}) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _ref.read(authRepositoryProvider).deleteAccount(password: password);
+      _ref.read(accessTokenProvider.notifier).state = null;
+      _ref.read(currentSessionIdProvider.notifier).state = null;
+      _ref.read(currentUserProvider.notifier).state = null;
+    });
+  }
+}
+
+final deleteAccountNotifierProvider =
+    StateNotifierProvider.autoDispose<DeleteAccountNotifier, AsyncValue<void>>(
+  (ref) => DeleteAccountNotifier(ref),
 );

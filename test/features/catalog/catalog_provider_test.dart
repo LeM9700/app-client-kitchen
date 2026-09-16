@@ -193,8 +193,7 @@ void main() {
       expect(result.value, [_product1, _product2]);
     });
 
-    test('exclut les produits vedettes contenant un allergène actif',
-        () async {
+    test('exclut les produits vedettes contenant un allergène actif', () async {
       when(() => mockRepo.getFeaturedProducts())
           .thenAnswer((_) async => [_product1, _product2]);
       await container.read(featuredProductsProvider.future);

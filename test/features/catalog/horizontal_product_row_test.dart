@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:app_client/core/widgets/shimmer_skeleton.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/widgets/horizontal_product_row.dart';
 import 'package:app_client/l10n/app_localizations.dart';
@@ -41,7 +41,7 @@ void main() {
     testWidgets('affiche un skeleton pendant le chargement', (tester) async {
       await _pump(tester, const AsyncValue.loading());
 
-      expect(find.byType(ShimmerBlock), findsWidgets);
+      expect(find.byType(KitchenLoadingIndicator), findsWidgets);
       expect(find.text('Pizzas'), findsOneWidget);
     });
 

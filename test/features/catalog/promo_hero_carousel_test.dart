@@ -70,8 +70,11 @@ void main() {
     testWidgets('affiche la première promo et ses dots', (tester) async {
       await _pump(tester, promotions: [_promo1, _promo2]);
 
+      expect(find.byKey(const Key('promo-hero-image')), findsWidgets);
+      expect(find.text('OFFRE DU MOMENT'), findsOneWidget);
       expect(find.text('-20%'), findsOneWidget);
       expect(find.text('-20% sur les pizzas'), findsOneWidget);
+      expect(find.text('Code PIZZA20'), findsOneWidget);
       expect(find.byType(AnimatedContainer), findsNWidgets(2));
     });
 

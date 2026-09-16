@@ -24,6 +24,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeFeaturedSectionTitle => 'Incontournables';
 
   @override
+  String get homeAllMenuSectionTitle => 'Tout le menu';
+
+  @override
   String loyaltyPointsLabel(int points) {
     return '$points points';
   }
@@ -111,6 +114,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get productLoadErrorMessage => 'Impossible de charger ce produit.';
+
+  @override
+  String get productSizeLabel => 'Taille';
 
   @override
   String get cartTitle => 'Panier';
@@ -340,4 +346,107 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trackingCancelledMessage => 'Cette commande a été annulée.';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authEmailInvalidError => 'Email invalide';
+
+  @override
+  String get authPasswordLabel => 'Mot de passe';
+
+  @override
+  String get authPasswordMinLength => '8 caractères minimum';
+
+  @override
+  String get authForgotPasswordLink => 'Mot de passe oublié ?';
+
+  @override
+  String get authLoginSubmitButton => 'Se connecter';
+
+  @override
+  String get authOrDivider => 'ou';
+
+  @override
+  String get authCreateAccountButton => 'Créer un compte';
+
+  @override
+  String get authRegisterHeading => 'Allons-y\nCréez\nvotre\ncompte';
+
+  @override
+  String get authLegalAcceptRequired =>
+      'Merci d\'accepter les conditions avant de continuer.';
+
+  @override
+  String get authCloseTooltip => 'Fermer';
+
+  @override
+  String get authFullNameLabel => 'Nom complet';
+
+  @override
+  String get authFullNameRequiredError => 'Nom requis';
+
+  @override
+  String get authRegisterSubmitButton => 'S\'inscrire';
+
+  @override
+  String get authHaveAccountPrompt => 'Vous avez un compte ?';
+
+  @override
+  String get authForgotTitle => 'Mot de\nPASSE ?';
+
+  @override
+  String get authEmailSentTitle => 'Email\nenvoyé';
+
+  @override
+  String authEmailSentBody(String email) {
+    return 'Si un compte est associé à $email, les instructions arrivent dans quelques minutes.';
+  }
+
+  @override
+  String get authForgotBody =>
+      'Pas de souci, nous vous enverrons les instructions pour réinitialiser votre accès.';
+
+  @override
+  String get authEnterEmailHint => 'Entrer votre email';
+
+  @override
+  String get authResetPasswordButton => 'Réinitialiser le mot de passe';
+
+  @override
+  String get authBackToLoginLink => 'Retour à la connexion';
+
+  @override
+  String authCheckoutCartSummary(int count, String price) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articles',
+      one: '$count article',
+    );
+    return '$_temp0 · $price';
+  }
+
+  @override
+  String get authCheckoutLoginPrompt =>
+      'Connectez-vous pour finaliser votre commande.';
+
+  @override
+  String get authTabLogin => 'Je me connecte';
+
+  @override
+  String get authTabRegister => 'Je crée un compte';
+
+  @override
+  String get authPhoneLabel => 'Téléphone (optionnel)';
+
+  @override
+  String get authCheckoutRegisterButton => 'Créer mon compte';
+
+  @override
+  String get authLoginFailedError => 'Connexion impossible.';
+
+  @override
+  String get authRegisterFailedError => 'Inscription impossible.';
 }

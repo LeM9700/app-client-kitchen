@@ -55,11 +55,11 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('fr'),
-          home: const Scaffold(
+          locale: Locale('fr'),
+          home: Scaffold(
             body: SizedBox(
               width: 420,
               height: 760,
@@ -73,7 +73,13 @@ void main() {
   }
 
   Future<void> tapCheckZone(WidgetTester tester) async {
-    await tester.tap(find.byType(ElevatedButton));
+    final button = find.byKey(const ValueKey('check-delivery-zone-button'));
+    await tester.scrollUntilVisible(
+      button,
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(button);
     await tester.pump();
   }
 

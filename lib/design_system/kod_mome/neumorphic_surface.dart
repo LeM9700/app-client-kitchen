@@ -36,8 +36,8 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
       onTap: widget.onTap,
       child: AnimatedContainer(
         duration: KodMomeDesignPack.microDuration,
-        padding:
-            widget.padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: widget.padding ??
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
           borderRadius: radius,
           gradient: LinearGradient(
@@ -49,15 +49,15 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
           ),
           boxShadow: _pressed
               ? [
-                  BoxShadow(
+                  const BoxShadow(
                     color: KodMomeDesignPack.neuDarkShadow,
                     blurRadius: 6,
-                    offset: const Offset(2, 2),
+                    offset: Offset(2, 2),
                     spreadRadius: -2,
                   ),
                 ]
               : [
-                  BoxShadow(
+                  const BoxShadow(
                     color: KodMomeDesignPack.neuDarkShadow,
                     blurRadius: KodMomeDesignPack.neuBlur,
                     offset: KodMomeDesignPack.neuOffset,
@@ -79,6 +79,39 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
       ),
     );
   }
+}
+
+/// Gold-outlined `TextFormField` decoration for auth forms — cream text on
+/// a transparent/glass background, matching the medallion's gold ring.
+InputDecoration kodMomeAuthFieldDecoration({
+  required String label,
+  String? errorText,
+  Widget? prefixIcon,
+  Widget? suffixIcon,
+  String? hintText,
+}) {
+  OutlineInputBorder border(Color color, {double width = 1.5}) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(color: color, width: width),
+      );
+
+  return InputDecoration(
+    labelText: label,
+    hintText: hintText,
+    errorText: errorText,
+    prefixIcon: prefixIcon,
+    suffixIcon: suffixIcon,
+    filled: false,
+    labelStyle:
+        TextStyle(color: KodMomeDesignPack.cream.withValues(alpha: 0.65)),
+    hintStyle: TextStyle(color: KodMomeDesignPack.cream.withValues(alpha: 0.4)),
+    errorStyle: const TextStyle(color: KodMomeDesignPack.redAccent),
+    enabledBorder: border(KodMomeDesignPack.primary.withValues(alpha: 0.4)),
+    focusedBorder: border(KodMomeDesignPack.primary, width: 2),
+    errorBorder: border(KodMomeDesignPack.redAccent),
+    focusedErrorBorder: border(KodMomeDesignPack.redAccent, width: 2),
+  );
 }
 
 /// Inset "carved" field decoration (promo code input, quantity stepper) —

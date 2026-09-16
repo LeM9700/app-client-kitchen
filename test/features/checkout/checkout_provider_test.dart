@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -173,6 +175,43 @@ void main() {
 
       expect(secondResult, 42);
       expect(secondAttemptKey, keyAfterFirstAttempt);
+    });
+
+    test('createOrder ignore un appel concurrent pendant le chargement',
+        () async {
+      container.read(cartProvider.notifier).addItem(_product);
+      final completer = Completer<int>();
+
+      when(
+        () => mockCheckoutRepo.createOrder(
+          items: any(named: 'items'),
+          orderType: any(named: 'orderType'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+          deliveryAddress: any(named: 'deliveryAddress'),
+          deliveryZoneId: any(named: 'deliveryZoneId'),
+          promoCode: any(named: 'promoCode'),
+        ),
+      ).thenAnswer((_) => completer.future);
+
+      final notifier = container.read(checkoutProvider.notifier);
+      final first = notifier.createOrder();
+      expect(container.read(checkoutProvider).isLoading, true);
+
+      final second = await notifier.createOrder();
+      expect(second, isNull);
+
+      completer.complete(42);
+      expect(await first, 42);
+      verify(
+        () => mockCheckoutRepo.createOrder(
+          items: any(named: 'items'),
+          orderType: any(named: 'orderType'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+          deliveryAddress: any(named: 'deliveryAddress'),
+          deliveryZoneId: any(named: 'deliveryZoneId'),
+          promoCode: any(named: 'promoCode'),
+        ),
+      ).called(1);
     });
   });
 }

@@ -26,6 +26,8 @@ abstract final class ApiEndpoints {
 
   // ── Tenant ────────────────────────────────────────────────────────────────
   static const String tenantBranding = '/tenant/branding';
+  static const String tenantStatus = '/tenant/status';
+  static const String tenantHours = '/tenant/hours';
 
   // ── Catalogue ─────────────────────────────────────────────────────────────
   static const String products = '/catalog/products';

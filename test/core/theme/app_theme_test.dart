@@ -35,12 +35,20 @@ void main() {
         'primary_color': '#2ECC71',
         'secondary_color': '#1A1A2E',
         'font_family': 'poppins',
+        'contact_phone': '06 12 34 56 78',
+        'contact_email': 'contact@kodmome.fr',
+        'instagram_url': 'https://instagram.com/kodmome',
+        'google_business_url': 'https://maps.google.com/?cid=123',
       };
       final branding = TenantBranding.fromJson(json);
       expect(branding.primaryColorHex, '#2ECC71');
       expect(branding.primaryColor, const Color(0xFF2ECC71));
       expect(branding.fontFamily, 'poppins');
       expect(branding.displayName, 'Pizzeria Roma');
+      expect(branding.contactPhone, '06 12 34 56 78');
+      expect(branding.contactEmail, 'contact@kodmome.fr');
+      expect(branding.instagramUrl, 'https://instagram.com/kodmome');
+      expect(branding.googleBusinessUrl, 'https://maps.google.com/?cid=123');
     });
 
     test('fromJson tolère les champs null', () {

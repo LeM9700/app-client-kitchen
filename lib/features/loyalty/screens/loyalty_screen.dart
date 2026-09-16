@@ -3,16 +3,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app_client/core/errors/app_exception.dart';
-import 'package:app_client/core/widgets/empty_state.dart';
-import 'package:app_client/core/widgets/error_view.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/utils/price_formatter.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/core/widgets/shimmer_skeleton.dart';
 import 'package:app_client/features/loyalty/models/loyalty_account.dart';
 import 'package:app_client/features/loyalty/models/loyalty_reward.dart';
 import 'package:app_client/features/loyalty/models/loyalty_transaction.dart';
 import 'package:app_client/features/loyalty/providers/loyalty_provider.dart';
 import 'package:app_client/features/loyalty/repositories/loyalty_repository.dart';
-
-String _formatPrice(double price) => '${price.toStringAsFixed(2)} €';
+import 'package:app_client/features/loyalty/widgets/kitchen_loyalty_card.dart';
+import 'package:app_client/features/loyalty/widgets/kitchen_reward_card.dart';
 
 String _formatDate(DateTime date) {
   final local = date.toLocal();
@@ -21,132 +25,169 @@ String _formatDate(DateTime date) {
       '${two(local.hour)}:${two(local.minute)}';
 }
 
-/// Écran fidélité (Plan 16) — solde, historique des transactions et
-/// catalogue de récompenses avec échange.
-///
-/// [Décision d'architecture n°1, plan-16] Aucun calcul de points côté
-/// client : l'écran affiche ce que le serveur renvoie (`GET /loyalty/me`,
-/// `GET /loyalty/rewards` avec `can_redeem`/`missing_points` déjà calculés).
-class LoyaltyScreen extends ConsumerWidget {
+class LoyaltyScreen extends ConsumerStatefulWidget {
   const LoyaltyScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoyaltyScreen> createState() => _LoyaltyScreenState();
+}
+
+class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
+  final Set<int> _redeemingRewardIds = {};
+
+  @override
+  Widget build(BuildContext context) {
     final accountAsync = ref.watch(loyaltyAccountProvider);
     final rewardsAsync = ref.watch(loyaltyRewardsProvider);
     final transactionsState = ref.watch(loyaltyTransactionsProvider);
-    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Fidélité')),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(loyaltyAccountProvider);
-          ref.invalidate(loyaltyRewardsProvider);
-          await ref.read(loyaltyTransactionsProvider.notifier).refresh();
-        },
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            final metrics = notification.metrics;
-            if (metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                transactionsState.hasMore &&
-                !transactionsState.isLoadingMore) {
-              ref.read(loyaltyTransactionsProvider.notifier).loadMore();
-            }
-            return false;
+      backgroundColor: KitchenColors.paperLight,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(loyaltyAccountProvider);
+            ref.invalidate(loyaltyRewardsProvider);
+            await ref.read(loyaltyTransactionsProvider.notifier).refresh();
           },
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // ── Solde ──────────────────────────────────────────────────
-              accountAsync.when(
-                data: (account) => _PointsBalance(account: account),
-                loading: () => const _BalanceSkeleton(),
-                error: (e, _) => _InlineError(
-                  message: e is AppException ? e.message : 'Erreur inattendue.',
-                  onRetry: () => ref.invalidate(loyaltyAccountProvider),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              final metrics = notification.metrics;
+              if (metrics.pixels >= metrics.maxScrollExtent - 200 &&
+                  transactionsState.hasMore &&
+                  !transactionsState.isLoadingMore) {
+                ref.read(loyaltyTransactionsProvider.notifier).loadMore();
+              }
+              return false;
+            },
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Retour',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      color: KitchenColors.espresso,
+                    ),
+                    const SizedBox(width: KitchenSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        'Ma fidélité',
+                        style: KitchenTypography.title.copyWith(fontSize: 32),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // ── Récompenses ────────────────────────────────────────────
-              Text('Récompenses', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 12),
-              rewardsAsync.when(
-                data: (rewards) => rewards.isEmpty
-                    ? const EmptyState(
-                        title: 'Aucune récompense',
-                        subtitle:
-                            'Aucune récompense disponible pour le moment.',
-                        icon: Icons.card_giftcard_outlined,
-                      )
-                    : Column(
-                        children: rewards
-                            .map(
-                              (reward) => _RewardTile(
-                                reward: reward,
-                                onRedeem: accountAsync.value == null
+                const SizedBox(height: KitchenSpacing.lg),
+                accountAsync.when(
+                  data: (account) => KitchenLoyaltyCard(
+                    account: account,
+                    nextReward: _nextReward(account, rewardsAsync.valueOrNull),
+                  ),
+                  loading: () => const _LoyaltyCardSkeleton(),
+                  error: (e, _) => _InlineError(
+                    message: e is AppException
+                        ? e.message
+                        : 'Impossible de récupérer votre fidélité.',
+                    onRetry: () => ref.invalidate(loyaltyAccountProvider),
+                  ),
+                ),
+                const SizedBox(height: KitchenSpacing.xl),
+                const _SectionTitle('Vos récompenses'),
+                const SizedBox(height: KitchenSpacing.sm),
+                rewardsAsync.when(
+                  data: (rewards) => rewards.isEmpty
+                      ? const _EmptyPanel(
+                          icon: Icons.card_giftcard_outlined,
+                          title: 'Aucune récompense',
+                          subtitle:
+                              'Le catalogue de récompenses est vide pour le moment.',
+                        )
+                      : Column(
+                          children: [
+                            for (var i = 0; i < rewards.length; i += 1) ...[
+                              KitchenRewardCard(
+                                reward: rewards[i],
+                                isRedeeming:
+                                    _redeemingRewardIds.contains(rewards[i].id),
+                                onRedeem: accountAsync.valueOrNull == null
                                     ? null
                                     : () => _confirmRedeem(
-                                          context,
-                                          ref,
-                                          reward,
-                                          accountAsync.value!,
+                                          rewards[i],
+                                          accountAsync.valueOrNull!,
                                         ),
                               ),
-                            )
-                            .toList(),
-                      ),
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(child: CircularProgressIndicator()),
+                              if (i < rewards.length - 1)
+                                const SizedBox(height: KitchenSpacing.sm),
+                            ],
+                          ],
+                        ),
+                  loading: () => const _RewardsSkeleton(),
+                  error: (e, _) => _InlineError(
+                    message: e is AppException
+                        ? e.message
+                        : 'Impossible de charger les récompenses.',
+                    onRetry: () => ref.invalidate(loyaltyRewardsProvider),
+                  ),
                 ),
-                error: (e, _) => _InlineError(
-                  message: e is AppException ? e.message : 'Erreur inattendue.',
-                  onRetry: () => ref.invalidate(loyaltyRewardsProvider),
+                const SizedBox(height: KitchenSpacing.xl),
+                const _SectionTitle('Historique des points'),
+                const SizedBox(height: KitchenSpacing.sm),
+                _TransactionsSection(
+                  state: transactionsState,
+                  onRetry: () =>
+                      ref.read(loyaltyTransactionsProvider.notifier).refresh(),
                 ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // ── Historique ─────────────────────────────────────────────
-              Text('Historique des points', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 12),
-              _TransactionsSection(
-                state: transactionsState,
-                onRetry: () =>
-                    ref.read(loyaltyTransactionsProvider.notifier).refresh(),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  LoyaltyReward? _nextReward(
+    LoyaltyAccount account,
+    List<LoyaltyReward>? rewards,
+  ) {
+    final candidates = (rewards ?? [])
+        .where(
+          (reward) => reward.isActive && reward.pointsRequired > account.points,
+        )
+        .toList()
+      ..sort((a, b) => a.pointsRequired.compareTo(b.pointsRequired));
+    return candidates.isEmpty ? null : candidates.first;
+  }
+
   Future<void> _confirmRedeem(
-    BuildContext context,
-    WidgetRef ref,
     LoyaltyReward reward,
     LoyaltyAccount account,
   ) async {
+    if (_redeemingRewardIds.contains(reward.id)) return;
+
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => _RedeemConfirmSheet(reward: reward, account: account),
     );
-    if (confirmed != true) return;
-    if (!context.mounted) return;
+    if (confirmed != true || !mounted) return;
 
+    setState(() => _redeemingRewardIds.add(reward.id));
     final messenger = ScaffoldMessenger.of(context);
     try {
       final result = await ref.read(loyaltyRedeemProvider).redeem(reward.id);
-      if (!context.mounted) return;
+      if (!mounted) return;
       await _showRedeemResult(context, result);
     } on AppException catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _redeemingRewardIds.remove(reward.id));
       }
     }
   }
@@ -162,228 +203,87 @@ class LoyaltyScreen extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Solde
-// ─────────────────────────────────────────────────────────────────────────
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title);
 
-class _PointsBalance extends StatelessWidget {
-  const _PointsBalance({required this.account});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: KitchenTypography.label.copyWith(
+        color: KitchenColors.brown700,
+        fontSize: 13,
+      ),
+    );
+  }
+}
+
+class _RedeemConfirmSheet extends StatelessWidget {
+  const _RedeemConfirmSheet({required this.reward, required this.account});
+
+  final LoyaltyReward reward;
   final LoyaltyAccount account;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
+    final remaining = account.points - reward.pointsRequired;
+
+    return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Votre solde', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              '${account.points} points',
-              style: theme.textTheme.headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            if (account.pointValueEuros > 0) ...[
-              const SizedBox(height: 4),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          MediaQuery.viewInsetsOf(context).bottom + 16,
+        ),
+        child: KitchenSurface(
+          padding: const EdgeInsets.all(KitchenSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Text(
-                'Soit environ ${_formatPrice(account.pointValueEuros)}',
-                style: theme.textTheme.bodyMedium,
+                'Confirmer l’échange',
+                style: KitchenTypography.title.copyWith(fontSize: 28),
               ),
-            ],
-            if (account.expiringSoonPoints > 0) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: KitchenSpacing.sm),
+              Text(
+                reward.name,
+                style: KitchenTypography.label.copyWith(fontSize: 15),
+              ),
+              const SizedBox(height: KitchenSpacing.md),
+              _SummaryRow(
+                label: 'Points requis',
+                value: '${reward.pointsRequired}',
+              ),
+              _SummaryRow(label: 'Solde actuel', value: '${account.points}'),
+              _SummaryRow(
+                label: 'Solde après échange',
+                value: '$remaining',
+                emphasize: true,
+              ),
+              const SizedBox(height: KitchenSpacing.lg),
               Row(
                 children: [
-                  const Icon(
-                    Icons.schedule,
-                    size: 18,
-                    color: Color(0xFFB26A00),
-                  ),
-                  const SizedBox(width: 6),
                   Expanded(
-                    child: Text(
-                      '${account.expiringSoonPoints} points expirent bientôt',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: const Color(0xFFB26A00)),
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Annuler'),
+                    ),
+                  ),
+                  const SizedBox(width: KitchenSpacing.sm),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Confirmer'),
                     ),
                   ),
                 ],
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BalanceSkeleton extends StatelessWidget {
-  const _BalanceSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Card(
-      child: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ShimmerBlock(height: 16, width: 100),
-            SizedBox(height: 12),
-            ShimmerBlock(height: 28, width: 140),
-            SizedBox(height: 8),
-            ShimmerBlock(height: 14, width: 160),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InlineError extends StatelessWidget {
-  const _InlineError({required this.message, required this.onRetry});
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Color(0xFFB71C1C)),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-            TextButton(onPressed: onRetry, child: const Text('Réessayer')),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// Récompenses
-// ─────────────────────────────────────────────────────────────────────────
-
-class _RewardTile extends StatelessWidget {
-  const _RewardTile({required this.reward, required this.onRedeem});
-  final LoyaltyReward reward;
-  final VoidCallback? onRedeem;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // [🔒 api-corrections-phase-d.md §6] canRedeem/missingPoints viennent du
-    // serveur — jamais recalculés ici (pointsRequired > currentPoints).
-    final disabled = !reward.canRedeem;
-
-    return Opacity(
-      opacity: disabled ? 0.5 : 1,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(reward.name, style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 4),
-                    Text(
-                      reward.rewardType == LoyaltyRewardType.discountEuros
-                          ? 'Réduction de ${_formatPrice(reward.discountAmount ?? 0)}'
-                          : 'Produit offert',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${reward.pointsRequired} points',
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    if (disabled && reward.missingPoints > 0) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'Encore ${reward.missingPoints} points nécessaires',
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: theme.colorScheme.error),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: disabled ? null : onRedeem,
-                child: const Text('Échanger'),
-              ),
-            ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// [Décision d'architecture n°2, plan-16] BottomSheet de confirmation
-/// obligatoire avant l'échange — irréversible côté serveur.
-class _RedeemConfirmSheet extends StatelessWidget {
-  const _RedeemConfirmSheet({required this.reward, required this.account});
-  final LoyaltyReward reward;
-  final LoyaltyAccount account;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final remaining = account.points - reward.pointsRequired;
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Confirmer l\'échange', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 16),
-            Text(reward.name, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            _SummaryRow(
-              label: 'Points requis',
-              value: '${reward.pointsRequired}',
-            ),
-            _SummaryRow(label: 'Solde actuel', value: '${account.points}'),
-            _SummaryRow(
-              label: 'Solde après échange',
-              value: '$remaining',
-              emphasize: true,
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Annuler'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Confirmer'),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );
@@ -396,24 +296,24 @@ class _SummaryRow extends StatelessWidget {
     required this.value,
     this.emphasize = false,
   });
+
   final String label;
   final String value;
   final bool emphasize;
 
   @override
   Widget build(BuildContext context) {
-    final style = emphasize
-        ? Theme.of(context)
-            .textTheme
-            .bodyLarge
-            ?.copyWith(fontWeight: FontWeight.bold)
-        : Theme.of(context).textTheme.bodyMedium;
+    final style = KitchenTypography.body.copyWith(
+      color: emphasize ? KitchenColors.espresso : KitchenColors.textMuted,
+      fontWeight: emphasize ? FontWeight.w800 : FontWeight.w600,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: style),
+          Expanded(child: Text(label, style: style)),
+          const SizedBox(width: KitchenSpacing.sm),
           Text(value, style: style),
         ],
       ),
@@ -421,20 +321,13 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
-/// Dialogue affiché après un échange réussi.
-///
-/// [🔒 api-corrections-phase-d.md §6] Pour `discount_euros`, le serveur
-/// génère un code promo à usage unique (`promoCode`) — il n'est PAS appliqué
-/// automatiquement. Ce dialogue l'affiche (copiable) et indique de le saisir
-/// au panier/checkout, sans jamais prétendre que la réduction est déjà
-/// active sur une commande.
 class _RedeemResultDialog extends StatelessWidget {
   const _RedeemResultDialog({required this.result});
+
   final RedeemResult result;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final hasPromoCode = result.promoCode != null;
 
     return AlertDialog(
@@ -447,30 +340,32 @@ class _RedeemResultDialog extends StatelessWidget {
             Text(
               result.discountEuros != null
                   ? 'Voici votre code promo pour une réduction de '
-                      '${_formatPrice(result.discountEuros!)}. Saisissez-le au '
-                      'moment du paiement — il n\'est pas appliqué '
-                      'automatiquement.'
+                      '${formatPrice(result.discountEuros!)}. Saisissez-le au '
+                      'moment du paiement : il n’est pas appliqué automatiquement.'
                   : 'Voici votre code promo. Saisissez-le au moment du '
-                      'paiement — il n\'est pas appliqué automatiquement.',
+                      'paiement : il n’est pas appliqué automatiquement.',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: KitchenSpacing.md),
             InkWell(
               onTap: () => _copyPromoCode(context, result.promoCode!),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
+                  color: KitchenColors.paperLight,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: KitchenColors.brown700.withValues(alpha: 0.16),
+                  ),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      result.promoCode!,
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    Expanded(
+                      child: Text(
+                        result.promoCode!,
+                        style: KitchenTypography.label.copyWith(fontSize: 15),
+                      ),
                     ),
                     const Icon(Icons.copy, size: 18),
                   ],
@@ -479,17 +374,14 @@ class _RedeemResultDialog extends StatelessWidget {
             ),
           ] else if (result.freeProductId != null) ...[
             const Text(
-              'Votre produit offert a été enregistré. Il sera appliqué à '
-              'votre prochaine commande.',
+              'Votre produit offert a été enregistré. Il sera appliqué selon '
+              'les règles serveur du programme fidélité.',
             ),
           ] else ...[
             const Text('Récompense échangée avec succès.'),
           ],
-          const SizedBox(height: 16),
-          Text(
-            'Solde restant : ${result.remainingPoints} points',
-            style: theme.textTheme.bodyMedium,
-          ),
+          const SizedBox(height: KitchenSpacing.md),
+          Text('Solde restant : ${result.remainingPoints} points'),
         ],
       ),
       actions: [
@@ -509,60 +401,64 @@ class _RedeemResultDialog extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Historique des transactions
-// ─────────────────────────────────────────────────────────────────────────
-
 class _TransactionsSection extends StatelessWidget {
   const _TransactionsSection({required this.state, required this.onRetry});
+
   final LoyaltyTransactionsState state;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     if (state.isLoading && state.transactions.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(child: CircularProgressIndicator()),
-      );
+      return const _TransactionsSkeleton();
     }
 
     if (state.error != null && state.transactions.isEmpty) {
-      return ErrorView(message: state.error!, onRetry: onRetry);
+      return _InlineError(message: state.error!, onRetry: onRetry);
     }
 
     if (state.transactions.isEmpty) {
-      return const EmptyState(
-        title: 'Aucun mouvement',
-        subtitle: 'Aucun mouvement de points pour le moment.',
+      return const _EmptyPanel(
         icon: Icons.history_outlined,
+        title: 'Votre aventure gourmande commence ici.',
+        subtitle: 'Vos mouvements de points apparaîtront après vos commandes.',
       );
     }
 
     return Column(
       children: [
-        ...state.transactions.map((tx) => _TransactionTile(transaction: tx)),
+        for (var i = 0; i < state.transactions.length; i += 1) ...[
+          _TransactionCard(transaction: state.transactions[i]),
+          if (i < state.transactions.length - 1)
+            const SizedBox(height: KitchenSpacing.sm),
+        ],
         if (state.isLoadingMore)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: KitchenLoadingIndicator(
+                color: KitchenColors.cognac,
+              ),
+            ),
           ),
       ],
     );
   }
 }
 
-class _TransactionTile extends StatelessWidget {
-  const _TransactionTile({required this.transaction});
+class _TransactionCard extends StatelessWidget {
+  const _TransactionCard({required this.transaction});
+
   final LoyaltyTransaction transaction;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isPositive = transaction.pointsDelta >= 0;
+    final color = isPositive ? KitchenColors.olive : KitchenColors.terracotta;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+    return KitchenSurface(
+      elevation: KitchenElevation.flat,
+      padding: const EdgeInsets.all(KitchenSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -570,24 +466,158 @@ class _TransactionTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(transaction.reason, style: theme.textTheme.bodyMedium),
+                Text(
+                  transaction.reason,
+                  style: KitchenTypography.label.copyWith(fontSize: 13),
+                ),
+                const SizedBox(height: 4),
                 Text(
                   _formatDate(transaction.createdAt),
-                  style: theme.textTheme.bodySmall,
+                  style: KitchenTypography.body.copyWith(
+                    color: KitchenColors.textMuted,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: KitchenSpacing.sm),
           Text(
             '${isPositive ? '+' : ''}${transaction.pointsDelta}',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isPositive
-                  ? const Color(0xFF2E7D32)
-                  : const Color(0xFFB71C1C),
+            style: KitchenTypography.label.copyWith(
+              color: color,
+              fontSize: 16,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _InlineError extends StatelessWidget {
+  const _InlineError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return KitchenSurface(
+      padding: const EdgeInsets.all(KitchenSpacing.md),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: KitchenColors.terracotta),
+          const SizedBox(width: KitchenSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.textMuted,
+              ),
+            ),
+          ),
+          TextButton(onPressed: onRetry, child: const Text('Réessayer')),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyPanel extends StatelessWidget {
+  const _EmptyPanel({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return KitchenSurface(
+      padding: const EdgeInsets.all(KitchenSpacing.lg),
+      child: Column(
+        children: [
+          Icon(icon, color: KitchenColors.cognac, size: 34),
+          const SizedBox(height: KitchenSpacing.sm),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: KitchenTypography.label,
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: KitchenSpacing.xs),
+            Text(
+              subtitle!,
+              textAlign: TextAlign.center,
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.textMuted,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _LoyaltyCardSkeleton extends StatelessWidget {
+  const _LoyaltyCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const KitchenSurface(
+      padding: EdgeInsets.all(KitchenSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ShimmerBlock(height: 14, width: 82),
+          SizedBox(height: 36),
+          ShimmerBlock(height: 40, width: 180),
+          SizedBox(height: 12),
+          ShimmerBlock(height: 12, width: 130),
+          SizedBox(height: 24),
+          ShimmerBlock(height: 8, width: double.infinity, borderRadius: 999),
+        ],
+      ),
+    );
+  }
+}
+
+class _RewardsSkeleton extends StatelessWidget {
+  const _RewardsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        KitchenSurface(
+          padding: EdgeInsets.all(KitchenSpacing.lg),
+          child: ShimmerBlock(height: 82),
+        ),
+        SizedBox(height: KitchenSpacing.sm),
+        KitchenSurface(
+          padding: EdgeInsets.all(KitchenSpacing.lg),
+          child: ShimmerBlock(height: 82),
+        ),
+      ],
+    );
+  }
+}
+
+class _TransactionsSkeleton extends StatelessWidget {
+  const _TransactionsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const KitchenSurface(
+      padding: EdgeInsets.all(KitchenSpacing.lg),
+      child: Center(
+        child: KitchenLoadingIndicator(color: KitchenColors.cognac),
       ),
     );
   }

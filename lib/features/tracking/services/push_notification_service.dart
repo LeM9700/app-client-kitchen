@@ -74,6 +74,15 @@ class PushNotificationService {
     }
   }
 
+  static Future<bool> requestPermissionAndRegister(ApiClient apiClient) async {
+    final messaging = _messagingOrNull();
+    if (messaging == null) return false;
+
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+    await registerDeviceToken(apiClient);
+    return true;
+  }
+
   static FirebaseMessaging? _messagingOrNull() {
     if (Firebase.apps.isEmpty) return null;
     try {
@@ -104,7 +113,10 @@ class PushNotificationService {
   }
 
   static String get _platformName {
-    if (kIsWeb) return 'web';
+    // The current backend validates only ios/android while web push is sent
+    // through the same FCM path as Android. Keep this client-side bridge until
+    // the API accepts a dedicated "web" platform.
+    if (kIsWeb) return 'android';
     return switch (defaultTargetPlatform) {
       TargetPlatform.android => 'android',
       TargetPlatform.iOS => 'ios',

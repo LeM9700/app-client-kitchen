@@ -24,6 +24,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get homeFeaturedSectionTitle => 'Najpopularnije';
 
   @override
+  String get homeAllMenuSectionTitle => 'Ceo meni';
+
+  @override
   String loyaltyPointsLabel(int points) {
     return '$points poena';
   }
@@ -111,6 +114,9 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get productLoadErrorMessage => 'Nije moguće učitati ovaj proizvod.';
+
+  @override
+  String get productSizeLabel => 'Veličina';
 
   @override
   String get cartTitle => 'Korpa';
@@ -340,6 +346,109 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get trackingCancelledMessage => 'Ova porudžbina je otkazana.';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authEmailInvalidError => 'Nevažeći email';
+
+  @override
+  String get authPasswordLabel => 'Lozinka';
+
+  @override
+  String get authPasswordMinLength => 'Minimum 8 karaktera';
+
+  @override
+  String get authForgotPasswordLink => 'Zaboravili ste lozinku?';
+
+  @override
+  String get authLoginSubmitButton => 'Prijavi se';
+
+  @override
+  String get authOrDivider => 'ili';
+
+  @override
+  String get authCreateAccountButton => 'Napravi nalog';
+
+  @override
+  String get authRegisterHeading => 'Hajde\nda napravimo\nvaš\nnalog';
+
+  @override
+  String get authLegalAcceptRequired =>
+      'Molimo prihvatite uslove pre nego što nastavite.';
+
+  @override
+  String get authCloseTooltip => 'Zatvori';
+
+  @override
+  String get authFullNameLabel => 'Ime i prezime';
+
+  @override
+  String get authFullNameRequiredError => 'Ime je obavezno';
+
+  @override
+  String get authRegisterSubmitButton => 'Registruj se';
+
+  @override
+  String get authHaveAccountPrompt => 'Već imate nalog?';
+
+  @override
+  String get authForgotTitle => 'Zaboravljena\nLOZINKA?';
+
+  @override
+  String get authEmailSentTitle => 'Email\nposlat';
+
+  @override
+  String authEmailSentBody(String email) {
+    return 'Ako je nalog povezan sa $email, uputstva stižu za nekoliko minuta.';
+  }
+
+  @override
+  String get authForgotBody =>
+      'Bez brige, poslaćemo vam uputstva za resetovanje pristupa.';
+
+  @override
+  String get authEnterEmailHint => 'Unesite email';
+
+  @override
+  String get authResetPasswordButton => 'Resetuj lozinku';
+
+  @override
+  String get authBackToLoginLink => 'Nazad na prijavu';
+
+  @override
+  String authCheckoutCartSummary(int count, String price) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count artikala',
+      one: '$count artikal',
+    );
+    return '$_temp0 · $price';
+  }
+
+  @override
+  String get authCheckoutLoginPrompt =>
+      'Prijavite se da biste završili porudžbinu.';
+
+  @override
+  String get authTabLogin => 'Prijavljujem se';
+
+  @override
+  String get authTabRegister => 'Pravim nalog';
+
+  @override
+  String get authPhoneLabel => 'Telefon (opciono)';
+
+  @override
+  String get authCheckoutRegisterButton => 'Napravi nalog';
+
+  @override
+  String get authLoginFailedError => 'Prijava nije uspela.';
+
+  @override
+  String get authRegisterFailedError => 'Registracija nije uspela.';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -362,6 +471,9 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
   String get homeFeaturedSectionTitle => 'Najpopularnije';
 
   @override
+  String get homeAllMenuSectionTitle => 'Ceo meni';
+
+  @override
   String loyaltyPointsLabel(int points) {
     return '$points poena';
   }
@@ -449,6 +561,9 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get productLoadErrorMessage => 'Nije moguće učitati ovaj proizvod.';
+
+  @override
+  String get productSizeLabel => 'Veličina';
 
   @override
   String get cartTitle => 'Korpa';
@@ -678,4 +793,107 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get trackingCancelledMessage => 'Ova porudžbina je otkazana.';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authEmailInvalidError => 'Nevažeći email';
+
+  @override
+  String get authPasswordLabel => 'Lozinka';
+
+  @override
+  String get authPasswordMinLength => 'Minimum 8 karaktera';
+
+  @override
+  String get authForgotPasswordLink => 'Zaboravili ste lozinku?';
+
+  @override
+  String get authLoginSubmitButton => 'Prijavi se';
+
+  @override
+  String get authOrDivider => 'ili';
+
+  @override
+  String get authCreateAccountButton => 'Napravi nalog';
+
+  @override
+  String get authRegisterHeading => 'Hajde\nda napravimo\nvaš\nnalog';
+
+  @override
+  String get authLegalAcceptRequired =>
+      'Molimo prihvatite uslove pre nego što nastavite.';
+
+  @override
+  String get authCloseTooltip => 'Zatvori';
+
+  @override
+  String get authFullNameLabel => 'Ime i prezime';
+
+  @override
+  String get authFullNameRequiredError => 'Ime je obavezno';
+
+  @override
+  String get authRegisterSubmitButton => 'Registruj se';
+
+  @override
+  String get authHaveAccountPrompt => 'Već imate nalog?';
+
+  @override
+  String get authForgotTitle => 'Zaboravljena\nLOZINKA?';
+
+  @override
+  String get authEmailSentTitle => 'Email\nposlat';
+
+  @override
+  String authEmailSentBody(String email) {
+    return 'Ako je nalog povezan sa $email, uputstva stižu za nekoliko minuta.';
+  }
+
+  @override
+  String get authForgotBody =>
+      'Bez brige, poslaćemo vam uputstva za resetovanje pristupa.';
+
+  @override
+  String get authEnterEmailHint => 'Unesite email';
+
+  @override
+  String get authResetPasswordButton => 'Resetuj lozinku';
+
+  @override
+  String get authBackToLoginLink => 'Nazad na prijavu';
+
+  @override
+  String authCheckoutCartSummary(int count, String price) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count artikala',
+      one: '$count artikal',
+    );
+    return '$_temp0 · $price';
+  }
+
+  @override
+  String get authCheckoutLoginPrompt =>
+      'Prijavite se da biste završili porudžbinu.';
+
+  @override
+  String get authTabLogin => 'Prijavljujem se';
+
+  @override
+  String get authTabRegister => 'Pravim nalog';
+
+  @override
+  String get authPhoneLabel => 'Telefon (opciono)';
+
+  @override
+  String get authCheckoutRegisterButton => 'Napravi nalog';
+
+  @override
+  String get authLoginFailedError => 'Prijava nije uspela.';
+
+  @override
+  String get authRegisterFailedError => 'Registracija nije uspela.';
 }

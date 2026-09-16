@@ -8,23 +8,22 @@ import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/providers/api_client_provider.dart';
 import 'package:app_client/core/router/app_router.dart';
 import 'package:app_client/core/router/app_routes.dart';
-import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
 import 'package:app_client/core/theme/tenant_theme_provider.dart';
-import 'package:app_client/design_system/kod_mome/medallion.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_brand_logo.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_photo_background.dart';
+import 'package:app_client/features/onboarding/providers/onboarding_provider.dart';
 import 'package:app_client/features/tracking/services/push_notification_service.dart';
 
-/// Écran de démarrage — exécute la séquence de boot de l'application.
+/// Ecran de demarrage: execute la sequence de boot de l'application.
 ///
-/// Séquence :
+/// Sequence preservee:
 /// 1. Injecter le slug tenant dans le header HTTP global.
-/// 2. Charger le branding et le catalogue **en parallèle** (non bloquants).
-/// 3. Naviguer vers [AppRoutes.home].
-///
-/// [⚡ PERF] Le branding et le catalogue sont chargés en parallèle via
-/// [Future.wait] — réduit le temps de boot perçu de ~50% vs. séquentiel.
-///
-/// [UX] Si le branding échoue (réseau absent), le thème de démo s'affiche.
-/// L'app ne bloque jamais sur la SplashScreen.
+/// 2. Initialiser les notifications push en best-effort.
+/// 3. Charger le branding en parallele avec les futurs prechargements.
+/// 4. Naviguer vers l'onboarding si necessaire, sinon vers l'accueil public.
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -36,24 +35,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // [!] Pas d'await dans initState — on lance le boot en async.
     _boot();
   }
 
   Future<void> _boot() async {
-    // Slug injecté à la compilation via --dart-define=TENANT_SLUG=...
     const slug = Env.tenantSlug;
 
-    // 1. Configurer le header X-Tenant-Slug sur le client HTTP singleton.
-    //    Toutes les requêtes suivantes porteront automatiquement cet header.
     ref.read(apiClientProvider).setTenantSlug(slug);
 
-    // [Plan 14] Initialise Firebase Messaging (permission, deep links,
-    // rotation de token) en tâche de fond — jamais bloquant pour le boot
-    // (tout est best-effort côté PushNotificationService). L'enregistrement
-    // backend du token nécessite un utilisateur authentifié : au boot, sans
-    // rehydratation de session, il échoue silencieusement le plus souvent —
-    // le cas nominal est couvert par l'appel post-login dans AuthNotifier.
     unawaited(
       PushNotificationService.initialize(
         apiClient: ref.read(apiClientProvider),
@@ -61,75 +50,129 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       ),
     );
 
-    // 2. Chargement parallèle : branding + (catalogue en Plan 07).
-    //    Chaque Future est wrappé pour être non-bloquant — un échec ne
-    //    doit pas empêcher l'app de démarrer.
     await Future.wait([
       ref.read(tenantBrandingProvider.notifier).load(slug),
       // [Plan 07] ref.read(catalogProvider.notifier).prefetch(),
     ]);
 
-    // 3. Navigation vers l'accueil.
-    //    mounted vérifié pour éviter un setState sur widget détruit.
+    final onboardingCompleted = await _onboardingCompleted();
+
     if (mounted) {
-      context.go(AppRoutes.home);
+      context.go(
+        onboardingCompleted ? AppRoutes.home : AppRoutes.onboarding,
+      );
+    }
+  }
+
+  Future<bool> _onboardingCompleted() async {
+    try {
+      return await ref.read(onboardingStorageProvider).isCompleted();
+    } catch (_) {
+      return true;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (Env.isKodMomeBuild) {
-      return const Scaffold(
-        backgroundColor: KodMomeDesignPack.charcoal,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              KodMomeMedallion.splash(),
-              SizedBox(height: 32),
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    KodMomeDesignPack.primary,
-                  ),
-                  strokeWidth: 2,
+    return const Scaffold(
+      body: KitchenPhotoBackground(
+        assetPath: KitchenAssets.splashBackground,
+        alignment: Alignment.center,
+        enableSlowScale: true,
+        child: SafeArea(child: _SplashContent()),
+      ),
+    );
+  }
+}
+
+class _SplashContent extends StatelessWidget {
+  const _SplashContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 32, 28, 30),
+      child: Column(
+        children: [
+          const Spacer(flex: 2),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: disableAnimations ? 1 : 0, end: 1),
+            duration: const Duration(milliseconds: 560),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Opacity(
+                opacity: value,
+                child: Transform.translate(
+                  offset: Offset(0, (1 - value) * 16),
+                  child: child,
                 ),
-              ),
-            ],
+              );
+            },
+            child: Column(
+              children: [
+                const KitchenBrandLogo(size: 112, light: true),
+                const SizedBox(height: 26),
+                Text(
+                  'KITCHEN',
+                  textAlign: TextAlign.center,
+                  style: KitchenTypography.label.copyWith(
+                    color: KitchenColors.whiteWarm,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'PIZZAS DE CARACTERE\nA TOUT MOMENT',
+                  textAlign: TextAlign.center,
+                  style: KitchenTypography.body.copyWith(
+                    color: KitchenColors.whiteWarm,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    height: 1.22,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    }
-
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
-    return Scaffold(
-      backgroundColor: primary,
-      body: const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Logo du tenant — logoUrl disponible depuis Plan 04.
-            // En attendant : icône pizza par défaut.
-            Icon(
-              Icons.local_pizza,
-              size: 72,
-              color: Colors.white,
+          const SizedBox(height: 58),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: disableAnimations ? 1 : 0, end: 1),
+            duration: const Duration(milliseconds: 720),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) => Opacity(
+              opacity: value,
+              child: child,
             ),
-            SizedBox(height: 32),
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                strokeWidth: 2,
+            child: Text(
+              'La pizza\nrassemble\ntoujours',
+              textAlign: TextAlign.center,
+              style: KitchenTypography.signature.copyWith(
+                color: KitchenColors.whiteWarm,
+                fontSize: 42,
+                shadows: [
+                  Shadow(
+                    color: KitchenColors.espresso.withValues(alpha: 0.44),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          const Spacer(flex: 3),
+          const KitchenLoadingIndicator(),
+          const SizedBox(height: 14),
+          Text(
+            'Chargement...',
+            style: KitchenTypography.body.copyWith(
+              color: KitchenColors.whiteWarm,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

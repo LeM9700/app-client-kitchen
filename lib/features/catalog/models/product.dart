@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:app_client/core/utils/price_formatter.dart';
+
 part 'product.freezed.dart';
 part 'product.g.dart';
 
@@ -10,6 +12,29 @@ List<String> _allergensFromJson(List<dynamic>? json) => (json ?? [])
     .toList();
 
 List<dynamic> _allergensToJson(List<String> allergens) => allergens;
+
+Map<String, dynamic> _productJsonWithPrimaryImageFallback(
+  Map<String, dynamic> json,
+) {
+  final normalized = Map<String, dynamic>.of(json);
+  final imageUrl = normalized['image_url'];
+  if (imageUrl is String && imageUrl.trim().isNotEmpty) {
+    return normalized;
+  }
+
+  final primaryImage = normalized['primary_image'];
+  if (primaryImage is Map) {
+    for (final key in ['url_thumbnail', 'url_medium', 'url']) {
+      final value = primaryImage[key];
+      if (value is String && value.trim().isNotEmpty) {
+        normalized['image_url'] = value.trim();
+        break;
+      }
+    }
+  }
+
+  return normalized;
+}
 
 /// Variante d'un produit (ex: taille S/M/L pour une pizza).
 ///
@@ -75,10 +100,10 @@ class Product with _$Product {
   }) = _Product;
 
   factory Product.fromJson(Map<String, dynamic> json) =>
-      _$ProductFromJson(json);
+      _$ProductFromJson(_productJsonWithPrimaryImageFallback(json));
 
   /// Prix affiché — prix de base (la sélection de variante ajuste via [ProductVariant.priceDelta]).
-  String get displayPrice => '${price.toStringAsFixed(2)} €';
+  String get displayPrice => formatPrice(price);
 
   /// True si au moins une variante est disponible.
   bool get hasVariants => variants.isNotEmpty;

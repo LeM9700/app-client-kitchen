@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:app_client/core/analytics/analytics_reporter.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
@@ -79,6 +80,13 @@ Future<ProviderContainer> _pumpProductDetail(
   return container;
 }
 
+Future<void> _scrollAboveFixedBar(WidgetTester tester, Finder finder) async {
+  final scrollable = find.byType(Scrollable).first;
+  await tester.scrollUntilVisible(finder, 250, scrollable: scrollable);
+  await tester.drag(scrollable, const Offset(0, -140));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   group('ProductDetailScreen', () {
     testWidgets(
@@ -91,32 +99,19 @@ void main() {
           analyticsReporter: analytics,
         );
 
-        await tester.scrollUntilVisible(
-          find.text('Grande'),
-          250,
-          scrollable: find.byType(Scrollable).first,
-        );
+        await _scrollAboveFixedBar(tester, find.text('Grande'));
         await tester.tap(find.text('Grande'));
         await tester.pumpAndSettle();
 
-        await tester.scrollUntilVisible(
-          find.text('Olives'),
-          250,
-          scrollable: find.byType(Scrollable).first,
-        );
+        await _scrollAboveFixedBar(tester, find.text('Olives'));
         await tester.tap(find.text('Olives'));
         await tester.pumpAndSettle();
 
-        await tester.scrollUntilVisible(
-          find.byIcon(Icons.add_circle_outline),
-          250,
-          scrollable: find.byType(Scrollable).first,
-        );
-        await tester.tap(find.byIcon(Icons.add_circle_outline));
+        await _scrollAboveFixedBar(tester, find.byIcon(Icons.add));
+        await tester.tap(find.byIcon(Icons.add).first);
         await tester.pumpAndSettle();
 
-        await tester
-            .tap(find.widgetWithText(ElevatedButton, 'Ajouter au panier'));
+        await tester.tap(find.text('Ajouter au panier'));
         await tester.pumpAndSettle();
 
         final cart = container.read(cartProvider);
@@ -147,10 +142,11 @@ void main() {
     testWidgets('does not add an unavailable product', (tester) async {
       final container = await _pumpProductDetail(tester, _unavailableProduct);
 
-      final button = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Produit indisponible'),
+      final button = tester.widget<KitchenEmbossedButton>(
+        find.byType(KitchenEmbossedButton),
       );
 
+      expect(button.enabled, isFalse);
       expect(button.onPressed, isNull);
       expect(container.read(cartProvider).isEmpty, true);
     });

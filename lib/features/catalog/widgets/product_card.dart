@@ -2,145 +2,134 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:app_client/core/config/env.dart';
+import 'package:app_client/core/providers/auth_token_provider.dart';
 import 'package:app_client/core/router/app_routes.dart';
-import 'package:app_client/core/theme/app_colors.dart';
-import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
-import 'package:app_client/design_system/kod_mome/glass_surface.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
+import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/favorites_provider.dart';
-import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 
-/// Photo-first product card used in catalogue grids and horizontal rows.
 class ProductCard extends ConsumerWidget {
   const ProductCard({super.key, required this.product, this.enableHero = true});
 
   final Product product;
-
-  /// Désactive le [Hero] autour de l'image du produit.
-  ///
-  /// Par défaut `true` pour préserver l'animation de transition vers
-  /// [ProductDetailScreen]. À mettre à `false` quand un même [ProductCard]
-  /// (même `product.id`) peut être rendu plusieurs fois dans le même
-  /// sous-arbre de route (ex. [HorizontalProductRow] utilisé pour la row
-  /// "Incontournables" ET une row catégorie sur la home) — deux [Hero] avec
-  /// le même tag dans le même subtree font planter Flutter.
   final bool enableHero;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final isFavorite = ref.watch(
       favoritesProvider.select((favorites) => favorites.contains(product.id)),
     );
+    final isAuthenticated = ref.watch(accessTokenProvider) != null;
     final canQuickAdd =
         product.isAvailable && !product.hasVariants && !product.hasExtras;
-    final priceColor =
-        Env.isKodMomeBuild ? KodMomeDesignPack.primary : AppColors.priceGreen;
-    final secondaryTextColor =
-        Env.isKodMomeBuild ? KodMomeDesignPack.cream.withValues(alpha: 0.65) : AppColors.grey700;
 
-    final card = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Stack(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: KitchenRadius.card,
+        onTap: () =>
+            context.push(AppRoutes.productDetail(product.id.toString())),
+        child: KitchenSurface(
+          padding: const EdgeInsets.all(KitchenSpacing.xs),
+          borderRadius: KitchenRadius.card,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _ProductImage(product: product, enableHero: enableHero),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: _FavoriteButton(
-                  isFavorite: isFavorite,
-                  onTap: () =>
-                      ref.read(favoritesProvider.notifier).toggle(product.id),
-                ),
-              ),
-              if (canQuickAdd)
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: _QuickAddButton(
-                    onTap: () => _quickAdd(context, ref, l10n),
-                  ),
-                ),
-              if (!product.isAvailable)
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.42),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: Text(
-                        l10n.productUnavailable,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _ProductImage(product: product, enableHero: enableHero),
+                    Positioned(
+                      top: KitchenSpacing.xs,
+                      right: KitchenSpacing.xs,
+                      child: _FavoriteButton(
+                        isFavorite: isFavorite,
+                        isAuthenticated: isAuthenticated,
+                        onTap: () =>
+                            _toggleFavorite(context, ref, isAuthenticated),
                       ),
                     ),
-                  ),
+                    if (canQuickAdd)
+                      Positioned(
+                        bottom: KitchenSpacing.xs,
+                        right: KitchenSpacing.xs,
+                        child: _QuickAddButton(
+                          tooltip: l10n.productAddToCartButton,
+                          onTap: () => _quickAdd(context, ref, l10n),
+                        ),
+                      ),
+                    if (!product.isAvailable)
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: KitchenColors.espresso.withValues(
+                              alpha: 0.56,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              KitchenRadius.md,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              l10n.productUnavailable,
+                              style: KitchenTypography.label.copyWith(
+                                color: KitchenColors.whiteWarm,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
+              const SizedBox(height: KitchenSpacing.sm),
+              Text(
+                product.name,
+                style: KitchenTypography.body.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: KitchenSpacing.xxs),
+              Text(
+                _subtitle(l10n),
+                style: KitchenTypography.body.copyWith(
+                  color: KitchenColors.textMuted,
+                  fontSize: 13,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: KitchenSpacing.xs),
+              Text(
+                product.displayPrice,
+                style: KitchenTypography.label.copyWith(
+                  color: KitchenColors.cognac,
+                  fontSize: 14,
+                ),
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          product.name,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: Env.isKodMomeBuild ? KodMomeDesignPack.cream : null,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        if (product.description != null && product.description!.isNotEmpty)
-          Text(
-            product.description!,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: secondaryTextColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          )
-        else
-          Text(
-            product.isAvailable
-                ? l10n.productAvailableToday
-                : l10n.productTemporarilyUnavailable,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: secondaryTextColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        const SizedBox(height: 3),
-        Text(
-          product.displayPrice,
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: priceColor,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ],
+      ),
     );
+  }
 
-    final content = Env.isKodMomeBuild
-        ? KodMomeGlassSurface(
-            padding: const EdgeInsets.all(8),
-            child: card,
-          )
-        : card;
-
-    return InkWell(
-      onTap: () => context.push(AppRoutes.productDetail(product.id.toString())),
-      borderRadius: BorderRadius.circular(10),
-      child: content,
-    );
+  String _subtitle(AppLocalizations l10n) {
+    final description = product.description?.trim();
+    if (description != null && description.isNotEmpty) return description;
+    return product.isAvailable
+        ? l10n.productAvailableToday
+        : l10n.productTemporarilyUnavailable;
   }
 
   void _quickAdd(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
@@ -148,6 +137,19 @@ class ProductCard extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(l10n.productAddedToCart)),
     );
+  }
+
+  void _toggleFavorite(
+    BuildContext context,
+    WidgetRef ref,
+    bool isAuthenticated,
+  ) {
+    if (!isAuthenticated) {
+      final redirect = Uri.encodeComponent(AppRoutes.home);
+      context.push('${AppRoutes.login}?redirect=$redirect');
+      return;
+    }
+    ref.read(favoritesProvider.notifier).toggle(product.id);
   }
 }
 
@@ -160,7 +162,7 @@ class _ProductImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(KitchenRadius.md),
       child: SizedBox.expand(
         child: product.imageUrl != null
             ? Image.network(
@@ -180,26 +182,48 @@ class _ProductImage extends StatelessWidget {
 }
 
 class _FavoriteButton extends StatelessWidget {
-  const _FavoriteButton({required this.isFavorite, required this.onTap});
+  const _FavoriteButton({
+    required this.isFavorite,
+    required this.isAuthenticated,
+    required this.onTap,
+  });
 
   final bool isFavorite;
+  final bool isAuthenticated;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.72),
-          shape: BoxShape.circle,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(5),
-          child: Icon(
-            isFavorite ? Icons.favorite : Icons.favorite_border,
-            size: 17,
-            color: isFavorite ? AppColors.brandRed : const Color(0xFF6E6E6E),
+    return Tooltip(
+      message: isAuthenticated
+          ? (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris')
+          : 'Connectez-vous pour enregistrer vos favoris',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: KitchenColors.whiteWarm.withValues(alpha: 0.88),
+            shape: BoxShape.circle,
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x242D1B13),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(7),
+            child: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              size: 18,
+              color: !isAuthenticated
+                  ? KitchenColors.textMuted
+                  : isFavorite
+                      ? KitchenColors.terracotta
+                      : KitchenColors.espresso,
+            ),
           ),
         ),
       ),
@@ -208,22 +232,37 @@ class _FavoriteButton extends StatelessWidget {
 }
 
 class _QuickAddButton extends StatelessWidget {
-  const _QuickAddButton({required this.onTap});
+  const _QuickAddButton({required this.tooltip, required this.onTap});
 
+  final String tooltip;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: const DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.brandRed,
-          shape: BoxShape.circle,
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(6),
-          child: Icon(Icons.add, size: 17, color: Colors.white),
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: KitchenGradients.cognac,
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x302D1B13),
+                blurRadius: 10,
+                offset: Offset(0, 5),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.add,
+            size: 22,
+            color: KitchenColors.whiteWarm,
+          ),
         ),
       ),
     );
@@ -235,12 +274,14 @@ class _ProductImagePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.grey100,
-      child: Icon(
-        Icons.local_pizza_outlined,
-        size: 42,
-        color: Theme.of(context).colorScheme.primary,
+    return const ColoredBox(
+      color: KitchenColors.flour,
+      child: Center(
+        child: Icon(
+          Icons.local_pizza_outlined,
+          size: 42,
+          color: KitchenColors.cognac,
+        ),
       ),
     );
   }

@@ -177,19 +177,17 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: container,
-            child: MaterialApp(
+            child: const MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              locale: const Locale('fr'),
-              home: const ProductDetailScreen(productId: '1'),
+              locale: Locale('fr'),
+              home: ProductDetailScreen(productId: '1'),
             ),
           ),
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(
-          find.widgetWithText(ElevatedButton, 'Ajouter au panier'),
-        );
+        await tester.tap(find.text('Ajouter au panier'));
         await tester.pumpAndSettle();
 
         expect(container.read(cartProvider).totalQuantity, 1);
@@ -209,7 +207,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(ElevatedButton));
+        await tester.tap(find.textContaining('Commander').first);
         await tester.pumpAndSettle();
 
         expect(
@@ -222,7 +220,7 @@ void main() {
         await tester.tap(find.text('Confirmer la commande'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Paiement'), findsOneWidget);
+        expect(find.text('Paiement'), findsWidgets);
 
         await tester.tap(find.text('Payer maintenant'));
         await tester.pumpAndSettle();

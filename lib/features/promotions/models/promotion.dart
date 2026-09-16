@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:app_client/core/utils/price_formatter.dart';
+
 part 'promotion.freezed.dart';
 part 'promotion.g.dart';
 
@@ -70,7 +72,7 @@ extension PromotionX on Promotion {
 
   String get displayDiscount => discountType == DiscountType.percent
       ? '-${discountValue.toInt()}%'
-      : '-${discountValue.toStringAsFixed(2)} €';
+      : '-${formatPrice(discountValue)}';
 
   bool get isExpiringSoon {
     final expires = expiresAt;

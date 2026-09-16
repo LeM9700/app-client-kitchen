@@ -13,8 +13,7 @@ class FavoritesRepository {
   /// l'utilisateur courant.
   Future<Set<int>> list() async {
     try {
-      final response =
-          await _client.get<List<dynamic>>(ApiEndpoints.favorites);
+      final response = await _client.get<List<dynamic>>(ApiEndpoints.favorites);
       return (response.data as List)
           .map((e) => (e as Map<String, dynamic>)['product_id'] as int)
           .toSet();

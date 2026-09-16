@@ -9,6 +9,7 @@
   "homeDeliveryAddressPlaceholder": "Adresse de livraison",
   "homeSearchPlaceholder": "Que souhaitez-vous commander ?",
   "homeFeaturedSectionTitle": "Incontournables",
+  "homeAllMenuSectionTitle": "Tout le menu",
   "loyaltyPointsLabel": "{points} points",
   "@loyaltyPointsLabel": {
     "placeholders": { "points": { "type": "int" } }
@@ -46,6 +47,7 @@
   "productAddToCartButton": "Ajouter au panier",
   "productUnavailableButton": "Produit indisponible",
   "productLoadErrorMessage": "Impossible de charger ce produit.",
+  "productSizeLabel": "Taille",
 
   "cartTitle": "Panier",
   "cartClearButton": "Vider",
@@ -166,5 +168,45 @@
     "placeholders": { "orderId": { "type": "int" } }
   },
   "trackingConnectingMessage": "Connexion en cours...",
-  "trackingCancelledMessage": "Cette commande a été annulée."
+  "trackingCancelledMessage": "Cette commande a été annulée.",
+
+  "authEmailLabel": "Email",
+  "authEmailInvalidError": "Email invalide",
+  "authPasswordLabel": "Mot de passe",
+  "authPasswordMinLength": "8 caractères minimum",
+  "authForgotPasswordLink": "Mot de passe oublié ?",
+  "authLoginSubmitButton": "Se connecter",
+  "authOrDivider": "ou",
+  "authCreateAccountButton": "Créer un compte",
+  "authRegisterHeading": "Allons-y\nCréez\nvotre\ncompte",
+  "authLegalAcceptRequired": "Merci d'accepter les conditions avant de continuer.",
+  "authCloseTooltip": "Fermer",
+  "authFullNameLabel": "Nom complet",
+  "authFullNameRequiredError": "Nom requis",
+  "authRegisterSubmitButton": "S'inscrire",
+  "authHaveAccountPrompt": "Vous avez un compte ?",
+  "authForgotTitle": "Mot de\nPASSE ?",
+  "authEmailSentTitle": "Email\nenvoyé",
+  "authEmailSentBody": "Si un compte est associé à {email}, les instructions arrivent dans quelques minutes.",
+  "@authEmailSentBody": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "authForgotBody": "Pas de souci, nous vous enverrons les instructions pour réinitialiser votre accès.",
+  "authEnterEmailHint": "Entrer votre email",
+  "authResetPasswordButton": "Réinitialiser le mot de passe",
+  "authBackToLoginLink": "Retour à la connexion",
+  "authCheckoutCartSummary": "{count, plural, =1{{count} article} other{{count} articles}} · {price}",
+  "@authCheckoutCartSummary": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "price": { "type": "String" }
+    }
+  },
+  "authCheckoutLoginPrompt": "Connectez-vous pour finaliser votre commande.",
+  "authTabLogin": "Je me connecte",
+  "authTabRegister": "Je crée un compte",
+  "authPhoneLabel": "Téléphone (optionnel)",
+  "authCheckoutRegisterButton": "Créer mon compte",
+  "authLoginFailedError": "Connexion impossible.",
+  "authRegisterFailedError": "Inscription impossible."
 }

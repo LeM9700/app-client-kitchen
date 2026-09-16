@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:app_client/core/config/env.dart';
-import 'package:app_client/core/widgets/shimmer_skeleton.dart';
-import 'package:app_client/design_system/kod_mome/gold_foil_text.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/widgets/product_card.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 
-/// Row horizontale de produits réutilisable pour les sections de la home
-/// (Incontournables, catégories). Se masque silencieusement en cas d'erreur
-/// ou de liste vide — une home ne doit pas afficher d'écran d'erreur par
-/// section, seulement les sections qui ont du contenu.
 class HorizontalProductRow extends StatelessWidget {
   const HorizontalProductRow({
     super.key,
@@ -33,20 +32,23 @@ class HorizontalProductRow extends StatelessWidget {
         if (products.isEmpty) return const SizedBox.shrink();
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: KitchenSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _RowHeader(title: title, onSeeAll: onSeeAll),
               SizedBox(
-                height: 236,
+                height: 252,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: KitchenSpacing.lg,
+                  ),
                   itemCount: products.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 16),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(width: KitchenSpacing.md),
                   itemBuilder: (_, index) => SizedBox(
-                    width: 160,
+                    width: 166,
                     child: ProductCard(
                       product: products[index],
                       enableHero: false,
@@ -70,30 +72,32 @@ class _RowHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 12, 12, 8),
+      padding: const EdgeInsets.fromLTRB(
+        KitchenSpacing.lg,
+        KitchenSpacing.sm,
+        KitchenSpacing.md,
+        KitchenSpacing.sm,
+      ),
       child: Row(
         children: [
           Expanded(
-            child: Env.isKodMomeBuild
-                ? GoldFoilText(
-                    title,
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w900),
-                  )
-                : Text(
-                    title,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
+            child: Text(
+              title,
+              style: KitchenTypography.title.copyWith(fontSize: 28),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           if (onSeeAll != null)
             TextButton(
               onPressed: onSeeAll,
-              child: Text(AppLocalizations.of(context)!.productRowSeeAll),
+              child: Text(
+                AppLocalizations.of(context)!.productRowSeeAll,
+                style: KitchenTypography.label.copyWith(
+                  color: KitchenColors.cognac,
+                ),
+              ),
             ),
         ],
       ),
@@ -108,33 +112,40 @@ class _RowSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _RowHeader(title: title),
-        SizedBox(
-          height: 236,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            itemCount: 3,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder: (_, __) => const SizedBox(
-              width: 160,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(child: ShimmerBlock(borderRadius: 8)),
-                  SizedBox(height: 8),
-                  ShimmerBlock(height: 14, width: 120),
-                  SizedBox(height: 6),
-                  ShimmerBlock(height: 12, width: 60),
-                ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KitchenSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _RowHeader(title: title),
+          SizedBox(
+            height: 252,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                horizontal: KitchenSpacing.lg,
+              ),
+              itemCount: 3,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(width: KitchenSpacing.md),
+              itemBuilder: (_, __) => const SizedBox(
+                width: 166,
+                child: KitchenSurface(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(KitchenRadius.lg),
+                  ),
+                  child: Center(
+                    child: KitchenLoadingIndicator(
+                      color: KitchenColors.cognac,
+                      size: 34,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -58,6 +58,11 @@ const _productJson = {
   'category_id': 1,
   'description': 'Tomate, mozzarella, basilic',
   'image_url': null,
+  'primary_image': {
+    'url_thumbnail': 'https://cdn.example.com/pizza-thumb.webp',
+    'url_medium': 'https://cdn.example.com/pizza-medium.webp',
+    'url': 'https://cdn.example.com/pizza.webp',
+  },
   'allergens': [
     {'allergen_id': 1, 'name': 'Gluten', 'slug': 'gluten'},
   ],
@@ -83,7 +88,7 @@ void main() {
 
   group('getCategories()', () {
     test('mappe la liste JSON en List<Category>', () async {
-      when(() => mockClient.get<List<dynamic>>(ApiEndpoints.categories))
+      when(() => mockClient.get<dynamic>(ApiEndpoints.categories))
           .thenAnswer((_) async => _response([_categoryJson]));
 
       final result = await repo.getCategories();
@@ -95,8 +100,30 @@ void main() {
       expect(result.first.sortOrder, 1);
     });
 
+    test('accepte l enveloppe paginee des categories', () async {
+      when(() => mockClient.get<dynamic>(ApiEndpoints.categories)).thenAnswer(
+        (_) async => _response({
+          'items': [
+            {
+              'id': 1,
+              'name': 'Pizzas',
+              'display_order': 0,
+              'is_active': true,
+            },
+          ],
+          'total': 1,
+        }),
+      );
+
+      final result = await repo.getCategories();
+
+      expect(result, hasLength(1));
+      expect(result.first.name, 'Pizzas');
+      expect(result.first.sortOrder, 0);
+    });
+
     test('convertit une DioException 500 en ServerException', () {
-      when(() => mockClient.get<List<dynamic>>(ApiEndpoints.categories))
+      when(() => mockClient.get<dynamic>(ApiEndpoints.categories))
           .thenThrow(_dioError(500, {'detail': 'boom'}));
 
       expect(() => repo.getCategories(), throwsA(isA<ServerException>()));
@@ -112,7 +139,7 @@ void main() {
         'mappe base_price → price, is_active → isAvailable, allergens (objets) → slugs',
         () async {
       when(
-        () => mockClient.get<List<dynamic>>(ApiEndpoints.productsByCategory(1)),
+        () => mockClient.get<dynamic>(ApiEndpoints.productsByCategory(1)),
       ).thenAnswer((_) async => _response([_productJson]));
 
       final result = await repo.getProductsByCategory(1);
@@ -121,14 +148,14 @@ void main() {
       final product = result.first;
       expect(product.id, 42);
       expect(product.price, 10.5); // base_price
+      expect(product.imageUrl, 'https://cdn.example.com/pizza-thumb.webp');
       expect(product.isAvailable, true); // is_active
       expect(product.allergens, ['gluten']); // slug extrait de l'objet
     });
 
     test('convertit une DioException 404 en NotFoundException', () {
       when(
-        () =>
-            mockClient.get<List<dynamic>>(ApiEndpoints.productsByCategory(99)),
+        () => mockClient.get<dynamic>(ApiEndpoints.productsByCategory(99)),
       ).thenThrow(_dioError(404, {'detail': 'Catégorie introuvable'}));
 
       expect(
@@ -240,7 +267,7 @@ void main() {
 
   group('getFeaturedProducts()', () {
     test('mappe la liste de produits vedettes', () async {
-      when(() => mockClient.get<List<dynamic>>(ApiEndpoints.featuredProducts))
+      when(() => mockClient.get<dynamic>(ApiEndpoints.featuredProducts))
           .thenAnswer((_) async => _response([_productJson]));
 
       final result = await repo.getFeaturedProducts();
@@ -250,10 +277,32 @@ void main() {
     });
 
     test('convertit une DioException en AppException', () {
-      when(() => mockClient.get<List<dynamic>>(ApiEndpoints.featuredProducts))
+      when(() => mockClient.get<dynamic>(ApiEndpoints.featuredProducts))
           .thenThrow(_dioError(500, null));
 
       expect(() => repo.getFeaturedProducts(), throwsA(isA<ServerException>()));
+    });
+  });
+
+  group('getAllProducts()', () {
+    test('lit les produits depuis l enveloppe paginee', () async {
+      when(
+        () => mockClient.get<dynamic>(
+          ApiEndpoints.products,
+          queryParameters: {'page_size': 100},
+        ),
+      ).thenAnswer(
+        (_) async => _response({
+          'items': [_productJson],
+          'total': 1,
+        }),
+      );
+
+      final result = await repo.getAllProducts();
+
+      expect(result, hasLength(1));
+      expect(result.first.id, 42);
+      expect(result.first.imageUrl, 'https://cdn.example.com/pizza-thumb.webp');
     });
   });
 }

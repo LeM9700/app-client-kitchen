@@ -38,7 +38,8 @@ class _KodMomeMedallionState extends State<KodMomeMedallion>
     final duration = switch (widget._variant) {
       _MedallionVariant.loading => const Duration(seconds: 2),
       _MedallionVariant.success => KodMomeDesignPack.celebrationDuration,
-      _MedallionVariant.splash || _MedallionVariant.empty =>
+      _MedallionVariant.splash ||
+      _MedallionVariant.empty =>
         KodMomeDesignPack.entranceDuration,
     };
     _controller = AnimationController(vsync: this, duration: duration);
@@ -62,10 +63,10 @@ class _KodMomeMedallionState extends State<KodMomeMedallion>
         shape: BoxShape.circle,
         border: Border.all(color: KodMomeDesignPack.primary, width: 3),
         boxShadow: [
-          BoxShadow(
+          const BoxShadow(
             color: KodMomeDesignPack.neuDarkShadow,
             blurRadius: 20,
-            offset: const Offset(0, 10),
+            offset: Offset(0, 10),
           ),
           BoxShadow(
             color: KodMomeDesignPack.primary.withValues(alpha: 0.35),
@@ -103,7 +104,8 @@ class _KodMomeMedallionState extends State<KodMomeMedallion>
               child: child,
             ),
           _MedallionVariant.success => Transform.scale(
-              scale: 0.8 + 0.2 * Curves.easeOutBack.transform(_controller.value),
+              scale:
+                  0.8 + 0.2 * Curves.easeOutBack.transform(_controller.value),
               child: child,
             ),
           _MedallionVariant.empty => Opacity(

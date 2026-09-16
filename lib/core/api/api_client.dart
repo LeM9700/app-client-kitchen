@@ -96,12 +96,14 @@ class ApiClient {
   }) =>
       _dio.patch<T>(path, data: data, options: options);
 
-  /// DELETE [path].
+  /// DELETE [path] avec body optionnel pour les endpoints qui exigent une
+  /// confirmation explicite (ex. suppression de compte client).
   Future<Response<T>> delete<T>(
     String path, {
+    dynamic data,
     Options? options,
   }) =>
-      _dio.delete<T>(path, options: options);
+      _dio.delete<T>(path, data: data, options: options);
 
   // ──────────────────────────────────────────────────────────────────────────
   // Tenant slug

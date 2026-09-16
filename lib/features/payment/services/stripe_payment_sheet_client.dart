@@ -93,7 +93,8 @@ class NativeStripePaymentSheetClient implements StripePaymentSheetClient {
             merchantCountryCode: 'FR',
             testEnv: Env.googlePayTestEnv,
           ),
-          appearance: Env.isKodMomeBuild ? _kodMomePaymentSheetAppearance : null,
+          appearance:
+              Env.isKodMomeBuild ? _kodMomePaymentSheetAppearance : null,
         ),
       ),
     );

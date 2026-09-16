@@ -3,44 +3,76 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:app_client/core/router/app_routes.dart';
-import 'package:app_client/core/theme/app_colors.dart';
-import 'package:app_client/core/widgets/empty_state.dart';
-import 'package:app_client/core/widgets/error_view.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/core/widgets/shimmer_skeleton.dart';
 import 'package:app_client/features/catalog/models/category.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
+import 'package:app_client/features/catalog/providers/catalog_search_provider.dart';
+import 'package:app_client/features/catalog/widgets/catalog_search_box.dart';
 import 'package:app_client/features/catalog/widgets/category_chip.dart';
 import 'package:app_client/features/catalog/widgets/product_card.dart';
+import 'package:app_client/features/notifications/widgets/notification_bell_button.dart';
 
-/// Écran d'exploration complète du catalogue ("Voir tout" depuis la home).
-class SearchScreen extends ConsumerWidget {
-  const SearchScreen({super.key});
+/// Ecran d'exploration complete du catalogue ("Voir tout" depuis la home).
+class SearchScreen extends ConsumerStatefulWidget {
+  const SearchScreen({super.key, this.initialQuery});
+
+  final String? initialQuery;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends ConsumerState<SearchScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final initialQuery = widget.initialQuery?.trim();
+    if (initialQuery != null && initialQuery.isNotEmpty) {
+      Future.microtask(
+        () => ref.read(searchQueryProvider.notifier).state = initialQuery,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesProvider);
     final selectedCategoryId = ref.watch(selectedCategoryProvider);
+    final query = ref.watch(searchQueryProvider).trim();
+    final title =
+        _titleFor(categoriesAsync.valueOrNull, selectedCategoryId, query);
 
     return Scaffold(
+      backgroundColor: KitchenColors.paper,
       body: SafeArea(
         bottom: false,
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
               child: _ListHeader(
-                title:
-                    _titleFor(categoriesAsync.valueOrNull, selectedCategoryId),
+                title: title,
+                hasCategorySelection: selectedCategoryId != null,
               ),
+            ),
+            const SliverToBoxAdapter(
+              child: CatalogSearchBox(autofocus: false),
             ),
             SliverToBoxAdapter(
               child: categoriesAsync.when(
                 loading: () => const SizedBox(
-                  height: 54,
+                  height: 58,
                   child: Center(
-                    child: SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                    child: KitchenLoadingIndicator(
+                      color: KitchenColors.cognac,
+                      size: 30,
                     ),
                   ),
                 ),
@@ -51,15 +83,22 @@ class SearchScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            _ProductGrid(categoryId: selectedCategoryId),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            const _ProductGrid(),
+            const SliverToBoxAdapter(child: SizedBox(height: 112)),
           ],
         ),
       ),
     );
   }
 
-  String _titleFor(List<Category>? categories, int? selectedCategoryId) {
+  String _titleFor(
+    List<Category>? categories,
+    int? selectedCategoryId,
+    String query,
+  ) {
+    if (query.isNotEmpty) {
+      return 'Recherche';
+    }
     if (selectedCategoryId == null || categories == null) {
       return 'Explorer le menu';
     }
@@ -70,47 +109,60 @@ class SearchScreen extends ConsumerWidget {
 }
 
 class _ListHeader extends StatelessWidget {
-  const _ListHeader({required this.title});
+  const _ListHeader({
+    required this.title,
+    required this.hasCategorySelection,
+  });
 
   final String title;
+  final bool hasCategorySelection;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(42, 24, 42, 12),
+      padding: const EdgeInsets.fromLTRB(
+        KitchenSpacing.lg,
+        KitchenSpacing.md,
+        KitchenSpacing.lg,
+        KitchenSpacing.sm,
+      ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _HeaderButton(
-            icon: Icons.arrow_back_ios_new,
+            icon: Icons.arrow_back_rounded,
             tooltip: 'Retour',
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go(AppRoutes.home),
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: KitchenSpacing.md),
           Expanded(
-            child: Container(
-              height: 38,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: KitchenTypography.title.copyWith(fontSize: 30),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+                const SizedBox(height: KitchenSpacing.xxs),
+                Text(
+                  hasCategorySelection
+                      ? 'Toutes les recettes de cette categorie.'
+                      : 'Toutes les pizzas disponibles a la commande.',
+                  style: KitchenTypography.body.copyWith(
+                    color: KitchenColors.textMuted,
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 24),
-          // Cloche décorative désactivée — même raison que home_screen.dart :
-          // pas de flux de notifications consultable côté backend.
-          const Icon(Icons.notifications_none, color: AppColors.grey400),
+          const SizedBox(width: KitchenSpacing.sm),
+          const NotificationBellButton(),
         ],
       ),
     );
@@ -130,12 +182,14 @@ class _HeaderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: 38,
-      child: IconButton.filledTonal(
+    return Tooltip(
+      message: tooltip,
+      child: KitchenEmbossedButton(
         onPressed: onPressed,
-        tooltip: tooltip,
-        icon: Icon(icon, size: 21),
+        shape: BoxShape.circle,
+        padding: EdgeInsets.zero,
+        semanticLabel: tooltip,
+        child: Icon(icon, size: 21),
       ),
     );
   }
@@ -153,16 +207,19 @@ class _FilterStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
-      height: 54,
+      height: 58,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: KitchenSpacing.lg,
+          vertical: KitchenSpacing.xs,
+        ),
         itemCount: categories.length + 1,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        separatorBuilder: (_, __) => const SizedBox(width: KitchenSpacing.sm),
         itemBuilder: (context, index) {
           if (index == 0) {
             return CategoryChip(
-              label: 'Sélection',
+              label: 'Tout',
               isSelected: selectedCategoryId == null,
               onTap: () =>
                   ref.read(selectedCategoryProvider.notifier).state = null,
@@ -182,50 +239,45 @@ class _FilterStrip extends ConsumerWidget {
 }
 
 class _ProductGrid extends ConsumerWidget {
-  const _ProductGrid({required this.categoryId});
-
-  final int? categoryId;
+  const _ProductGrid();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (categoryId == null) {
-      final featuredAsync = ref.watch(featuredProductsProvider);
-      return featuredAsync.when(
-        loading: () => const SliverToBoxAdapter(child: _ProductGridSkeleton()),
-        error: (e, _) => SliverToBoxAdapter(
-          child: ErrorView(
-            message: 'Impossible de charger les recommendations.',
-            onRetry: () => ref.invalidate(featuredProductsProvider),
-          ),
-        ),
-        data: (products) => products.isEmpty
-            ? const SliverToBoxAdapter(
-                child: EmptyState(
-                  title: 'Aucun produit disponible',
-                  subtitle: 'Les produits recommandes apparaitront ici.',
-                  icon: Icons.restaurant_menu_outlined,
-                ),
-              )
-            : _ProductSliver(products: products),
-      );
-    }
+    final resultsAsync = ref.watch(catalogSearchResultsProvider);
+    final hasActiveQueryOrFilter =
+        ref.watch(searchQueryProvider).trim().isNotEmpty ||
+            ref.watch(catalogActiveFilterCountProvider) > 0;
 
-    final filteredAsync = ref.watch(filteredProductsProvider(categoryId!));
-    return filteredAsync.when(
+    return resultsAsync.when(
       loading: () => const SliverToBoxAdapter(child: _ProductGridSkeleton()),
       error: (e, _) => SliverToBoxAdapter(
-        child: ErrorView(
-          message: 'Impossible de charger cette categorie.',
-          onRetry: () =>
-              ref.invalidate(productsByCategoryProvider(categoryId!)),
+        child: _InlineError(
+          message: 'Impossible de charger le menu.',
+          onRetry: () => ref.invalidate(allProductsProvider),
         ),
       ),
       data: (products) => products.isEmpty
-          ? const SliverToBoxAdapter(
-              child: EmptyState(
-                title: 'Aucun produit disponible',
-                subtitle: 'Essayez une autre categorie.',
+          ? SliverToBoxAdapter(
+              child: _EmptyPanel(
+                title: hasActiveQueryOrFilter
+                    ? 'Aucun produit correspondant'
+                    : 'Aucun produit disponible',
+                subtitle: hasActiveQueryOrFilter
+                    ? 'Modifiez votre recherche ou reinitialisez les filtres.'
+                    : 'Le menu sera visible des que la cuisine l ouvre.',
                 icon: Icons.search_off_outlined,
+                actionLabel:
+                    hasActiveQueryOrFilter ? 'Reinitialiser les filtres' : null,
+                onAction: hasActiveQueryOrFilter
+                    ? () {
+                        ref.read(searchQueryProvider.notifier).state = '';
+                        ref.read(catalogSearchFiltersProvider.notifier).reset();
+                        ref.read(activeAllergenFiltersProvider.notifier).state =
+                            const {};
+                        ref.read(selectedCategoryProvider.notifier).state =
+                            null;
+                      }
+                    : null,
               ),
             )
           : _ProductSliver(products: products),
@@ -239,21 +291,31 @@ class _ProductGridSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 42),
+      padding: _gridPadding,
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: _gridDelegate(MediaQuery.sizeOf(context).width),
         itemCount: 8,
-        itemBuilder: (_, __) => const Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: ShimmerBlock(borderRadius: 8)),
-            SizedBox(height: 8),
-            ShimmerBlock(height: 14, width: 120),
-            SizedBox(height: 6),
-            ShimmerBlock(height: 12, width: 60),
-          ],
+        itemBuilder: (_, __) => const KitchenSurface(
+          padding: EdgeInsets.all(KitchenSpacing.xs),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ShimmerBlock(
+                  borderRadius: KitchenRadius.md,
+                  height: double.infinity,
+                ),
+              ),
+              SizedBox(height: KitchenSpacing.sm),
+              ShimmerBlock(height: 14, width: 120),
+              SizedBox(height: KitchenSpacing.xs),
+              ShimmerBlock(height: 12, width: 80),
+              SizedBox(height: KitchenSpacing.xs),
+              ShimmerBlock(height: 14, width: 58),
+            ],
+          ),
         ),
       ),
     );
@@ -268,7 +330,7 @@ class _ProductSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(42, 4, 42, 0),
+      padding: _gridPadding,
       sliver: SliverGrid.builder(
         gridDelegate: _gridDelegate(MediaQuery.sizeOf(context).width),
         itemCount: products.length,
@@ -278,12 +340,112 @@ class _ProductSliver extends StatelessWidget {
   }
 }
 
+class _InlineError extends StatelessWidget {
+  const _InlineError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(KitchenSpacing.lg),
+      child: KitchenSurface(
+        padding: const EdgeInsets.all(KitchenSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: KitchenColors.terracotta,
+              size: 38,
+            ),
+            const SizedBox(height: KitchenSpacing.sm),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.textMuted,
+              ),
+            ),
+            const SizedBox(height: KitchenSpacing.md),
+            KitchenEmbossedButton(
+              onPressed: onRetry,
+              semanticLabel: 'Recharger le menu',
+              child: const Text('REESSAYER'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyPanel extends StatelessWidget {
+  const _EmptyPanel({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(KitchenSpacing.lg),
+      child: KitchenSurface(
+        padding: const EdgeInsets.all(KitchenSpacing.xl),
+        child: Column(
+          children: [
+            Icon(icon, color: KitchenColors.cognac, size: 38),
+            const SizedBox(height: KitchenSpacing.md),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: KitchenTypography.title.copyWith(fontSize: 28),
+            ),
+            const SizedBox(height: KitchenSpacing.xs),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.textMuted,
+              ),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: KitchenSpacing.md),
+              KitchenEmbossedButton(
+                onPressed: onAction,
+                child: Text(actionLabel!.toUpperCase()),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+const _gridPadding = EdgeInsets.fromLTRB(
+  KitchenSpacing.lg,
+  KitchenSpacing.sm,
+  KitchenSpacing.lg,
+  0,
+);
+
 SliverGridDelegateWithFixedCrossAxisCount _gridDelegate(double width) {
-  final columns = width >= 1100 ? 4 : (width >= 700 ? 3 : 2);
+  final columns = width >= 1100 ? 4 : (width >= 720 ? 3 : 2);
   return SliverGridDelegateWithFixedCrossAxisCount(
     crossAxisCount: columns,
-    mainAxisSpacing: 24,
-    crossAxisSpacing: width >= 700 ? 26 : 48,
-    childAspectRatio: width >= 700 ? 0.86 : 0.68,
+    mainAxisSpacing: KitchenSpacing.lg,
+    crossAxisSpacing: width >= 720 ? KitchenSpacing.lg : KitchenSpacing.md,
+    childAspectRatio: width >= 720 ? 0.84 : 0.68,
   );
 }

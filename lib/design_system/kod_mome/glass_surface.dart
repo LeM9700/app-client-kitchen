@@ -36,8 +36,7 @@ class KodMomeGlassSurface extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             Colors.white.withValues(alpha: KodMomeDesignPack.glassOpacity),
-            Colors.white
-                .withValues(alpha: KodMomeDesignPack.glassOpacity / 3),
+            Colors.white.withValues(alpha: KodMomeDesignPack.glassOpacity / 3),
           ],
         ),
         border: Border.all(

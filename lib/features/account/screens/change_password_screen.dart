@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app_client/core/errors/app_exception.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_text_field.dart';
 import 'package:app_client/features/account/providers/account_provider.dart';
 
-/// Changement de mot de passe — `POST /auth/change-password`
-/// (plan-18, Décision d'architecture n°2 : ancien mot de passe requis pour
-/// se protéger d'une prise de contrôle de compte via vol de session).
-///
-/// Politique serveur sur le nouveau mot de passe (min 8 caractères, ≥1
-/// majuscule, ≥1 chiffre, ≥1 caractère parmi `!@#$%^&*`) est appliquée côté
-/// serveur — les erreurs 422 remontent via [ValidationException.fieldErrors]
-/// et sont affichées sur le champ concerné. Un ancien mot de passe incorrect
-/// remonte en 401 ([AuthException], voir `AuthRepository.changePassword`) —
-/// affiché comme une erreur sur le champ "mot de passe actuel" pour guider
-/// l'utilisateur, même si ce n'est pas une `ValidationException`.
+/// Changement de mot de passe — `POST /auth/change-password`.
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
 
@@ -63,9 +60,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             );
           }
         } else if (e is AuthException) {
-          // 401 INVALID_CREDENTIALS — mot de passe actuel incorrect. Pas une
-          // ValidationException (voir doc de classe), mappé manuellement sur
-          // le champ concerné pour une UX cohérente avec les autres erreurs.
           setState(() => _fieldErrors = {'current_password': e.message});
         } else if (e is AppException) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -74,11 +68,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         }
       },
       data: (_) {
+        HapticFeedback.lightImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Mot de passe changé. Vos autres appareils ont été '
-              'déconnectés.',
+              'Mot de passe changé. Vos autres appareils ont été déconnectés.',
             ),
           ),
         );
@@ -92,101 +86,142 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     final isLoading = ref.watch(changePasswordNotifierProvider).isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Changer le mot de passe')),
+      backgroundColor: KitchenColors.paperLight,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          children: [
+            Row(
               children: [
-                TextFormField(
-                  controller: _currentPasswordCtrl,
-                  obscureText: _obscureCurrent,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    labelText: 'Mot de passe actuel',
-                    errorText: _fieldErrors['current_password'],
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureCurrent
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscureCurrent = !_obscureCurrent),
-                    ),
-                  ),
-                  validator: (v) => (v == null || v.isEmpty)
-                      ? 'Le mot de passe actuel est requis'
-                      : null,
+                IconButton(
+                  tooltip: 'Retour',
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  color: KitchenColors.espresso,
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _newPasswordCtrl,
-                  obscureText: _obscureNew,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    labelText: 'Nouveau mot de passe',
-                    helperText: '8 caractères min., 1 majuscule, 1 chiffre, '
-                        '1 caractère spécial (!@#\$%^&*)',
-                    helperMaxLines: 2,
-                    errorText: _fieldErrors['new_password'],
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureNew
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscureNew = !_obscureNew),
-                    ),
+                const SizedBox(width: KitchenSpacing.xs),
+                Expanded(
+                  child: Text(
+                    'Mot de passe',
+                    style: KitchenTypography.title.copyWith(fontSize: 31),
                   ),
-                  validator: (v) => (v == null || v.length < 8)
-                      ? '8 caractères minimum'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmPasswordCtrl,
-                  obscureText: _obscureConfirm,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _submit(),
-                  decoration: InputDecoration(
-                    labelText: 'Confirmer le nouveau mot de passe',
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirm
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
-                    ),
-                  ),
-                  validator: (v) => (v != _newPasswordCtrl.text)
-                      ? 'Les mots de passe ne correspondent pas'
-                      : null,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: isLoading ? null : _submit,
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Changer le mot de passe'),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: KitchenSpacing.lg),
+            KitchenSurface(
+              padding: const EdgeInsets.all(KitchenSpacing.lg),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Sécurité du compte',
+                      style: KitchenTypography.label.copyWith(
+                        color: KitchenColors.brown700,
+                      ),
+                    ),
+                    const SizedBox(height: KitchenSpacing.md),
+                    KitchenTextField(
+                      controller: _currentPasswordCtrl,
+                      label: 'Mot de passe actuel',
+                      prefixIcon: Icons.lock_outline,
+                      obscureText: _obscureCurrent,
+                      textInputAction: TextInputAction.next,
+                      errorText: _fieldErrors['current_password'],
+                      autofillHints: const [AutofillHints.password],
+                      suffixIcon: _VisibilityButton(
+                        obscure: _obscureCurrent,
+                        onPressed: () => setState(
+                          () => _obscureCurrent = !_obscureCurrent,
+                        ),
+                      ),
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Le mot de passe actuel est requis'
+                          : null,
+                    ),
+                    const SizedBox(height: KitchenSpacing.md),
+                    KitchenTextField(
+                      controller: _newPasswordCtrl,
+                      label: 'Nouveau mot de passe',
+                      prefixIcon: Icons.key_outlined,
+                      obscureText: _obscureNew,
+                      textInputAction: TextInputAction.next,
+                      errorText: _fieldErrors['new_password'],
+                      autofillHints: const [AutofillHints.newPassword],
+                      suffixIcon: _VisibilityButton(
+                        obscure: _obscureNew,
+                        onPressed: () =>
+                            setState(() => _obscureNew = !_obscureNew),
+                      ),
+                      validator: (v) => (v == null || v.length < 8)
+                          ? '8 caractères minimum'
+                          : null,
+                    ),
+                    const SizedBox(height: KitchenSpacing.xs),
+                    Text(
+                      '8 caractères min., 1 majuscule, 1 chiffre, '
+                      '1 caractère spécial (!@#\$%^&*)',
+                      style: KitchenTypography.body.copyWith(
+                        color: KitchenColors.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: KitchenSpacing.md),
+                    KitchenTextField(
+                      controller: _confirmPasswordCtrl,
+                      label: 'Confirmer le nouveau mot de passe',
+                      prefixIcon: Icons.verified_user_outlined,
+                      obscureText: _obscureConfirm,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submit(),
+                      autofillHints: const [AutofillHints.newPassword],
+                      suffixIcon: _VisibilityButton(
+                        obscure: _obscureConfirm,
+                        onPressed: () => setState(
+                          () => _obscureConfirm = !_obscureConfirm,
+                        ),
+                      ),
+                      validator: (v) => (v != _newPasswordCtrl.text)
+                          ? 'Les mots de passe ne correspondent pas'
+                          : null,
+                    ),
+                    const SizedBox(height: KitchenSpacing.lg),
+                    KitchenEmbossedButton(
+                      onPressed: isLoading ? null : _submit,
+                      isLoading: isLoading,
+                      semanticLabel: 'Changer le mot de passe',
+                      child: const Text('Changer le mot de passe'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _VisibilityButton extends StatelessWidget {
+  const _VisibilityButton({
+    required this.obscure,
+    required this.onPressed,
+  });
+
+  final bool obscure;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: obscure ? 'Afficher' : 'Masquer',
+      onPressed: onPressed,
+      icon: Icon(
+        obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+        color: KitchenColors.espresso,
       ),
     );
   }

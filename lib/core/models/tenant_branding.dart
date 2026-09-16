@@ -33,6 +33,10 @@ class TenantBranding with _$TenantBranding {
     @JsonKey(name: 'primary_color') String? primaryColorHex,
     @JsonKey(name: 'secondary_color') String? secondaryColorHex,
     @JsonKey(name: 'font_family') String? fontFamily,
+    @JsonKey(name: 'contact_phone') String? contactPhone,
+    @JsonKey(name: 'contact_email') String? contactEmail,
+    @JsonKey(name: 'instagram_url') String? instagramUrl,
+    @JsonKey(name: 'google_business_url') String? googleBusinessUrl,
   }) = _TenantBranding;
 
   factory TenantBranding.fromJson(Map<String, dynamic> json) =>
@@ -49,6 +53,10 @@ class TenantBranding with _$TenantBranding {
         primaryColorHex: '#FF0045',
         secondaryColorHex: '#285A50',
         fontFamily: null,
+        contactPhone: null,
+        contactEmail: null,
+        instagramUrl: null,
+        googleBusinessUrl: null,
       );
 }
 

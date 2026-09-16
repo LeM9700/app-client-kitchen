@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/core/providers/auth_session_provider.dart';
+import 'package:app_client/core/providers/auth_token_provider.dart';
 import 'package:app_client/features/account/models/session.dart';
 import 'package:app_client/features/account/providers/account_provider.dart';
 import 'package:app_client/features/auth/models/user.dart';
@@ -276,6 +277,61 @@ void main() {
       final state = container.read(profileEditNotifierProvider);
       expect(state.hasError, isFalse);
       expect(container.read(currentUserProvider), updated);
+    });
+  });
+
+  group('DeleteAccountNotifier', () {
+    test(
+        'succès → nettoie accessTokenProvider, currentSessionIdProvider et '
+        'currentUserProvider', () async {
+      container.read(accessTokenProvider.notifier).state = 'access-token';
+      container.read(currentSessionIdProvider.notifier).state = 77;
+      container.read(currentUserProvider.notifier).state = const User(
+        id: 1,
+        email: 'test@example.com',
+        fullName: 'Client Test',
+        emailVerified: true,
+      );
+
+      when(() => mockRepo.deleteAccount(password: 'ValidPass1!'))
+          .thenAnswer((_) async {});
+
+      container.listen(deleteAccountNotifierProvider, (_, __) {});
+      final notifier = container.read(deleteAccountNotifierProvider.notifier);
+      await notifier.deleteAccount(password: 'ValidPass1!');
+
+      expect(container.read(deleteAccountNotifierProvider).hasError, isFalse);
+      expect(container.read(accessTokenProvider), isNull);
+      expect(container.read(currentSessionIdProvider), isNull);
+      expect(container.read(currentUserProvider), isNull);
+      verify(() => mockRepo.deleteAccount(password: 'ValidPass1!')).called(1);
+    });
+
+    test(
+        'échec → conserve la session locale pour laisser l’utilisateur '
+        'authentifié', () async {
+      const user = User(
+        id: 1,
+        email: 'test@example.com',
+        fullName: 'Client Test',
+        emailVerified: true,
+      );
+      container.read(accessTokenProvider.notifier).state = 'access-token';
+      container.read(currentSessionIdProvider.notifier).state = 77;
+      container.read(currentUserProvider.notifier).state = user;
+
+      when(() => mockRepo.deleteAccount(password: 'WrongPass1!')).thenThrow(
+        const AuthException('Invalid password'),
+      );
+
+      container.listen(deleteAccountNotifierProvider, (_, __) {});
+      final notifier = container.read(deleteAccountNotifierProvider.notifier);
+      await notifier.deleteAccount(password: 'WrongPass1!');
+
+      expect(container.read(deleteAccountNotifierProvider).hasError, isTrue);
+      expect(container.read(accessTokenProvider), 'access-token');
+      expect(container.read(currentSessionIdProvider), 77);
+      expect(container.read(currentUserProvider), user);
     });
   });
 }

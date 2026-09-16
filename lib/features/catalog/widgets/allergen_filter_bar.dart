@@ -1,32 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 
-/// Les 14 allergènes majeurs définis par le règlement UE 1169/2011.
-///
-/// Clé : code interne API. Valeur : libellé affiché en français — fallback
-/// utilisé par [AllergenBadge] pour un code inconnu de [allergenLabels].
 const kEuAllergens = <String, String>{
   'gluten': 'Gluten',
-  'crustaceans': 'Crustacés',
-  'eggs': 'Œufs',
+  'crustaceans': 'Crustaces',
+  'eggs': 'Oeufs',
   'fish': 'Poisson',
   'peanuts': 'Arachides',
   'soybeans': 'Soja',
   'milk': 'Lait',
-  'nuts': 'Fruits à coque',
-  'celery': 'Céleri',
+  'nuts': 'Fruits a coque',
+  'celery': 'Celeri',
   'mustard': 'Moutarde',
-  'sesame': 'Sésame',
+  'sesame': 'Sesame',
   'sulphites': 'Sulfites',
   'lupin': 'Lupin',
   'molluscs': 'Mollusques',
 };
 
-/// Mêmes 14 allergènes, libellés localisés — utilisé par [AllergenFilterBar]
-/// et [AllergenBadge].
 Map<String, String> allergenLabels(AppLocalizations l10n) => {
       'gluten': l10n.allergenGluten,
       'crustaceans': l10n.allergenCrustaceans,
@@ -44,90 +42,115 @@ Map<String, String> allergenLabels(AppLocalizations l10n) => {
       'molluscs': l10n.allergenMolluscs,
     };
 
-/// Barre de filtrage par allergène.
-///
-/// Affichée en bandeau horizontal scrollable sous les chips catégories.
-/// État géré par [activeAllergenFiltersProvider] (Riverpod global).
-///
-/// UX : sélectionner un allergène l'EXCLUT du catalogue affiché
-/// ("je suis allergique au gluten → cache les produits avec gluten").
 class AllergenFilterBar extends ConsumerWidget {
   const AllergenFilterBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeFilters = ref.watch(activeAllergenFiltersProvider);
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final labels = allergenLabels(l10n);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Row(
-            children: [
-              Icon(
-                Icons.filter_alt_outlined,
-                size: 16,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                l10n.allergenExcludeLabel,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KitchenSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: KitchenSpacing.lg,
+              vertical: KitchenSpacing.xxs,
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.filter_alt_outlined,
+                  size: 16,
+                  color: KitchenColors.textMuted,
                 ),
-              ),
-              if (activeFilters.isNotEmpty) ...[
-                const Spacer(),
-                TextButton(
-                  onPressed: () => ref
-                      .read(activeAllergenFiltersProvider.notifier)
-                      .state = const {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                const SizedBox(width: KitchenSpacing.xs),
+                Text(
+                  l10n.allergenExcludeLabel,
+                  style: KitchenTypography.label.copyWith(
+                    color: KitchenColors.textMuted,
+                    fontSize: 12,
                   ),
-                  child: Text(l10n.allergenClearLabel),
                 ),
+                if (activeFilters.isNotEmpty) ...[
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => ref
+                        .read(activeAllergenFiltersProvider.notifier)
+                        .state = const {},
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      l10n.allergenClearLabel,
+                      style: KitchenTypography.label.copyWith(
+                        color: KitchenColors.cognac,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-        SizedBox(
-          height: 36,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemCount: kEuAllergens.length,
-            itemBuilder: (context, index) {
-              final code = kEuAllergens.keys.elementAt(index);
-              final label = labels[code] ?? code;
-              final isActive = activeFilters.contains(code);
+          SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                horizontal: KitchenSpacing.lg,
+              ),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(width: KitchenSpacing.xs),
+              itemCount: kEuAllergens.length,
+              itemBuilder: (context, index) {
+                final code = kEuAllergens.keys.elementAt(index);
+                final label = labels[code] ?? code;
+                final isActive = activeFilters.contains(code);
 
-              return FilterChip(
-                label: Text(label),
-                selected: isActive,
-                onSelected: (selected) {
-                  final current = ref.read(activeAllergenFiltersProvider);
-                  ref.read(activeAllergenFiltersProvider.notifier).state =
-                      selected
-                          ? {...current, code}
-                          : current.difference({code});
-                },
-                showCheckmark: false,
-                labelStyle: theme.textTheme.labelSmall,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                visualDensity: VisualDensity.compact,
-              );
-            },
+                return FilterChip(
+                  label: Text(label),
+                  selected: isActive,
+                  onSelected: (selected) {
+                    final current = ref.read(activeAllergenFiltersProvider);
+                    ref.read(activeAllergenFiltersProvider.notifier).state =
+                        selected
+                            ? {...current, code}
+                            : current.difference({code});
+                  },
+                  showCheckmark: false,
+                  backgroundColor: KitchenColors.paperLight,
+                  selectedColor: KitchenColors.cognac.withValues(alpha: 0.16),
+                  side: BorderSide(
+                    color: isActive
+                        ? KitchenColors.cognac
+                        : KitchenColors.brown700.withValues(alpha: 0.16),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(KitchenRadius.pill),
+                  ),
+                  labelStyle: KitchenTypography.label.copyWith(
+                    color: isActive
+                        ? KitchenColors.cognac
+                        : KitchenColors.textMuted,
+                    fontSize: 12,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: KitchenSpacing.xs,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

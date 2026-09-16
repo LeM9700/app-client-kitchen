@@ -3,6 +3,14 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'category.freezed.dart';
 part 'category.g.dart';
 
+Map<String, dynamic> _categoryJsonWithDisplayOrderFallback(
+  Map<String, dynamic> json,
+) {
+  final normalized = Map<String, dynamic>.of(json);
+  normalized['sort_order'] ??= normalized['display_order'];
+  return normalized;
+}
+
 /// Catégorie de produits du catalogue.
 ///
 /// [sortOrder] : ordre d'affichage dans les chips de filtrage.
@@ -19,5 +27,5 @@ class Category with _$Category {
   }) = _Category;
 
   factory Category.fromJson(Map<String, dynamic> json) =>
-      _$CategoryFromJson(json);
+      _$CategoryFromJson(_categoryJsonWithDisplayOrderFallback(json));
 }

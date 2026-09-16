@@ -58,3 +58,9 @@ coverage/
 
 # ── Logs ──────────────────────────────────────────────────────────────────────
 *.log
+
+# Local Netlify folder
+.netlify
+
+# Local deploy preview screenshots
+netlify-preview-*.png

@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:app_client/core/errors/app_exception.dart';
-import 'package:app_client/core/theme/app_colors.dart';
+import 'package:app_client/core/router/app_routes.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_brand_logo.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_photo_background.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_text_field.dart';
 import 'package:app_client/features/auth/providers/auth_provider.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -23,6 +34,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   void dispose() {
     _emailCtrl.dispose();
     super.dispose();
+  }
+
+  void _returnToLogin() {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppRoutes.login);
   }
 
   Future<void> _submit() async {
@@ -45,86 +64,97 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final title = _sent ? l10n.authEmailSentTitle : l10n.authForgotTitle;
+    final body = _sent
+        ? l10n.authEmailSentBody(_emailCtrl.text.trim())
+        : l10n.authForgotBody;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        bottom: false,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(28, 18, 28, 22),
-              child: Row(
-                children: [
-                  const Text(
-                    '•••',
-                    style: TextStyle(
-                      color: AppColors.brandGreen,
-                      fontSize: 24,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: AppColors.brandGreen),
-                    tooltip: 'Fermer',
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              _sent ? Icons.mark_email_read_outlined : Icons.lock,
-              size: 70,
-              color: AppColors.brandRed,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              _sent ? 'Email\nenvoye' : 'Mot de\nPASSE ?',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.displaySmall?.copyWith(
-                color: AppColors.brandRed,
-                fontWeight: FontWeight.w900,
-                height: 1.05,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 48),
-              child: Text(
-                _sent
-                    ? 'Si un compte est associe a ${_emailCtrl.text.trim()}, les instructions arrivent dans quelques minutes.'
-                    : 'Pas de souci, nous vous enverrons les instructions pour reinitaliser votre acces.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.brandRed,
+      resizeToAvoidBottomInset: true,
+      body: KitchenPhotoBackground(
+        assetPath: KitchenAssets.loginBackground,
+        alignment: Alignment.center,
+        overlayColor: KitchenColors.paperLight.withValues(alpha: 0.42),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  KitchenSpacing.lg,
+                  KitchenSpacing.md,
+                  KitchenSpacing.lg,
+                  KitchenSpacing.lg + MediaQuery.paddingOf(context).bottom,
                 ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                36,
-                42,
-                36,
-                32 + MediaQuery.of(context).padding.bottom,
-              ),
-              decoration: const BoxDecoration(
-                color: AppColors.brandRed,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(38)),
-              ),
-              child: _sent
-                  ? _ConfirmationActions()
-                  : _ResetForm(
-                      formKey: _formKey,
-                      emailCtrl: _emailCtrl,
-                      isLoading: _isLoading,
-                      onSubmit: _submit,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - KitchenSpacing.xl,
+                      maxWidth: 430,
                     ),
-            ),
-          ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton.filledTonal(
+                            onPressed: _returnToLogin,
+                            tooltip: l10n.authCloseTooltip,
+                            icon: const Icon(Icons.arrow_back),
+                          ),
+                        ),
+                        const SizedBox(height: KitchenSpacing.sm),
+                        const Center(
+                          child: KitchenBrandLogo(size: 88, light: true),
+                        ),
+                        const SizedBox(height: KitchenSpacing.lg),
+                        Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          style: KitchenTypography.title.copyWith(
+                            fontSize: 34,
+                            height: 1.02,
+                          ),
+                        ),
+                        const SizedBox(height: KitchenSpacing.sm),
+                        Text(
+                          body,
+                          textAlign: TextAlign.center,
+                          style: KitchenTypography.body.copyWith(
+                            color: KitchenColors.textMuted,
+                          ),
+                        ),
+                        const SizedBox(height: KitchenSpacing.lg),
+                        KitchenSurface(
+                          elevation: KitchenElevation.flat,
+                          borderRadius: BorderRadius.circular(KitchenRadius.xl),
+                          color: KitchenColors.paper.withValues(alpha: 0.8),
+                          padding: const EdgeInsets.fromLTRB(
+                            KitchenSpacing.md,
+                            KitchenSpacing.lg,
+                            KitchenSpacing.md,
+                            KitchenSpacing.lg,
+                          ),
+                          child: _sent
+                              ? _ConfirmationActions(
+                                  onReturnToLogin: _returnToLogin,
+                                )
+                              : _ResetForm(
+                                  formKey: _formKey,
+                                  emailCtrl: _emailCtrl,
+                                  isLoading: _isLoading,
+                                  onSubmit: _submit,
+                                  onReturnToLogin: _returnToLogin,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -137,82 +167,52 @@ class _ResetForm extends StatelessWidget {
     required this.emailCtrl,
     required this.isLoading,
     required this.onSubmit,
+    required this.onReturnToLogin,
   });
 
   final GlobalKey<FormState> formKey;
   final TextEditingController emailCtrl;
   final bool isLoading;
   final VoidCallback onSubmit;
+  final VoidCallback onReturnToLogin;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Form(
       key: formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Email',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 10),
-          TextFormField(
+          KitchenTextField(
             controller: emailCtrl,
+            label: l10n.authEmailLabel,
+            hintText: 'client@email.fr',
+            prefixIcon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
-            onFieldSubmitted: (_) => onSubmit(),
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Entrer votre email',
-              prefixIcon:
-                  const Icon(Icons.email_outlined, color: Colors.white70),
-              filled: false,
-              labelStyle: const TextStyle(color: Colors.white70),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: const BorderSide(color: Colors.white, width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: const BorderSide(color: Colors.white, width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: const BorderSide(color: Colors.white, width: 2),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: const BorderSide(color: Colors.white, width: 2),
-              ),
-            ),
-            validator: (v) =>
-                (v == null || !v.contains('@')) ? 'Email invalide' : null,
+            autofillHints: const [AutofillHints.email],
+            onSubmitted: (_) => onSubmit(),
+            validator: (v) => (v == null || !v.contains('@'))
+                ? l10n.authEmailInvalidError
+                : null,
           ),
-          const SizedBox(height: 30),
-          ElevatedButton(
+          const SizedBox(height: KitchenSpacing.lg),
+          KitchenEmbossedButton(
             onPressed: isLoading ? null : onSubmit,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brandRedSoft,
-              foregroundColor: AppColors.brandRed,
-            ),
-            child: isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Reset Password'),
+            isLoading: isLoading,
+            semanticLabel: l10n.authForgotPasswordLink,
+            child: const Text('ENVOYER LES INSTRUCTIONS'),
           ),
-          const SizedBox(height: 42),
+          const SizedBox(height: KitchenSpacing.sm),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Back to Login',
-              style: TextStyle(
-                color: Colors.white,
-                decoration: TextDecoration.underline,
-              ),
+            onPressed: onReturnToLogin,
+            style: TextButton.styleFrom(
+              foregroundColor: KitchenColors.espresso,
+              minimumSize: const Size(44, 44),
             ),
+            child: Text(l10n.authLoginSubmitButton),
           ),
         ],
       ),
@@ -221,27 +221,27 @@ class _ResetForm extends StatelessWidget {
 }
 
 class _ConfirmationActions extends StatelessWidget {
+  const _ConfirmationActions({required this.onReturnToLogin});
+
+  final VoidCallback onReturnToLogin;
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: AppColors.brandRed,
-          ),
-          child: const Text('Retour a la connexion'),
+        const Icon(
+          Icons.mark_email_read_outlined,
+          color: KitchenColors.olive,
+          size: 46,
         ),
-        const SizedBox(height: 18),
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: const BorderSide(color: Colors.white),
-          ),
-          child: const Text('Fermer'),
+        const SizedBox(height: KitchenSpacing.md),
+        KitchenEmbossedButton(
+          onPressed: onReturnToLogin,
+          semanticLabel: l10n.authLoginSubmitButton,
+          child: Text(l10n.authLoginSubmitButton.toUpperCase()),
         ),
       ],
     );

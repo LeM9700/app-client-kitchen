@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/utils/price_formatter.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 
-/// Tuile d'un extra/supplément dans la fiche produit.
-///
-/// [isSelected] + [onChanged] : state géré par le parent.
-/// Indisponible → désactivé visuellement, non cliquable.
 class ExtraItemTile extends StatelessWidget {
   const ExtraItemTile({
     super.key,
@@ -20,39 +21,73 @@ class ExtraItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isDisabled = !extra.available;
+    final textColor = isDisabled
+        ? KitchenColors.textMuted.withValues(alpha: 0.48)
+        : KitchenColors.textPrimary;
 
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      enabled: !isDisabled,
-      title: Text(
-        extra.name,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: isDisabled
-              ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
-              : null,
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '+${extra.price.toStringAsFixed(2)} €',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: isDisabled
-                  ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
-                  : theme.colorScheme.primary,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KitchenSpacing.sm),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(KitchenRadius.md),
+          onTap: isDisabled ? null : () => onChanged(!isSelected),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.fromLTRB(
+              KitchenSpacing.md,
+              KitchenSpacing.sm,
+              KitchenSpacing.sm,
+              KitchenSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? KitchenColors.cognac.withValues(alpha: 0.1)
+                  : KitchenColors.paperLight.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(KitchenRadius.md),
+              border: Border.all(
+                color: isSelected
+                    ? KitchenColors.cognac
+                    : KitchenColors.brown700.withValues(alpha: 0.15),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    extra.name,
+                    style: KitchenTypography.body.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: KitchenSpacing.sm),
+                Text(
+                  '+${formatPrice(extra.price)}',
+                  style: KitchenTypography.label.copyWith(
+                    color: isDisabled
+                        ? KitchenColors.textMuted.withValues(alpha: 0.48)
+                        : KitchenColors.cognac,
+                  ),
+                ),
+                Checkbox(
+                  value: isSelected,
+                  onChanged: isDisabled ? null : (value) => onChanged(value!),
+                  activeColor: KitchenColors.cognac,
+                  checkColor: KitchenColors.whiteWarm,
+                  side: BorderSide(
+                    color: KitchenColors.brown700.withValues(alpha: 0.38),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          Checkbox(
-            value: isSelected,
-            onChanged: isDisabled ? null : (v) => onChanged(v ?? false),
-          ),
-        ],
+        ),
       ),
-      onTap: isDisabled ? null : () => onChanged(!isSelected),
     );
   }
 }

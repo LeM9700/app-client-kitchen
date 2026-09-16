@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app_client/core/analytics/analytics_reporter.dart';
-import 'package:app_client/core/config/env.dart';
-import 'package:app_client/core/theme/kod_mome/kod_mome_design_pack.dart';
-import 'package:app_client/design_system/kod_mome/glass_surface.dart';
-import 'package:app_client/design_system/kod_mome/gold_foil_text.dart';
-import 'package:app_client/design_system/kod_mome/neumorphic_surface.dart';
+import 'package:app_client/core/errors/app_exception.dart';
+import 'package:app_client/core/theme/app_typography.dart';
+import 'package:app_client/core/theme/kitchen_radius.dart';
+import 'package:app_client/core/theme/kitchen_spacing.dart';
+import 'package:app_client/core/theme/kitchen_tokens.dart';
+import 'package:app_client/core/utils/price_formatter.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
+import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
@@ -16,21 +20,6 @@ import 'package:app_client/features/catalog/widgets/recommended_products_row.dar
 import 'package:app_client/features/catalog/widgets/variant_selector.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 
-/// Fiche détail d'un produit.
-///
-/// Route : `/catalog/products/:productId` (go_router).
-/// Chargement via [productDetailProvider] (autoDispose.family).
-///
-/// State local :
-/// - [_selectedVariantId] : variante active (null = première par défaut).
-/// - [_selectedExtras] : set des ids d'extras sélectionnés.
-/// - [_quantity] : quantité (1 par défaut, min 1 max 10).
-///
-/// Pas de Riverpod pour ce state local : durée de vie = lifecycle de l'écran,
-/// pas besoin de partage cross-widget.
-///
-/// [⚡ PERF] Image hero réutilise le tag `product-{id}` de [ProductCard] et
-/// [_RecommendationCard] — transition fluide sans double requête réseau.
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({super.key, required this.productId});
 
@@ -46,7 +35,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   final Set<int> _selectedExtras = {};
   int _quantity = 1;
 
-  // Calcule le prix total selon variante + extras sélectionnés.
   double _computeTotal(Product product) {
     double base = product.price;
 
@@ -64,8 +52,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     return base * _quantity;
   }
 
-  String _formatPrice(double price) => '${price.toStringAsFixed(2)} €';
-
   @override
   Widget build(BuildContext context) {
     final productAsync =
@@ -73,13 +59,16 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor:
-          Env.isKodMomeBuild ? KodMomeDesignPack.charcoal : null,
+      backgroundColor: KitchenColors.paper,
       body: productAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorView(message: e.toString()),
+        loading: () => const Center(
+          child: KitchenLoadingIndicator(
+            color: KitchenColors.cognac,
+            size: 38,
+          ),
+        ),
+        error: (error, _) => _ErrorView(message: _friendlyProductError(error)),
         data: (product) {
-          // Initialise la variante par défaut si non sélectionnée
           if (_selectedVariantId == null && product.hasVariants) {
             _selectedVariantId = product.variants.first.id;
           }
@@ -102,13 +91,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     }
                   });
                 },
-                onQuantityChanged: (q) => setState(() => _quantity = q),
+                onQuantityChanged: (quantity) =>
+                    setState(() => _quantity = quantity),
               ),
-
-              // Bouton "Ajouter au panier" flottant en bas
               _AddToCartBar(
                 total: _computeTotal(product),
-                formatPrice: _formatPrice,
                 quantity: _quantity,
                 isAvailable: product.isAvailable,
                 onAddToCart: () {
@@ -155,10 +142,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Scroll body
-// ──────────────────────────────────────────────────────────────────────────────
-
 class _ScrollBody extends StatelessWidget {
   const _ScrollBody({
     required this.product,
@@ -180,146 +163,112 @@ class _ScrollBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
 
     final heroImage = product.imageUrl != null
         ? Image.network(
             product.imageUrl!,
             fit: BoxFit.cover,
-            cacheWidth: 800,
+            cacheWidth: 900,
             errorBuilder: (_, __, ___) => const _ImageFallback(),
           )
         : const _ImageFallback();
 
     return CustomScrollView(
       slivers: [
-        // AppBar avec image hero
         SliverAppBar(
-          expandedHeight: 280,
+          expandedHeight: 320,
           pinned: true,
-          backgroundColor: isKodMome ? KodMomeDesignPack.charcoal : null,
+          stretch: true,
+          backgroundColor: KitchenColors.paperLight,
+          foregroundColor: KitchenColors.espresso,
           flexibleSpace: FlexibleSpaceBar(
             background: Hero(
               tag: 'product-${product.id}',
-              child: isKodMome
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        heroImage,
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                KodMomeDesignPack.charcoal
-                                    .withValues(alpha: 0.9),
-                              ],
-                              stops: const [0.5, 1.0],
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : heroImage,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  heroImage,
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          KitchenColors.espresso.withValues(alpha: 0.16),
+                          KitchenColors.paper,
+                        ],
+                        stops: const [0.45, 0.78, 1],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+            padding: const EdgeInsets.fromLTRB(
+              KitchenSpacing.lg,
+              KitchenSpacing.lg,
+              KitchenSpacing.lg,
+              0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nom + disponibilité
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Text(
                         product.name,
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: isKodMome ? KodMomeDesignPack.cream : null,
+                        style: KitchenTypography.display.copyWith(
+                          fontSize: 40,
                         ),
                       ),
                     ),
                     if (!product.isAvailable)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.error.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          l10n.productUnavailable,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.error,
-                          ),
-                        ),
-                      ),
+                      _UnavailableBadge(label: l10n.productUnavailable),
                   ],
                 ),
-
-                const SizedBox(height: 8),
-
-                // Prix de base
-                isKodMome
-                    ? GoldFoilText(
-                        product.displayPrice,
-                        style: theme.textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      )
-                    : Text(
-                        product.displayPrice,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-
-                // Description
-                if (product.description != null) ...[
-                  const SizedBox(height: 12),
+                const SizedBox(height: KitchenSpacing.sm),
+                Text(
+                  product.displayPrice,
+                  style: KitchenTypography.signature.copyWith(
+                    color: KitchenColors.cognac,
+                  ),
+                ),
+                if (product.description?.trim().isNotEmpty ?? false) ...[
+                  const SizedBox(height: KitchenSpacing.md),
                   Text(
-                    product.description!,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isKodMome
-                          ? KodMomeDesignPack.cream.withValues(alpha: 0.75)
-                          : null,
+                    product.description!.trim(),
+                    style: KitchenTypography.body.copyWith(
+                      color: KitchenColors.textMuted,
                     ),
                   ),
                 ],
-
-                // Allergènes
                 if (product.allergens.isNotEmpty) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: KitchenSpacing.lg),
                   Text(
                     l10n.productContainsLabel,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: isKodMome
-                          ? KodMomeDesignPack.cream.withValues(alpha: 0.6)
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    style: KitchenTypography.label.copyWith(
+                      color: KitchenColors.textMuted,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: KitchenSpacing.xs),
                   Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
+                    spacing: KitchenSpacing.xs,
+                    runSpacing: KitchenSpacing.xs,
                     children: product.allergens
                         .map((code) => AllergenBadge(code: code))
                         .toList(),
                   ),
                 ],
-
-                // Sélecteur variante
                 if (product.hasVariants) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: KitchenSpacing.xl),
                   VariantSelector(
                     variants: product.variants,
                     selectedVariantId: selectedVariantId,
@@ -327,17 +276,13 @@ class _ScrollBody extends StatelessWidget {
                     onChanged: onVariantChanged,
                   ),
                 ],
-
-                // Extras
                 if (product.hasExtras) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: KitchenSpacing.xl),
                   Text(
                     l10n.productExtrasLabel,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: isKodMome ? KodMomeDesignPack.cream : null,
-                    ),
+                    style: KitchenTypography.title.copyWith(fontSize: 25),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: KitchenSpacing.sm),
                   ...product.extras.map(
                     (extra) => ExtraItemTile(
                       extra: extra,
@@ -347,33 +292,28 @@ class _ScrollBody extends StatelessWidget {
                     ),
                   ),
                 ],
-
-                // Sélecteur quantité
-                const SizedBox(height: 24),
+                const SizedBox(height: KitchenSpacing.xl),
                 _QuantitySelector(
                   quantity: quantity,
                   onChanged: onQuantityChanged,
                 ),
-
-                const SizedBox(height: 16),
-                const Divider(),
+                const SizedBox(height: KitchenSpacing.lg),
+                Divider(
+                  color: KitchenColors.brown700.withValues(alpha: 0.14),
+                ),
               ],
             ),
           ),
         ),
-
-        // Produits recommandés
         SliverToBoxAdapter(
           child: RecommendedProductsRow(
             categoryId: product.categoryId,
             currentProductId: product.id,
           ),
         ),
-
-        // Space for the fixed add-to-cart bar plus the mobile navigation pill.
         SliverToBoxAdapter(
           child: SizedBox(
-            height: MediaQuery.sizeOf(context).width >= 900 ? 116 : 136,
+            height: MediaQuery.sizeOf(context).width >= 900 ? 124 : 146,
           ),
         ),
       ],
@@ -381,9 +321,32 @@ class _ScrollBody extends StatelessWidget {
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Sélecteur quantité
-// ──────────────────────────────────────────────────────────────────────────────
+class _UnavailableBadge extends StatelessWidget {
+  const _UnavailableBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: KitchenSpacing.sm,
+        vertical: KitchenSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: KitchenColors.terracotta.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(KitchenRadius.pill),
+        border: Border.all(color: KitchenColors.terracotta),
+      ),
+      child: Text(
+        label,
+        style: KitchenTypography.label.copyWith(
+          color: KitchenColors.terracotta,
+        ),
+      ),
+    );
+  }
+}
 
 class _QuantitySelector extends StatelessWidget {
   const _QuantitySelector({
@@ -396,146 +359,156 @@ class _QuantitySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isKodMome = Env.isKodMomeBuild;
-    final textColor = isKodMome ? KodMomeDesignPack.cream : null;
-    final iconColor = isKodMome ? KodMomeDesignPack.primary : null;
-
-    return Row(
-      children: [
-        Text(
-          AppLocalizations.of(context)!.productQuantityLabel,
-          style: theme.textTheme.titleLarge?.copyWith(color: textColor),
-        ),
-        const Spacer(),
-        IconButton(
-          icon: Icon(Icons.remove_circle_outline, color: iconColor),
-          onPressed: quantity > 1 ? () => onChanged(quantity - 1) : null,
-        ),
-        SizedBox(
-          width: 32,
-          child: Text(
-            '$quantity',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge?.copyWith(color: textColor),
+    return KitchenSurface(
+      elevation: KitchenElevation.inset,
+      borderRadius: BorderRadius.circular(KitchenRadius.lg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: KitchenSpacing.md,
+        vertical: KitchenSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Text(
+            AppLocalizations.of(context)!.productQuantityLabel,
+            style: KitchenTypography.title.copyWith(fontSize: 24),
           ),
-        ),
-        IconButton(
-          icon: Icon(Icons.add_circle_outline, color: iconColor),
-          onPressed: quantity < 10 ? () => onChanged(quantity + 1) : null,
-        ),
-      ],
+          const Spacer(),
+          _StepperButton(
+            icon: Icons.remove,
+            onPressed: quantity > 1 ? () => onChanged(quantity - 1) : null,
+          ),
+          SizedBox(
+            width: 42,
+            child: Text(
+              '$quantity',
+              textAlign: TextAlign.center,
+              style: KitchenTypography.title.copyWith(fontSize: 24),
+            ),
+          ),
+          _StepperButton(
+            icon: Icons.add,
+            onPressed: quantity < 10 ? () => onChanged(quantity + 1) : null,
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Barre "Ajouter au panier"
-// ──────────────────────────────────────────────────────────────────────────────
+class _StepperButton extends StatelessWidget {
+  const _StepperButton({required this.icon, required this.onPressed});
 
-class _AddToCartBar extends StatelessWidget {
-  const _AddToCartBar({
-    required this.total,
-    required this.formatPrice,
-    required this.quantity,
-    required this.isAvailable,
-    required this.onAddToCart,
-  });
-
-  final double total;
-  final String Function(double) formatPrice;
-  final int quantity;
-  final bool isAvailable;
-  final VoidCallback onAddToCart;
+  final IconData icon;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    final isKodMome = Env.isKodMomeBuild;
-    final bottomInset = 12 + MediaQuery.of(context).padding.bottom;
-    final label =
-        isAvailable ? l10n.productAddToCartButton : l10n.productUnavailableButton;
-
-    final ctaRow = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label),
-        if (isAvailable)
-          Text(
-            formatPrice(total),
-            style: const TextStyle(fontWeight: FontWeight.w700),
+    return SizedBox.square(
+      dimension: 42,
+      child: IconButton.filledTonal(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18),
+        style: IconButton.styleFrom(
+          backgroundColor: KitchenColors.cognac.withValues(alpha: 0.13),
+          disabledBackgroundColor: KitchenColors.flour.withValues(alpha: 0.7),
+          foregroundColor: KitchenColors.espresso,
+          disabledForegroundColor: KitchenColors.textMuted.withValues(
+            alpha: 0.5,
           ),
-      ],
-    );
-
-    if (isKodMome) {
-      return Positioned(
-        bottom: 0,
-        left: 0,
-        right: 0,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, bottomInset),
-          // Seule surface avec vrai flou (BackdropFilter) de cet écran — voir
-          // les garde-fous perf du plan Kod Mome (une surface héro max par
-          // écran, jamais dans une liste qui scrolle).
-          child: KodMomeGlassSurface(
-            variant: KodMomeGlassVariant.hero,
-            borderRadius: 20,
-            padding: EdgeInsets.zero,
-            child: Opacity(
-              opacity: isAvailable ? 1 : 0.5,
-              child: NeumorphicButton(
-                borderRadius: 20,
-                onTap: isAvailable ? onAddToCart : () {},
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: ctaRow,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(16, 12, 16, bottomInset),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: ElevatedButton(
-          onPressed: isAvailable ? onAddToCart : null,
-          child: ctaRow,
+          padding: EdgeInsets.zero,
         ),
       ),
     );
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Fallbacks
-// ──────────────────────────────────────────────────────────────────────────────
+class _AddToCartBar extends StatelessWidget {
+  const _AddToCartBar({
+    required this.total,
+    required this.quantity,
+    required this.isAvailable,
+    required this.onAddToCart,
+  });
+
+  final double total;
+  final int quantity;
+  final bool isAvailable;
+  final VoidCallback onAddToCart;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final bottomInset = 12 + MediaQuery.of(context).padding.bottom;
+    final label = isAvailable
+        ? l10n.productAddToCartButton
+        : l10n.productUnavailableButton;
+
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: KitchenColors.paper.withValues(alpha: 0.94),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x222D1B13),
+              blurRadius: 18,
+              offset: Offset(0, -8),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          minimum: EdgeInsets.fromLTRB(
+            KitchenSpacing.lg,
+            KitchenSpacing.sm,
+            KitchenSpacing.lg,
+            bottomInset,
+          ),
+          child: KitchenSurface(
+            elevation: KitchenElevation.flat,
+            borderRadius: BorderRadius.circular(KitchenRadius.lg),
+            padding: const EdgeInsets.all(KitchenSpacing.xs),
+            color: KitchenColors.paperLight.withValues(alpha: 0.92),
+            child: KitchenEmbossedButton(
+              enabled: isAvailable,
+              onPressed: isAvailable ? onAddToCart : null,
+              semanticLabel: label,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(child: Text(label)),
+                  if (isAvailable) ...[
+                    const SizedBox(width: KitchenSpacing.md),
+                    Text(
+                      formatPrice(total),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _ImageFallback extends StatelessWidget {
   const _ImageFallback();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: const Center(
-        child: Icon(Icons.local_pizza_outlined, size: 64),
+    return const ColoredBox(
+      color: KitchenColors.flour,
+      child: Center(
+        child: Icon(
+          Icons.local_pizza_outlined,
+          size: 64,
+          color: KitchenColors.cognac,
+        ),
       ),
     );
   }
@@ -549,31 +522,40 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          Env.isKodMomeBuild ? KodMomeDesignPack.charcoal : null,
+      backgroundColor: KitchenColors.paper,
       appBar: AppBar(
-        backgroundColor: Env.isKodMomeBuild ? KodMomeDesignPack.charcoal : null,
+        backgroundColor: KitchenColors.paper,
+        foregroundColor: KitchenColors.espresso,
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                AppLocalizations.of(context)!.productLoadErrorMessage,
-                textAlign: TextAlign.center,
-              ),
-            ],
+          padding: const EdgeInsets.all(KitchenSpacing.lg),
+          child: KitchenSurface(
+            padding: const EdgeInsets.all(KitchenSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: KitchenColors.terracotta,
+                ),
+                const SizedBox(height: KitchenSpacing.sm),
+                Text(
+                  message,
+                  style: KitchenTypography.body,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+String _friendlyProductError(Object error) {
+  if (error is AppException) return error.message;
+  return 'Impossible de charger ce produit pour le moment.';
 }
