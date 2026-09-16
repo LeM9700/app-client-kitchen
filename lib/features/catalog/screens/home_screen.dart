@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:app_client/core/config/env.dart';
 import 'package:app_client/core/models/tenant_branding.dart';
@@ -383,7 +384,7 @@ class _KodMomeInfoBand extends ConsumerWidget {
     final statusAsync = ref.watch(tenantStatusProvider);
     final hoursAsync = ref.watch(tenantBusinessHoursProvider);
     final status = statusAsync.valueOrNull;
-    final contactChips = _contactChips(branding);
+    final contactActions = _contactActions(branding);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -452,9 +453,10 @@ class _KodMomeInfoBand extends ConsumerWidget {
                   icon: Icons.delivery_dining_outlined,
                   label: 'Zone livraison verifiee au checkout',
                 ),
-                ...contactChips,
               ],
             ),
+            const SizedBox(height: KitchenSpacing.md),
+            _ContactActionStrip(actions: contactActions),
           ],
         ),
       ),
@@ -513,48 +515,63 @@ class _KodMomeInfoBand extends ConsumerWidget {
     );
   }
 
-  List<Widget> _contactChips(TenantBranding branding) {
-    final chips = <Widget>[];
+  List<_ContactActionData> _contactActions(TenantBranding branding) {
+    final actions = <_ContactActionData>[];
     final phone = _clean(branding.contactPhone);
     final email = _clean(branding.contactEmail);
     final instagram = _clean(branding.instagramUrl);
     final googleBusiness = _clean(branding.googleBusinessUrl);
 
     if (phone != null) {
-      chips.add(
-        _InfoChip(icon: Icons.phone_outlined, label: phone),
+      actions.add(
+        _ContactActionData(
+          icon: Icons.phone_outlined,
+          title: 'Appeler',
+          value: phone,
+          uri: Uri(scheme: 'tel', path: _phoneHref(phone)),
+        ),
       );
     }
     if (email != null) {
-      chips.add(
-        _InfoChip(icon: Icons.mail_outline, label: email),
+      actions.add(
+        _ContactActionData(
+          icon: Icons.mail_outline,
+          title: 'Email',
+          value: email,
+          uri: Uri(scheme: 'mailto', path: email),
+        ),
       );
     }
     if (instagram != null) {
-      chips.add(
-        _InfoChip(
-          icon: Icons.alternate_email_rounded,
-          label: _instagramLabel(instagram),
+      actions.add(
+        _ContactActionData(
+          monogram: 'IG',
+          title: 'Instagram',
+          value: _instagramLabel(instagram),
+          uri: _externalUri(instagram),
         ),
       );
     }
     if (googleBusiness != null) {
-      chips.add(
-        const _InfoChip(
-          icon: Icons.travel_explore_outlined,
-          label: 'Fiche Google Business disponible',
+      actions.add(
+        _ContactActionData(
+          monogram: 'G',
+          title: 'GMB',
+          value: 'Fiche Google',
+          uri: _externalUri(googleBusiness),
         ),
       );
     }
-    if (chips.isEmpty) {
-      chips.add(
-        const _InfoChip(
-          icon: Icons.alternate_email_rounded,
-          label: 'Contacts a renseigner par le restaurant',
+    if (actions.isEmpty) {
+      actions.add(
+        const _ContactActionData(
+          icon: Icons.contact_support_outlined,
+          title: 'Contacts',
+          value: 'A renseigner',
         ),
       );
     }
-    return chips;
+    return actions;
   }
 
   String _instagramLabel(String url) {
@@ -568,14 +585,205 @@ class _KodMomeInfoBand extends ConsumerWidget {
         }
       }
     }
-    if (handle == null) return 'Instagram disponible';
-    return 'Instagram @$handle';
+    if (handle == null) return 'Voir le profil';
+    return '@$handle';
+  }
+
+  String _phoneHref(String phone) {
+    return phone.replaceAll(RegExp(r'[^0-9+]'), '');
+  }
+
+  Uri? _externalUri(String value) {
+    final uri = Uri.tryParse(value);
+    if (uri == null) return null;
+    if (uri.hasScheme) return uri;
+    return Uri.tryParse('https://$value');
   }
 
   String? _clean(String? value) {
     final trimmed = value?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
     return trimmed;
+  }
+}
+
+class _ContactActionData {
+  const _ContactActionData({
+    this.icon,
+    this.monogram,
+    required this.title,
+    required this.value,
+    this.uri,
+  });
+
+  final IconData? icon;
+  final String? monogram;
+  final String title;
+  final String value;
+  final Uri? uri;
+}
+
+class _ContactActionStrip extends StatelessWidget {
+  const _ContactActionStrip({required this.actions});
+
+  final List<_ContactActionData> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 720
+            ? 4
+            : constraints.maxWidth >= 390
+                ? 2
+                : 1;
+        const gap = KitchenSpacing.sm;
+        final width = (constraints.maxWidth - (gap * (columns - 1))) / columns;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Nous joindre',
+              style: KitchenTypography.label.copyWith(
+                color: KitchenColors.cognac,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: KitchenSpacing.xs),
+            Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final action in actions)
+                  SizedBox(
+                    width: width,
+                    child: _ContactActionButton(action: action),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ContactActionButton extends StatelessWidget {
+  const _ContactActionButton({required this.action});
+
+  final _ContactActionData action;
+
+  Future<void> _open(BuildContext context) async {
+    final uri = action.uri;
+    if (uri == null) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!opened) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Impossible d\'ouvrir ce contact.')),
+        );
+      }
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Impossible d\'ouvrir ce contact.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = action.uri != null;
+
+    return Semantics(
+      button: enabled,
+      label: '${action.title} ${action.value}',
+      child: Opacity(
+        opacity: enabled ? 1 : 0.72,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(KitchenRadius.md),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: enabled ? () => _open(context) : null,
+            child: Ink(
+              padding: const EdgeInsets.all(KitchenSpacing.sm),
+              decoration: BoxDecoration(
+                color: KitchenColors.whiteWarm.withValues(alpha: 0.78),
+                borderRadius: BorderRadius.circular(KitchenRadius.md),
+                border: Border.all(
+                  color: KitchenColors.cognac.withValues(alpha: 0.18),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: KitchenGradients.cognac,
+                      borderRadius: BorderRadius.circular(KitchenRadius.sm),
+                      boxShadow: [
+                        BoxShadow(
+                          color: KitchenColors.cognac.withValues(alpha: 0.18),
+                          blurRadius: 12,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: action.monogram == null
+                        ? Icon(
+                            action.icon,
+                            size: 19,
+                            color: KitchenColors.whiteWarm,
+                          )
+                        : Text(
+                            action.monogram!,
+                            style: KitchenTypography.label.copyWith(
+                              color: KitchenColors.whiteWarm,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: KitchenSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          action.title,
+                          style: KitchenTypography.label.copyWith(
+                            color: KitchenColors.textPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: KitchenSpacing.xxs),
+                        Text(
+                          action.value,
+                          style: KitchenTypography.label.copyWith(
+                            color: KitchenColors.textMuted,
+                            fontSize: 11,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

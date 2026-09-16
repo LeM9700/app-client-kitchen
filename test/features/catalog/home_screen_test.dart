@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mocktail/mocktail.dart';
 
+import 'package:app_client/core/models/tenant_branding.dart';
+import 'package:app_client/core/repositories/branding_repository.dart';
 import 'package:app_client/core/router/app_routes.dart';
+import 'package:app_client/core/theme/tenant_theme_provider.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 import 'package:app_client/features/catalog/models/category.dart';
 import 'package:app_client/features/catalog/models/product.dart';
@@ -26,9 +30,20 @@ const _tiramisu = Product(
   isFeatured: true,
 );
 
-Future<ProviderContainer> _pumpHome(WidgetTester tester) async {
+class _MockBrandingRepository extends Mock implements BrandingRepository {}
+
+Future<ProviderContainer> _pumpHome(
+  WidgetTester tester, {
+  TenantBranding? branding,
+}) async {
+  final brandingRepository = _MockBrandingRepository();
+  when(() => brandingRepository.fetchBranding(any())).thenAnswer(
+    (_) async => branding ?? TenantBranding.demo(),
+  );
+
   final container = ProviderContainer(
     overrides: [
+      brandingRepositoryProvider.overrideWithValue(brandingRepository),
       categoriesProvider.overrideWith(
         (ref) async => [_pizzaCategory, _dessertCategory],
       ),
@@ -47,6 +62,8 @@ Future<ProviderContainer> _pumpHome(WidgetTester tester) async {
     ],
   );
   addTearDown(container.dispose);
+
+  await container.read(tenantBrandingProvider.notifier).load('kod-mome');
 
   final router = GoRouter(
     initialLocation: AppRoutes.home,
@@ -92,6 +109,13 @@ void main() {
     testWidgets('affiche la row Incontournables avec les produits vedettes',
         (tester) async {
       await _pumpHome(tester);
+
+      await tester.scrollUntilVisible(
+        find.text('Incontournables'),
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
 
       expect(find.text('Incontournables'), findsOneWidget);
       expect(find.text('Tiramisu'), findsWidgets);
@@ -154,17 +178,48 @@ void main() {
       );
     });
 
+    testWidgets('affiche les actions contact configurees', (tester) async {
+      await _pumpHome(
+        tester,
+        branding: const TenantBranding(
+          slug: 'kod-mome',
+          contactPhone: '+381 61 7035525',
+          contactEmail: 'kod.mome@test.sb',
+          instagramUrl: 'https://www.instagram.com/pizzeria_kod_mome',
+          googleBusinessUrl: 'https://share.google/hzya4LW6sxGcX0HyX',
+        ),
+      );
+
+      await tester.scrollUntilVisible(
+        find.text('Nous joindre'),
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Appeler'), findsOneWidget);
+      expect(find.byIcon(Icons.phone_outlined), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
+      expect(find.byIcon(Icons.mail_outline), findsOneWidget);
+      expect(find.text('Instagram'), findsOneWidget);
+      expect(find.text('IG'), findsOneWidget);
+      expect(find.text('GMB'), findsOneWidget);
+      expect(find.text('Fiche Google'), findsOneWidget);
+    });
+
     testWidgets(
         'un produit a la fois vedette et categorise ne casse pas la '
         'navigation (pas de collision de tag Hero)', (tester) async {
       await _pumpHome(tester);
 
       await tester.scrollUntilVisible(
-        find.byType(ProductCard).first,
+        find.text('Incontournables'),
         400,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+
+      expect(find.byType(ProductCard), findsWidgets);
 
       await tester.tap(find.byType(ProductCard).first);
       await tester.pumpAndSettle();
