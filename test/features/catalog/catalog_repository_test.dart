@@ -192,6 +192,38 @@ void main() {
 
       expect(() => repo.getProduct(42), throwsA(isA<NetworkException>()));
     });
+
+    test('passe display_currency en query param quand fourni', () async {
+      when(
+        () => mockClient.get<Map<String, dynamic>>(
+          ApiEndpoints.product(42),
+          queryParameters: {'display_currency': 'USD'},
+        ),
+      ).thenAnswer((_) async => _response(_productJson));
+
+      final product = await repo.getProduct(42, displayCurrency: 'USD');
+
+      expect(product.id, 42);
+    });
+
+    test('ne passe pas de query param quand displayCurrency est absent',
+        () async {
+      when(
+        () => mockClient.get<Map<String, dynamic>>(
+          ApiEndpoints.product(42),
+          queryParameters: null,
+        ),
+      ).thenAnswer((_) async => _response(_productJson));
+
+      await repo.getProduct(42);
+
+      verify(
+        () => mockClient.get<Map<String, dynamic>>(
+          ApiEndpoints.product(42),
+          queryParameters: null,
+        ),
+      ).called(1);
+    });
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -282,6 +314,20 @@ void main() {
 
       expect(() => repo.getFeaturedProducts(), throwsA(isA<ServerException>()));
     });
+
+    test('passe display_currency en query param quand fourni', () async {
+      when(
+        () => mockClient.get<dynamic>(
+          ApiEndpoints.featuredProducts,
+          queryParameters: {'display_currency': 'GBP'},
+        ),
+      ).thenAnswer((_) async => _response([_productJson]));
+
+      final result =
+          await repo.getFeaturedProducts(displayCurrency: 'GBP');
+
+      expect(result, hasLength(1));
+    });
   });
 
   group('getAllProducts()', () {
@@ -303,6 +349,25 @@ void main() {
       expect(result, hasLength(1));
       expect(result.first.id, 42);
       expect(result.first.imageUrl, 'https://cdn.example.com/pizza-thumb.webp');
+    });
+
+    test('ajoute display_currency aux query params quand fourni', () async {
+      when(
+        () => mockClient.get<dynamic>(
+          ApiEndpoints.products,
+          queryParameters: {'page_size': 100, 'display_currency': 'CHF'},
+        ),
+      ).thenAnswer(
+        (_) async => _response({
+          'items': [_productJson],
+          'total': 1,
+        }),
+      );
+
+      final result =
+          await repo.getAllProducts(displayCurrency: 'CHF');
+
+      expect(result, hasLength(1));
     });
   });
 }

@@ -23,6 +23,13 @@ const _productWithVariant = Product(
   price: 12,
   variants: [ProductVariant(id: 1, name: 'Grande', priceDelta: 3)],
 );
+const _productWithIndicativePrice = Product(
+  id: 3,
+  name: 'Regina',
+  price: 12,
+  indicativePrice: 13.2,
+  indicativeCurrency: 'USD',
+);
 
 Future<ProviderContainer> _pumpCard(
   WidgetTester tester, {
@@ -161,6 +168,22 @@ void main() {
       final cart = container.read(cartProvider);
       expect(cart.totalQuantity, 1);
       expect(cart.itemList.single.product.id, _simpleProduct.id);
+    });
+  });
+
+  group('ProductCard prix indicatif', () {
+    testWidgets('n\'affiche rien quand aucune devise d\'affichage n\'est choisie',
+        (tester) async {
+      await _pumpCard(tester, product: _simpleProduct);
+
+      expect(find.textContaining('~'), findsNothing);
+    });
+
+    testWidgets('affiche le prix indicatif quand fourni par l\'API',
+        (tester) async {
+      await _pumpCard(tester, product: _productWithIndicativePrice);
+
+      expect(find.text('~13.20 USD'), findsOneWidget);
     });
   });
 }

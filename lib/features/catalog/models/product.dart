@@ -97,6 +97,8 @@ class Product with _$Product {
     @JsonKey(name: 'is_active') @Default(true) bool isAvailable,
     @JsonKey(name: 'is_featured') @Default(false) bool isFeatured,
     @JsonKey(name: 'sort_order') @Default(0) int sortOrder,
+    @JsonKey(name: 'display_price') double? indicativePrice,
+    @JsonKey(name: 'display_currency') String? indicativeCurrency,
   }) = _Product;
 
   factory Product.fromJson(Map<String, dynamic> json) =>
@@ -104,6 +106,14 @@ class Product with _$Product {
 
   /// Prix affiché — prix de base (la sélection de variante ajuste via [ProductVariant.priceDelta]).
   String get displayPrice => formatPrice(price);
+
+  /// Prix indicatif dans la devise choisie par le client — null si aucune
+  /// devise sélectionnée ou taux indisponible (dégradation silencieuse déjà
+  /// gérée côté API, voir catalog/router.py::_apply_display_currency).
+  String? get indicativePriceLabel =>
+      (indicativePrice == null || indicativeCurrency == null)
+          ? null
+          : formatIndicativePrice(indicativePrice!, indicativeCurrency!);
 
   /// True si au moins une variante est disponible.
   bool get hasVariants => variants.isNotEmpty;

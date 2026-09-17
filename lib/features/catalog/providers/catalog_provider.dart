@@ -4,6 +4,7 @@ import 'package:app_client/core/providers/api_client_provider.dart';
 import 'package:app_client/features/catalog/models/category.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/models/search_result.dart';
+import 'package:app_client/features/catalog/providers/display_currency_provider.dart';
 import 'package:app_client/features/catalog/repositories/catalog_repository.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -44,8 +45,15 @@ final productsByCategoryProvider =
 /// Produits mis en avant (section hero homepage).
 ///
 /// Chargé au boot via [SplashScreen] si on veut anticiper.
+///
+/// [ref.watch] sur [displayCurrencyProvider] : un changement de devise
+/// d'affichage doit re-fetch (la conversion est calculée côté serveur,
+/// impossible à dériver localement — voir DisplayCurrencyNotifier).
 final featuredProductsProvider = FutureProvider<List<Product>>((ref) {
-  return ref.read(catalogRepositoryProvider).getFeaturedProducts();
+  final displayCurrency = ref.watch(displayCurrencyProvider);
+  return ref
+      .read(catalogRepositoryProvider)
+      .getFeaturedProducts(displayCurrency: displayCurrency);
 });
 
 /// Détail d'un produit par son id.
@@ -54,7 +62,10 @@ final featuredProductsProvider = FutureProvider<List<Product>>((ref) {
 /// Évite d'avoir des centaines de produits en mémoire sur un catalogue large.
 final productDetailProvider = FutureProvider.family.autoDispose<Product, int>(
   (ref, productId) {
-    return ref.read(catalogRepositoryProvider).getProduct(productId);
+    final displayCurrency = ref.watch(displayCurrencyProvider);
+    return ref
+        .read(catalogRepositoryProvider)
+        .getProduct(productId, displayCurrency: displayCurrency);
   },
 );
 
@@ -121,8 +132,13 @@ final filteredFeaturedProductsProvider =
 /// Tous les produits, toutes catégories confondues — section "Tout le menu"
 /// de la home (utile en particulier pour un tenant à catégorie unique, ex.
 /// Kod Mome n'a qu'une catégorie "Pizzas" côté backend aujourd'hui).
+///
+/// [ref.watch] sur [displayCurrencyProvider] : voir [featuredProductsProvider].
 final allProductsProvider = FutureProvider<List<Product>>((ref) {
-  return ref.read(catalogRepositoryProvider).getAllProducts();
+  final displayCurrency = ref.watch(displayCurrencyProvider);
+  return ref
+      .read(catalogRepositoryProvider)
+      .getAllProducts(displayCurrency: displayCurrency);
 });
 
 /// Même logique que [filteredFeaturedProductsProvider] mais pour

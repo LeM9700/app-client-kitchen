@@ -28,6 +28,7 @@ import 'package:app_client/features/catalog/providers/favorites_provider.dart';
 import 'package:app_client/features/catalog/providers/tenant_public_provider.dart';
 import 'package:app_client/features/catalog/widgets/catalog_search_box.dart';
 import 'package:app_client/features/catalog/widgets/category_chip.dart';
+import 'package:app_client/features/catalog/widgets/display_currency_button.dart';
 import 'package:app_client/features/catalog/widgets/horizontal_product_row.dart';
 import 'package:app_client/features/catalog/widgets/promo_hero_carousel.dart';
 import 'package:app_client/features/checkout/providers/client_location_provider.dart';
@@ -315,6 +316,8 @@ class _HomeHeader extends ConsumerWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: KitchenSpacing.xs),
+              const DisplayCurrencyButton(),
               const SizedBox(width: KitchenSpacing.sm),
               const NotificationBellButton(),
             ],

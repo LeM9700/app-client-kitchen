@@ -24,3 +24,21 @@ String _withThousandsSeparator(int value) {
   }
   return value < 0 ? '-$buffer' : buffer.toString();
 }
+
+/// Devises supportées pour l'affichage indicatif (`?display_currency=`) —
+/// miroir de `SUPPORTED_CURRENCIES` côté
+/// api-pizza/app/modules/admin/tenants/schemas.py.
+const List<String> kSupportedDisplayCurrencies = [
+  'EUR',
+  'USD',
+  'GBP',
+  'CAD',
+  'CHF',
+];
+
+/// Formate un prix indicatif dans une devise arbitraire (ISO 4217) —
+/// purement informatif, jamais la devise réellement débitée (voir
+/// [Product.indicativePriceLabel]). Suffixe le code plutôt qu'un symbole :
+/// `$`/`£` sont ambigus entre USD/CAD/GBP/CHF selon la locale.
+String formatIndicativePrice(double amount, String currencyCode) =>
+    '~${amount.toStringAsFixed(2)} $currencyCode';

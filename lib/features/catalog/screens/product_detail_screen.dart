@@ -241,6 +241,15 @@ class _ScrollBody extends StatelessWidget {
                     color: KitchenColors.cognac,
                   ),
                 ),
+                if (product.indicativePriceLabel != null) ...[
+                  const SizedBox(height: KitchenSpacing.xxs),
+                  Text(
+                    product.indicativePriceLabel!,
+                    style: KitchenTypography.body.copyWith(
+                      color: KitchenColors.textMuted,
+                    ),
+                  ),
+                ],
                 if (product.description?.trim().isNotEmpty ?? false) ...[
                   const SizedBox(height: KitchenSpacing.md),
                   Text(

@@ -51,10 +51,17 @@ class CatalogRepository {
   }
 
   /// Retourne le détail d'un produit par son [productId].
-  Future<Product> getProduct(int productId) async {
+  ///
+  /// [displayCurrency] : code ISO 4217 optionnel pour une conversion de prix
+  /// indicative (voir [Product.indicativePriceLabel]) — jamais la devise
+  /// réellement facturée.
+  Future<Product> getProduct(int productId, {String? displayCurrency}) async {
     try {
       final response = await _client.get<Map<String, dynamic>>(
         ApiEndpoints.product(productId),
+        queryParameters: displayCurrency == null
+            ? null
+            : {'display_currency': displayCurrency},
       );
       return Product.fromJson(response.data!);
     } on DioException catch (e) {
@@ -88,10 +95,16 @@ class CatalogRepository {
   }
 
   /// Retourne les produits "en vedette" pour la section homepage hero.
-  Future<List<Product>> getFeaturedProducts() async {
+  ///
+  /// [displayCurrency] : voir [getProduct].
+  Future<List<Product>> getFeaturedProducts({String? displayCurrency}) async {
     try {
-      final response =
-          await _client.get<dynamic>(ApiEndpoints.featuredProducts);
+      final response = await _client.get<dynamic>(
+        ApiEndpoints.featuredProducts,
+        queryParameters: displayCurrency == null
+            ? null
+            : {'display_currency': displayCurrency},
+      );
       return _itemsFromPayload(response.data).map(Product.fromJson).toList();
     } on DioException catch (e) {
       throw ApiClient.handleDioError(e);
@@ -106,11 +119,19 @@ class CatalogRepository {
   /// Contrairement à [getFeaturedProducts]/[getProductsByCategory], cet
   /// endpoint renvoie une enveloppe paginée (`{items, total, page, ...}`),
   /// pas une liste brute.
-  Future<List<Product>> getAllProducts({int pageSize = 100}) async {
+  ///
+  /// [displayCurrency] : voir [getProduct].
+  Future<List<Product>> getAllProducts({
+    int pageSize = 100,
+    String? displayCurrency,
+  }) async {
     try {
       final response = await _client.get<dynamic>(
         ApiEndpoints.products,
-        queryParameters: {'page_size': pageSize},
+        queryParameters: {
+          'page_size': pageSize,
+          if (displayCurrency != null) 'display_currency': displayCurrency,
+        },
       );
       return _itemsFromPayload(response.data).map(Product.fromJson).toList();
     } on DioException catch (e) {

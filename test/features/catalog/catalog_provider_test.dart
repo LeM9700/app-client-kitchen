@@ -6,6 +6,7 @@ import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/models/search_result.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
+import 'package:app_client/features/catalog/providers/display_currency_provider.dart';
 import 'package:app_client/features/catalog/repositories/catalog_repository.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -13,6 +14,20 @@ import 'package:app_client/features/catalog/repositories/catalog_repository.dart
 // ──────────────────────────────────────────────────────────────────────────────
 
 class MockCatalogRepository extends Mock implements CatalogRepository {}
+
+/// Fake en mémoire — évite tout accès au plugin `shared_preferences` réel
+/// (indisponible ici : ce fichier n'utilise pas `testWidgets`/binding Flutter,
+/// contrairement à home_screen_test.dart/product_card_test.dart où le
+/// channel de test répond par défaut).
+class _FakeDisplayCurrencyStorage implements DisplayCurrencyStorage {
+  String? _value;
+
+  @override
+  Future<String?> getSelected() async => _value;
+
+  @override
+  Future<void> setSelected(String? code) async => _value = code;
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Fixtures
@@ -48,7 +63,12 @@ void main() {
   setUp(() {
     mockRepo = MockCatalogRepository();
     container = ProviderContainer(
-      overrides: [catalogRepositoryProvider.overrideWithValue(mockRepo)],
+      overrides: [
+        catalogRepositoryProvider.overrideWithValue(mockRepo),
+        displayCurrencyStorageProvider.overrideWithValue(
+          _FakeDisplayCurrencyStorage(),
+        ),
+      ],
     );
     addTearDown(container.dispose);
   });
@@ -107,6 +127,22 @@ void main() {
       expect(result, _product1);
       verify(() => mockRepo.getProduct(1)).called(1);
     });
+
+    test('re-fetch avec la nouvelle devise quand displayCurrencyProvider change',
+        () async {
+      when(() => mockRepo.getProduct(1)).thenAnswer((_) async => _product1);
+      when(() => mockRepo.getProduct(1, displayCurrency: 'USD'))
+          .thenAnswer((_) async => _product1);
+
+      await container.read(productDetailProvider(1).future);
+      await container
+          .read(displayCurrencyProvider.notifier)
+          .select('USD');
+      await container.read(productDetailProvider(1).future);
+
+      verify(() => mockRepo.getProduct(1)).called(1);
+      verify(() => mockRepo.getProduct(1, displayCurrency: 'USD')).called(1);
+    });
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -121,6 +157,26 @@ void main() {
       final result = await container.read(featuredProductsProvider.future);
 
       expect(result, [_product1]);
+    });
+
+    test(
+        're-fetch avec la nouvelle devise quand displayCurrencyProvider change',
+        () async {
+      when(() => mockRepo.getFeaturedProducts())
+          .thenAnswer((_) async => [_product1]);
+      when(() => mockRepo.getFeaturedProducts(displayCurrency: 'USD'))
+          .thenAnswer((_) async => [_product1]);
+      // Maintient le provider vivant (pas autoDispose) pour observer le
+      // re-fetch déclenché par ref.watch(displayCurrencyProvider).
+      container.listen(featuredProductsProvider, (_, __) {});
+
+      await container.read(featuredProductsProvider.future);
+      await container.read(displayCurrencyProvider.notifier).select('USD');
+      await container.read(featuredProductsProvider.future);
+
+      verify(() => mockRepo.getFeaturedProducts()).called(1);
+      verify(() => mockRepo.getFeaturedProducts(displayCurrency: 'USD'))
+          .called(1);
     });
   });
 

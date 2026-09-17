@@ -117,6 +117,16 @@ class ProductCard extends ConsumerWidget {
                   fontSize: 14,
                 ),
               ),
+              if (product.indicativePriceLabel != null) ...[
+                const SizedBox(height: KitchenSpacing.xxs),
+                Text(
+                  product.indicativePriceLabel!,
+                  style: KitchenTypography.label.copyWith(
+                    color: KitchenColors.textMuted,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
