@@ -1,0 +1,71 @@
+name: Netlify production deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: netlify-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: build and deploy web
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN_KOD_MOME }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Netlify secrets
+        run: |
+          missing=()
+          [ -z "${NETLIFY_AUTH_TOKEN:-}" ] && missing+=("NETLIFY_AUTH_TOKEN_KOD_MOME")
+          [ -z "${NETLIFY_SITE_ID:-}" ] && missing+=("NETLIFY_SITE_ID")
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf 'Missing required GitHub secret: %s\n' "${missing[@]}"
+            exit 1
+          fi
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.7
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      # Build delegated to Netlify: `netlify.toml` points at scripts/netlify_build.sh,
+      # which runs `flutter build web --release`. All application config
+      # (API_BASE_URL, STRIPE_PUBLISHABLE_KEY, Firebase, Sentry, legal URLs...)
+      # lives ONLY on the Netlify site (production context env vars) — not
+      # duplicated as GitHub secrets. See docs/netlify-environment.md.
+      - name: Build (via Netlify, using its production env vars)
+        run: npx netlify build --context production --auth "$NETLIFY_AUTH_TOKEN"
+
+      - name: Deploy to Netlify
+        run: |
+          npx netlify deploy \
+            --prod \
+            --dir build/web \
+            --site "$NETLIFY_SITE_ID" \
+            --auth "$NETLIFY_AUTH_TOKEN" \
+            --message "Production deploy from GitHub Actions: $GITHUB_SHA"
