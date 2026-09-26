@@ -11,8 +11,11 @@ import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_text_field.dart';
 import 'package:app_client/features/auth/providers/auth_provider.dart';
+import 'package:app_client/features/auth/widgets/phone_auth_flow.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/l10n/app_localizations.dart';
+
+enum _CheckoutAuthMethod { email, phone }
 
 /// Auth inline dans le tunnel de checkout.
 ///
@@ -154,6 +157,7 @@ class _LoginTabContentState extends ConsumerState<_LoginTabContent> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  _CheckoutAuthMethod _method = _CheckoutAuthMethod.email;
   bool _obscure = true;
   Map<String, String> _fieldErrors = {};
 
@@ -212,49 +216,66 @@ class _LoginTabContentState extends ConsumerState<_LoginTabContent> {
               ),
             ),
             const SizedBox(height: KitchenSpacing.lg),
-            KitchenTextField(
-              controller: _emailCtrl,
-              label: copy.emailLabel,
-              prefixIcon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.email],
-              errorText: _fieldErrors['email'],
-              validator: (v) =>
-                  v == null || !v.contains('@') ? copy.emailInvalidError : null,
+            _CheckoutMethodSwitch(
+              value: _method,
+              onChanged: (value) => setState(() {
+                _method = value;
+                _fieldErrors = {};
+              }),
             ),
             const SizedBox(height: KitchenSpacing.md),
-            KitchenTextField(
-              controller: _passwordCtrl,
-              label: copy.passwordLabel,
-              prefixIcon: Icons.lock_outline,
-              obscureText: _obscure,
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.password],
-              onSubmitted: (_) => _submit(),
-              errorText: _fieldErrors['password'],
-              suffixIcon: IconButton(
-                tooltip: _obscure
-                    ? 'Afficher le mot de passe'
-                    : 'Masquer le mot de passe',
-                color: KitchenColors.espresso,
-                icon: Icon(
-                  _obscure
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                ),
-                onPressed: () => setState(() => _obscure = !_obscure),
+            if (_method == _CheckoutAuthMethod.email) ...[
+              KitchenTextField(
+                controller: _emailCtrl,
+                label: copy.emailLabel,
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.email],
+                errorText: _fieldErrors['email'],
+                validator: (v) => v == null || !v.contains('@')
+                    ? copy.emailInvalidError
+                    : null,
               ),
-              validator: (v) =>
-                  v == null || v.length < 8 ? copy.passwordMinLength : null,
-            ),
-            const SizedBox(height: KitchenSpacing.lg),
-            KitchenEmbossedButton(
-              onPressed: isLoading ? null : _submit,
-              isLoading: isLoading,
-              semanticLabel: copy.loginSubmitButton,
-              child: Text(copy.loginSubmitButton),
-            ),
+              const SizedBox(height: KitchenSpacing.md),
+              KitchenTextField(
+                controller: _passwordCtrl,
+                label: copy.passwordLabel,
+                prefixIcon: Icons.lock_outline,
+                obscureText: _obscure,
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.password],
+                onSubmitted: (_) => _submit(),
+                errorText: _fieldErrors['password'],
+                suffixIcon: IconButton(
+                  tooltip: _obscure
+                      ? 'Afficher le mot de passe'
+                      : 'Masquer le mot de passe',
+                  color: KitchenColors.espresso,
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                ),
+                validator: (v) =>
+                    v == null || v.length < 8 ? copy.passwordMinLength : null,
+              ),
+              const SizedBox(height: KitchenSpacing.lg),
+              KitchenEmbossedButton(
+                onPressed: isLoading ? null : _submit,
+                isLoading: isLoading,
+                semanticLabel: copy.loginSubmitButton,
+                child: Text(copy.loginSubmitButton),
+              ),
+            ] else
+              PhoneAuthFlow(
+                createAccount: false,
+                title: 'Connexion par téléphone',
+                subtitle: 'Un code SMS suffit pour reprendre votre commande.',
+                onAuthenticated: () {},
+              ),
           ],
         ),
       ),
@@ -278,6 +299,7 @@ class _RegisterTabContentState extends ConsumerState<_RegisterTabContent> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  _CheckoutAuthMethod _method = _CheckoutAuthMethod.email;
   bool _obscure = true;
   Map<String, String> _fieldErrors = {};
 
@@ -342,74 +364,123 @@ class _RegisterTabContentState extends ConsumerState<_RegisterTabContent> {
               ),
             ),
             const SizedBox(height: KitchenSpacing.lg),
-            KitchenTextField(
-              controller: _fullNameCtrl,
-              label: copy.fullNameLabel,
-              prefixIcon: Icons.person_outline,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.name],
-              errorText: _fieldErrors['full_name'],
-              validator: (v) => v == null || v.trim().isEmpty
-                  ? copy.fullNameRequiredError
-                  : null,
+            _CheckoutMethodSwitch(
+              value: _method,
+              onChanged: (value) => setState(() {
+                _method = value;
+                _fieldErrors = {};
+              }),
             ),
             const SizedBox(height: KitchenSpacing.md),
-            KitchenTextField(
-              controller: _emailCtrl,
-              label: copy.emailLabel,
-              prefixIcon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.email],
-              errorText: _fieldErrors['email'],
-              validator: (v) =>
-                  v == null || !v.contains('@') ? copy.emailInvalidError : null,
-            ),
-            const SizedBox(height: KitchenSpacing.md),
-            KitchenTextField(
-              controller: _passwordCtrl,
-              label: copy.passwordLabel,
-              hintText: copy.passwordMinLength,
-              prefixIcon: Icons.lock_outline,
-              obscureText: _obscure,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.newPassword],
-              errorText: _fieldErrors['password'],
-              suffixIcon: IconButton(
-                tooltip: _obscure
-                    ? 'Afficher le mot de passe'
-                    : 'Masquer le mot de passe',
-                color: KitchenColors.espresso,
-                icon: Icon(
-                  _obscure
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                ),
-                onPressed: () => setState(() => _obscure = !_obscure),
+            if (_method == _CheckoutAuthMethod.email) ...[
+              KitchenTextField(
+                controller: _fullNameCtrl,
+                label: copy.fullNameLabel,
+                prefixIcon: Icons.person_outline,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.name],
+                errorText: _fieldErrors['full_name'],
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? copy.fullNameRequiredError
+                    : null,
               ),
-              validator: (v) =>
-                  v == null || v.length < 8 ? copy.passwordMinLength : null,
-            ),
-            const SizedBox(height: KitchenSpacing.md),
-            KitchenTextField(
-              controller: _phoneCtrl,
-              label: 'Téléphone (optionnel)',
-              prefixIcon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _submit(),
-              errorText: _fieldErrors['phone'],
-            ),
-            const SizedBox(height: KitchenSpacing.lg),
-            KitchenEmbossedButton(
-              onPressed: isLoading ? null : _submit,
-              isLoading: isLoading,
-              semanticLabel: 'Créer mon compte',
-              child: const Text('CRÉER MON COMPTE'),
-            ),
+              const SizedBox(height: KitchenSpacing.md),
+              KitchenTextField(
+                controller: _emailCtrl,
+                label: copy.emailLabel,
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.email],
+                errorText: _fieldErrors['email'],
+                validator: (v) => v == null || !v.contains('@')
+                    ? copy.emailInvalidError
+                    : null,
+              ),
+              const SizedBox(height: KitchenSpacing.md),
+              KitchenTextField(
+                controller: _passwordCtrl,
+                label: copy.passwordLabel,
+                hintText: copy.passwordMinLength,
+                prefixIcon: Icons.lock_outline,
+                obscureText: _obscure,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.newPassword],
+                errorText: _fieldErrors['password'],
+                suffixIcon: IconButton(
+                  tooltip: _obscure
+                      ? 'Afficher le mot de passe'
+                      : 'Masquer le mot de passe',
+                  color: KitchenColors.espresso,
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                ),
+                validator: (v) =>
+                    v == null || v.length < 8 ? copy.passwordMinLength : null,
+              ),
+              const SizedBox(height: KitchenSpacing.md),
+              KitchenTextField(
+                controller: _phoneCtrl,
+                label: 'Téléphone (optionnel)',
+                prefixIcon: Icons.phone_outlined,
+                keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _submit(),
+                errorText: _fieldErrors['phone'],
+              ),
+              const SizedBox(height: KitchenSpacing.lg),
+              KitchenEmbossedButton(
+                onPressed: isLoading ? null : _submit,
+                isLoading: isLoading,
+                semanticLabel: 'Créer mon compte',
+                child: const Text('CRÉER MON COMPTE'),
+              ),
+            ] else
+              PhoneAuthFlow(
+                createAccount: true,
+                title: 'Inscription par téléphone',
+                subtitle:
+                    'Téléphone, prénom et nom suffisent pour commander maintenant.',
+                submitLabel: 'Créer et envoyer le code',
+                onAuthenticated: () {},
+              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CheckoutMethodSwitch extends StatelessWidget {
+  const _CheckoutMethodSwitch({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final _CheckoutAuthMethod value;
+  final ValueChanged<_CheckoutAuthMethod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<_CheckoutAuthMethod>(
+      segments: const [
+        ButtonSegment(
+          value: _CheckoutAuthMethod.email,
+          icon: Icon(Icons.email_outlined),
+          label: Text('Email'),
+        ),
+        ButtonSegment(
+          value: _CheckoutAuthMethod.phone,
+          icon: Icon(Icons.phone_outlined),
+          label: Text('Téléphone'),
+        ),
+      ],
+      selected: {value},
+      onSelectionChanged: (selection) => onChanged(selection.first),
     );
   }
 }

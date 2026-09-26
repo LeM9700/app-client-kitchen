@@ -94,11 +94,16 @@ class ProfileEditNotifier extends StateNotifier<AsyncValue<void>> {
 
   final Ref _ref;
 
-  Future<void> updateProfile({String? fullName, String? phone}) async {
+  Future<void> updateProfile({
+    String? fullName,
+    String? email,
+    String? phone,
+  }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final user = await _ref.read(authRepositoryProvider).updateProfile(
             fullName: fullName,
+            email: email,
             phone: phone,
           );
       _ref.read(currentUserProvider.notifier).state = user;

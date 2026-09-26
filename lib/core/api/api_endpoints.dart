@@ -22,6 +22,9 @@ abstract final class ApiEndpoints {
   // JAMAIS d'objet `user` imbriqué, ni au login ni au register. Le profil
   // doit être récupéré séparément via `customerMe`.
   static const String customerRegister = '/customer/register';
+  static const String customerRegisterPhone = '/customer/register-phone';
+  static const String customerPhoneStart = '/customer/phone/start';
+  static const String customerPhoneVerify = '/customer/phone/verify';
   static const String customerMe = '/customer/me';
 
   // ── Tenant ────────────────────────────────────────────────────────────────
@@ -103,6 +106,7 @@ abstract final class ApiEndpoints {
   /// `GET /loyalty/rewards` — authentifié (passe par [ApiClient], le token
   /// est déjà attaché par défaut).
   static const String loyaltyRewards = '/loyalty/rewards';
+  static const String loyaltyQrToken = '/loyalty/qr-token';
 
   /// `POST /loyalty/rewards/{reward_id}/redeem` — l'id est dans le CHEMIN,
   /// PAS `POST /loyalty/redeem {reward_id}` (hypothèse erronée du plan

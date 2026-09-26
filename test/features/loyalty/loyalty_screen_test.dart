@@ -83,4 +83,46 @@ void main() {
     expect(find.text('Encore 30'), findsOneWidget);
     expect(find.text('MEMBRE GOURMAND'), findsNothing);
   });
+
+  testWidgets('affiche un QR fidélité généré à la demande', (tester) async {
+    when(() => repo.createQrToken()).thenAnswer(
+      (_) async => LoyaltyQrToken(
+        token: 'signed-token-1',
+        expiresAt: DateTime.now().add(const Duration(minutes: 2)),
+        ttlSeconds: 120,
+      ),
+    );
+
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Afficher mon QR code'));
+    await tester.tap(find.text('Afficher mon QR code'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('signed-token-1'), findsOneWidget);
+    expect(find.textContaining('Expire dans'), findsOneWidget);
+    verify(() => repo.createQrToken()).called(1);
+  });
+
+  testWidgets('QR expiré propose une régénération claire', (tester) async {
+    when(() => repo.createQrToken()).thenAnswer(
+      (_) async => LoyaltyQrToken(
+        token: 'expired-token',
+        expiresAt: DateTime.now().subtract(const Duration(seconds: 1)),
+        ttlSeconds: 120,
+      ),
+    );
+
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Afficher mon QR code'));
+    await tester.tap(find.text('Afficher mon QR code'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ce QR code a expiré.'), findsOneWidget);
+    expect(find.text('Afficher un nouveau QR code'), findsOneWidget);
+    expect(find.text('expired-token'), findsNothing);
+  });
 }

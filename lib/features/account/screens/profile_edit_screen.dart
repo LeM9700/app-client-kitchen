@@ -14,8 +14,8 @@ import 'package:app_client/features/auth/providers/auth_provider.dart';
 
 /// Édition du profil — `PATCH /customer/me`.
 ///
-/// Seuls `fullName` et `phone` sont modifiables côté API. L'email est affiché
-/// en lecture seule pour éviter une promesse de persistance inexistante.
+/// Le profil accepte un email facultatif: les comptes créés par téléphone ou
+/// par la caisse peuvent le compléter plus tard.
 class ProfileEditScreen extends ConsumerStatefulWidget {
   const ProfileEditScreen({super.key});
 
@@ -36,7 +36,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     final user = ref.read(currentUserProvider);
     _fullNameCtrl = TextEditingController(text: user?.fullName ?? '');
     _emailCtrl = TextEditingController(text: user?.email ?? '');
-    _phoneCtrl = TextEditingController(text: user?.phone ?? '');
+    _phoneCtrl =
+        TextEditingController(text: user?.phoneE164 ?? user?.phone ?? '');
   }
 
   @override
@@ -52,10 +53,12 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     setState(() => _fieldErrors = {});
 
     final fullName = _fullNameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
     final phone = _phoneCtrl.text.trim();
 
     await ref.read(profileEditNotifierProvider.notifier).updateProfile(
           fullName: fullName.isEmpty ? null : fullName,
+          email: email.isEmpty ? null : email,
           phone: phone.isEmpty ? null : phone,
         );
 
@@ -86,6 +89,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(profileEditNotifierProvider).isLoading;
+    final currentUser = ref.watch(currentUserProvider);
+    final profileIncomplete = currentUser?.pendingProfileCompletion ?? false;
 
     return Scaffold(
       backgroundColor: KitchenColors.paperLight,
@@ -111,6 +116,30 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               ],
             ),
             const SizedBox(height: KitchenSpacing.lg),
+            if (profileIncomplete) ...[
+              KitchenSurface(
+                padding: const EdgeInsets.all(KitchenSpacing.md),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.assignment_ind_outlined,
+                      color: KitchenColors.cognac,
+                    ),
+                    const SizedBox(width: KitchenSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        'Complétez vos informations pour finaliser votre compte fidélité.',
+                        style: KitchenTypography.body.copyWith(
+                          color: KitchenColors.textMuted,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: KitchenSpacing.md),
+            ],
             KitchenSurface(
               padding: const EdgeInsets.all(KitchenSpacing.lg),
               child: Form(
@@ -139,16 +168,24 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     const SizedBox(height: KitchenSpacing.md),
                     KitchenTextField(
                       controller: _emailCtrl,
-                      label: 'Email',
+                      label: 'Email (facultatif)',
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
-                      readOnly: true,
-                      enabled: false,
+                      textInputAction: TextInputAction.next,
+                      errorText: _fieldErrors['email'],
+                      autofillHints: const [AutofillHints.email],
+                      validator: (value) {
+                        final email = value?.trim() ?? '';
+                        if (email.isEmpty || email.contains('@')) {
+                          return null;
+                        }
+                        return 'Email invalide';
+                      },
                     ),
                     const SizedBox(height: KitchenSpacing.md),
                     KitchenTextField(
                       controller: _phoneCtrl,
-                      label: 'Téléphone (optionnel)',
+                      label: 'Téléphone',
                       prefixIcon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.done,

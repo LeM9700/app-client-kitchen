@@ -15,7 +15,10 @@ import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_text_field.dart';
 import 'package:app_client/core/widgets/legal_links.dart';
 import 'package:app_client/features/auth/providers/auth_provider.dart';
+import 'package:app_client/features/auth/widgets/phone_auth_flow.dart';
 import 'package:app_client/l10n/app_localizations.dart';
+
+enum _RegisterMethod { email, phone }
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key, this.redirectTo});
@@ -31,6 +34,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _fullNameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  _RegisterMethod _method = _RegisterMethod.email;
   bool _obscurePassword = true;
   bool _acceptedLegal = false;
   Map<String, String> _fieldErrors = {};
@@ -86,6 +90,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
     context.go(AppRoutes.login);
+  }
+
+  bool _ensureLegalAccepted() {
+    if (_acceptedLegal) {
+      return true;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.authLegalAcceptRequired),
+      ),
+    );
+    return false;
   }
 
   @override
@@ -167,67 +183,85 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  KitchenTextField(
-                                    controller: _fullNameCtrl,
-                                    label: l10n.authFullNameLabel,
-                                    prefixIcon: Icons.person_outline,
-                                    textInputAction: TextInputAction.next,
-                                    autofillHints: const [AutofillHints.name],
-                                    errorText: _fieldErrors['full_name'],
-                                    validator: (v) =>
-                                        (v == null || v.trim().isEmpty)
-                                            ? l10n.authFullNameRequiredError
-                                            : null,
+                                  _RegisterMethodSwitch(
+                                    value: _method,
+                                    onChanged: (value) => setState(() {
+                                      _method = value;
+                                      _fieldErrors = {};
+                                    }),
                                   ),
                                   const SizedBox(height: KitchenSpacing.md),
-                                  KitchenTextField(
-                                    controller: _emailCtrl,
-                                    label: l10n.authEmailLabel,
-                                    prefixIcon: Icons.email_outlined,
-                                    keyboardType: TextInputType.emailAddress,
-                                    textInputAction: TextInputAction.next,
-                                    autofillHints: const [
-                                      AutofillHints.email,
-                                      AutofillHints.username,
-                                    ],
-                                    errorText: _fieldErrors['email'],
-                                    validator: (v) =>
-                                        (v == null || !v.contains('@'))
-                                            ? l10n.authEmailInvalidError
-                                            : null,
-                                  ),
-                                  const SizedBox(height: KitchenSpacing.md),
-                                  KitchenTextField(
-                                    controller: _passwordCtrl,
-                                    label: l10n.authPasswordLabel,
-                                    prefixIcon: Icons.lock_outline,
-                                    obscureText: _obscurePassword,
-                                    textInputAction: TextInputAction.done,
-                                    autofillHints: const [
-                                      AutofillHints.newPassword,
-                                    ],
-                                    errorText: _fieldErrors['password'],
-                                    onSubmitted: (_) => _submit(),
-                                    suffixIcon: IconButton(
-                                      tooltip: _obscurePassword
-                                          ? 'Afficher le mot de passe'
-                                          : 'Masquer le mot de passe',
-                                      color: KitchenColors.espresso,
-                                      icon: Icon(
-                                        _obscurePassword
-                                            ? Icons.visibility_off_outlined
-                                            : Icons.visibility_outlined,
+                                  if (_method == _RegisterMethod.email) ...[
+                                    KitchenTextField(
+                                      controller: _fullNameCtrl,
+                                      label: l10n.authFullNameLabel,
+                                      prefixIcon: Icons.person_outline,
+                                      textInputAction: TextInputAction.next,
+                                      autofillHints: const [AutofillHints.name],
+                                      errorText: _fieldErrors['full_name'],
+                                      validator: (v) =>
+                                          (v == null || v.trim().isEmpty)
+                                              ? l10n.authFullNameRequiredError
+                                              : null,
+                                    ),
+                                    const SizedBox(height: KitchenSpacing.md),
+                                    KitchenTextField(
+                                      controller: _emailCtrl,
+                                      label: l10n.authEmailLabel,
+                                      prefixIcon: Icons.email_outlined,
+                                      keyboardType: TextInputType.emailAddress,
+                                      textInputAction: TextInputAction.next,
+                                      autofillHints: const [
+                                        AutofillHints.email,
+                                        AutofillHints.username,
+                                      ],
+                                      errorText: _fieldErrors['email'],
+                                      validator: (v) =>
+                                          (v == null || !v.contains('@'))
+                                              ? l10n.authEmailInvalidError
+                                              : null,
+                                    ),
+                                    const SizedBox(height: KitchenSpacing.md),
+                                    KitchenTextField(
+                                      controller: _passwordCtrl,
+                                      label: l10n.authPasswordLabel,
+                                      prefixIcon: Icons.lock_outline,
+                                      obscureText: _obscurePassword,
+                                      textInputAction: TextInputAction.done,
+                                      autofillHints: const [
+                                        AutofillHints.newPassword,
+                                      ],
+                                      errorText: _fieldErrors['password'],
+                                      onSubmitted: (_) => _submit(),
+                                      suffixIcon: IconButton(
+                                        tooltip: _obscurePassword
+                                            ? 'Afficher le mot de passe'
+                                            : 'Masquer le mot de passe',
+                                        color: KitchenColors.espresso,
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility_off_outlined
+                                              : Icons.visibility_outlined,
+                                        ),
+                                        onPressed: () => setState(
+                                          () => _obscurePassword =
+                                              !_obscurePassword,
+                                        ),
                                       ),
-                                      onPressed: () => setState(
-                                        () => _obscurePassword =
-                                            !_obscurePassword,
+                                      validator: (v) =>
+                                          (v == null || v.length < 8)
+                                              ? l10n.authPasswordMinLength
+                                              : null,
+                                    ),
+                                  ] else
+                                    PhoneAuthFlow(
+                                      createAccount: true,
+                                      beforeSendCode: _ensureLegalAccepted,
+                                      submitLabel: 'Créer et envoyer le code',
+                                      onAuthenticated: () => context.go(
+                                        widget.redirectTo ?? AppRoutes.home,
                                       ),
                                     ),
-                                    validator: (v) =>
-                                        (v == null || v.length < 8)
-                                            ? l10n.authPasswordMinLength
-                                            : null,
-                                  ),
                                   const SizedBox(height: KitchenSpacing.md),
                                   _LegalAcceptance(
                                     value: _acceptedLegal,
@@ -236,16 +270,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: KitchenSpacing.lg),
-                                  KitchenEmbossedButton(
-                                    onPressed: isLoading ? null : _submit,
-                                    isLoading: isLoading,
-                                    semanticLabel:
-                                        l10n.authRegisterSubmitButton,
-                                    child: Text(
-                                      l10n.authRegisterSubmitButton
-                                          .toUpperCase(),
+                                  if (_method == _RegisterMethod.email)
+                                    KitchenEmbossedButton(
+                                      onPressed: isLoading ? null : _submit,
+                                      isLoading: isLoading,
+                                      semanticLabel:
+                                          l10n.authRegisterSubmitButton,
+                                      child: Text(
+                                        l10n.authRegisterSubmitButton
+                                            .toUpperCase(),
+                                      ),
                                     ),
-                                  ),
                                   const SizedBox(height: KitchenSpacing.md),
                                   Wrap(
                                     alignment: WrapAlignment.center,
@@ -281,6 +316,36 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RegisterMethodSwitch extends StatelessWidget {
+  const _RegisterMethodSwitch({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final _RegisterMethod value;
+  final ValueChanged<_RegisterMethod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<_RegisterMethod>(
+      segments: const [
+        ButtonSegment(
+          value: _RegisterMethod.email,
+          icon: Icon(Icons.email_outlined),
+          label: Text('Email'),
+        ),
+        ButtonSegment(
+          value: _RegisterMethod.phone,
+          icon: Icon(Icons.phone_outlined),
+          label: Text('Téléphone'),
+        ),
+      ],
+      selected: {value},
+      onSelectionChanged: (selection) => onChanged(selection.first),
     );
   }
 }

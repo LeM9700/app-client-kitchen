@@ -13,10 +13,15 @@ part 'user.g.dart';
 class User with _$User {
   const factory User({
     required int id,
-    required String email,
+    String? email,
     @JsonKey(name: 'full_name') String? fullName,
     String? phone,
+    @JsonKey(name: 'phone_e164') String? phoneE164,
     @JsonKey(name: 'email_verified') @Default(false) bool emailVerified,
+    @JsonKey(name: 'phone_verified') @Default(false) bool phoneVerified,
+    @JsonKey(name: 'pending_profile_completion')
+    @Default(false)
+    bool pendingProfileCompletion,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

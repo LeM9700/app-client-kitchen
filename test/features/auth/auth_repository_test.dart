@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:app_client/core/api/api_endpoints.dart';
 import 'package:app_client/core/api/api_client.dart';
 import 'package:app_client/core/auth/token_storage.dart';
 import 'package:app_client/core/errors/app_exception.dart';
@@ -187,6 +188,83 @@ void main() {
       expect(sentBody?['full_name'], 'Nouvel Utilisateur');
       expect(sentBody?.containsKey('phone'), false);
       verify(() => mockStorage.saveRefreshToken('ref_new')).called(1);
+    });
+  });
+
+  group('phone auth', () {
+    test('startPhoneAuth() appelle /customer/phone/start avec le téléphone',
+        () async {
+      Map<String, dynamic>? sentBody;
+      String? path;
+      when(
+        () => mockClient.post<void>(
+          any(),
+          data: any(named: 'data'),
+        ),
+      ).thenAnswer((invocation) async {
+        path = invocation.positionalArguments.first as String;
+        sentBody = invocation.namedArguments[#data] as Map<String, dynamic>;
+        return _response<void>(null, statusCode: 202);
+      });
+
+      await repo.startPhoneAuth(phone: '0600000000');
+
+      expect(path, ApiEndpoints.customerPhoneStart);
+      expect(sentBody, {'phone': '0600000000'});
+    });
+
+    test('registerPhone() crée le compte téléphone-first', () async {
+      Map<String, dynamic>? sentBody;
+      String? path;
+      when(
+        () => mockClient.post<void>(
+          any(),
+          data: any(named: 'data'),
+        ),
+      ).thenAnswer((invocation) async {
+        path = invocation.positionalArguments.first as String;
+        sentBody = invocation.namedArguments[#data] as Map<String, dynamic>;
+        return _response<void>(null, statusCode: 202);
+      });
+
+      await repo.registerPhone(
+        phone: '0600000000',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+      );
+
+      expect(path, ApiEndpoints.customerRegisterPhone);
+      expect(sentBody, {
+        'phone': '0600000000',
+        'first_name': 'Ada',
+        'last_name': 'Lovelace',
+      });
+    });
+
+    test('verifyPhone() sauvegarde le refresh token', () async {
+      Map<String, dynamic>? sentBody;
+      String? path;
+      when(
+        () => mockClient.post<Map<String, dynamic>>(
+          any(),
+          data: any(named: 'data'),
+        ),
+      ).thenAnswer((invocation) async {
+        path = invocation.positionalArguments.first as String;
+        sentBody = invocation.namedArguments[#data] as Map<String, dynamic>;
+        return _response(_loginPayload);
+      });
+      when(() => mockStorage.saveRefreshToken(any())).thenAnswer((_) async {});
+
+      final tokens = await repo.verifyPhone(
+        phone: '0600000000',
+        code: '123456',
+      );
+
+      expect(path, ApiEndpoints.customerPhoneVerify);
+      expect(sentBody, {'phone': '0600000000', 'code': '123456'});
+      expect(tokens.accessToken, 'acc_123');
+      verify(() => mockStorage.saveRefreshToken('ref_456')).called(1);
     });
   });
 

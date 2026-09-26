@@ -72,6 +72,26 @@ class LoyaltyTransactionPage {
   bool get hasMore => page * limit < total;
 }
 
+class LoyaltyQrToken {
+  const LoyaltyQrToken({
+    required this.token,
+    required this.expiresAt,
+    required this.ttlSeconds,
+  });
+
+  final String token;
+  final DateTime expiresAt;
+  final int ttlSeconds;
+
+  factory LoyaltyQrToken.fromJson(Map<String, dynamic> json) {
+    return LoyaltyQrToken(
+      token: json['token'] as String,
+      expiresAt: DateTime.parse(json['expires_at'] as String),
+      ttlSeconds: json['ttl_seconds'] as int,
+    );
+  }
+}
+
 /// Repository fidélité — solde (Plan 16), historique, catalogue de
 /// récompenses et échange. Distinct de `PromoRepository.previewLoyaltyPoints`
 /// (Plan 09, `cart/repositories/promo_repository.dart`) qui couvre l'aperçu
@@ -140,6 +160,18 @@ class LoyaltyRepository {
         ApiEndpoints.loyaltyRedeem(rewardId),
       );
       return RedeemResult.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiClient.handleDioError(e);
+    }
+  }
+
+  /// `POST /loyalty/qr-token` — token signe, court, sans donnees personnelles.
+  Future<LoyaltyQrToken> createQrToken() async {
+    try {
+      final response = await _client.post<Map<String, dynamic>>(
+        ApiEndpoints.loyaltyQrToken,
+      );
+      return LoyaltyQrToken.fromJson(response.data!);
     } on DioException catch (e) {
       throw ApiClient.handleDioError(e);
     }

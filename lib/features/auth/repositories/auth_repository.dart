@@ -90,6 +90,60 @@ class AuthRepository {
     }
   }
 
+  /// Demarre une connexion/creation par telephone. L'API envoie un code SMS
+  /// si le numero peut etre utilise.
+  Future<void> startPhoneAuth({required String phone}) async {
+    try {
+      await _client.post<void>(
+        ApiEndpoints.customerPhoneStart,
+        data: {'phone': phone},
+      );
+    } on DioException catch (e) {
+      throw ApiClient.handleDioError(e);
+    }
+  }
+
+  /// Cree ou complete un compte telephone-first, puis envoie un code SMS.
+  Future<void> registerPhone({
+    required String phone,
+    required String firstName,
+    required String lastName,
+  }) async {
+    try {
+      await _client.post<void>(
+        ApiEndpoints.customerRegisterPhone,
+        data: {
+          'phone': phone,
+          'first_name': firstName,
+          'last_name': lastName,
+        },
+      );
+    } on DioException catch (e) {
+      throw ApiClient.handleDioError(e);
+    }
+  }
+
+  /// Verifie le code SMS et retourne une session client.
+  Future<AuthTokens> verifyPhone({
+    required String phone,
+    required String code,
+  }) async {
+    try {
+      final response = await _client.post<Map<String, dynamic>>(
+        ApiEndpoints.customerPhoneVerify,
+        data: {
+          'phone': phone,
+          'code': code,
+        },
+      );
+      final tokens = AuthTokens.fromJson(response.data!);
+      await _storage.saveRefreshToken(tokens.refreshToken);
+      return tokens;
+    } on DioException catch (e) {
+      throw ApiClient.handleDioError(e);
+    }
+  }
+
   /// Demande de réinitialisation de mot de passe.
   ///
   /// L'API envoie un email à [email] si le compte existe.
@@ -122,13 +176,18 @@ class AuthRepository {
     }
   }
 
-  /// Met à jour le profil (nom complet et/ou téléphone) via `PATCH /customer/me`.
-  Future<User> updateProfile({String? fullName, String? phone}) async {
+  /// Met à jour le profil via `PATCH /customer/me`.
+  Future<User> updateProfile({
+    String? fullName,
+    String? email,
+    String? phone,
+  }) async {
     try {
       final response = await _client.patch<Map<String, dynamic>>(
         ApiEndpoints.customerMe,
         data: {
           if (fullName != null) 'full_name': fullName,
+          if (email != null) 'email': email,
           if (phone != null) 'phone': phone,
         },
       );

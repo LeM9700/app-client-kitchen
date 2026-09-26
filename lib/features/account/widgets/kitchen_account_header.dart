@@ -30,8 +30,10 @@ class KitchenAccountHeader extends StatelessWidget {
     }
 
     final displayName = _displayName(currentUser);
-    final secondary = currentUser.email;
-    final phone = currentUser.phone?.trim();
+    final secondary = _secondaryIdentifier(currentUser);
+    final phone = currentUser.phoneE164?.trim().isNotEmpty == true
+        ? currentUser.phoneE164?.trim()
+        : currentUser.phone?.trim();
 
     return KitchenSurface(
       padding: const EdgeInsets.all(KitchenSpacing.lg),
@@ -77,17 +79,24 @@ class KitchenAccountHeader extends StatelessWidget {
             spacing: KitchenSpacing.sm,
             runSpacing: KitchenSpacing.xs,
             children: [
-              _StatusPill(
-                icon: currentUser.emailVerified
-                    ? Icons.verified_outlined
-                    : Icons.mark_email_unread_outlined,
-                label: currentUser.emailVerified
-                    ? 'Email vérifié'
-                    : 'Email non vérifié',
-                color: currentUser.emailVerified
-                    ? KitchenColors.olive
-                    : KitchenColors.terracotta,
-              ),
+              if (currentUser.phoneVerified)
+                const _StatusPill(
+                  icon: Icons.verified_outlined,
+                  label: 'Téléphone vérifié',
+                  color: KitchenColors.olive,
+                )
+              else
+                _StatusPill(
+                  icon: currentUser.emailVerified
+                      ? Icons.verified_outlined
+                      : Icons.mark_email_unread_outlined,
+                  label: currentUser.emailVerified
+                      ? 'Email vérifié'
+                      : 'Email non vérifié',
+                  color: currentUser.emailVerified
+                      ? KitchenColors.olive
+                      : KitchenColors.terracotta,
+                ),
               if (onEdit != null)
                 _EditPill(
                   onTap: onEdit!,
@@ -102,7 +111,17 @@ class KitchenAccountHeader extends StatelessWidget {
   String _displayName(User user) {
     final name = user.fullName?.trim();
     if (name != null && name.isNotEmpty) return name;
-    return user.email;
+    return _secondaryIdentifier(user);
+  }
+
+  String _secondaryIdentifier(User user) {
+    final email = user.email?.trim();
+    if (email != null && email.isNotEmpty) return email;
+    final phone = user.phoneE164?.trim().isNotEmpty == true
+        ? user.phoneE164?.trim()
+        : user.phone?.trim();
+    if (phone != null && phone.isNotEmpty) return phone;
+    return 'Compte client';
   }
 
   String _initials(User user) {
@@ -118,8 +137,15 @@ class KitchenAccountHeader extends StatelessWidget {
       }
       return parts.first.characters.take(2).toString().toUpperCase();
     }
-    if (user.email.isNotEmpty) {
-      return user.email.characters.first.toUpperCase();
+    final email = user.email?.trim();
+    if (email != null && email.isNotEmpty) {
+      return email.characters.first.toUpperCase();
+    }
+    final phone = user.phoneE164?.trim().isNotEmpty == true
+        ? user.phoneE164?.trim()
+        : user.phone?.trim();
+    if (phone != null && phone.isNotEmpty) {
+      return phone.characters.last.toUpperCase();
     }
     return 'K';
   }

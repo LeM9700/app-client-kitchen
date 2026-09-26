@@ -15,7 +15,10 @@ import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_text_field.dart';
 import 'package:app_client/core/widgets/legal_links.dart';
 import 'package:app_client/features/auth/providers/auth_provider.dart';
+import 'package:app_client/features/auth/widgets/phone_auth_flow.dart';
 import 'package:app_client/l10n/app_localizations.dart';
+
+enum _AuthMethod { email, phone }
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key, this.redirectTo});
@@ -30,6 +33,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  _AuthMethod _method = _AuthMethod.email;
   bool _obscurePassword = true;
   Map<String, String> _fieldErrors = {};
 
@@ -158,82 +162,91 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  KitchenTextField(
-                                    controller: _emailCtrl,
-                                    label: l10n.authEmailLabel,
-                                    prefixIcon: Icons.email_outlined,
-                                    keyboardType: TextInputType.emailAddress,
-                                    textInputAction: TextInputAction.next,
-                                    autofillHints: const [
-                                      AutofillHints.email,
-                                      AutofillHints.username,
-                                    ],
-                                    errorText: _fieldErrors['email'],
-                                    validator: (v) =>
-                                        (v == null || !v.contains('@'))
-                                            ? l10n.authEmailInvalidError
-                                            : null,
+                                  _AuthMethodSwitch(
+                                    value: _method,
+                                    onChanged: (value) => setState(() {
+                                      _method = value;
+                                      _fieldErrors = {};
+                                    }),
                                   ),
-                                  const SizedBox(height: 14),
-                                  KitchenTextField(
-                                    controller: _passwordCtrl,
-                                    label: l10n.authPasswordLabel,
-                                    prefixIcon: Icons.lock_outline,
-                                    obscureText: _obscurePassword,
-                                    textInputAction: TextInputAction.done,
-                                    autofillHints: const [
-                                      AutofillHints.password,
-                                    ],
-                                    errorText: _fieldErrors['password'],
-                                    onSubmitted: (_) => _submit(),
-                                    suffixIcon: IconButton(
-                                      tooltip: _obscurePassword
-                                          ? 'Afficher le mot de passe'
-                                          : 'Masquer le mot de passe',
-                                      color: KitchenColors.espresso,
-                                      icon: Icon(
-                                        _obscurePassword
-                                            ? Icons.visibility_off_outlined
-                                            : Icons.visibility_outlined,
+                                  const SizedBox(height: KitchenSpacing.md),
+                                  if (_method == _AuthMethod.email) ...[
+                                    KitchenTextField(
+                                      controller: _emailCtrl,
+                                      label: l10n.authEmailLabel,
+                                      prefixIcon: Icons.email_outlined,
+                                      keyboardType: TextInputType.emailAddress,
+                                      textInputAction: TextInputAction.next,
+                                      autofillHints: const [
+                                        AutofillHints.email,
+                                        AutofillHints.username,
+                                      ],
+                                      errorText: _fieldErrors['email'],
+                                      validator: (v) =>
+                                          (v == null || !v.contains('@'))
+                                              ? l10n.authEmailInvalidError
+                                              : null,
+                                    ),
+                                    const SizedBox(height: 14),
+                                    KitchenTextField(
+                                      controller: _passwordCtrl,
+                                      label: l10n.authPasswordLabel,
+                                      prefixIcon: Icons.lock_outline,
+                                      obscureText: _obscurePassword,
+                                      textInputAction: TextInputAction.done,
+                                      autofillHints: const [
+                                        AutofillHints.password,
+                                      ],
+                                      errorText: _fieldErrors['password'],
+                                      onSubmitted: (_) => _submit(),
+                                      suffixIcon: IconButton(
+                                        tooltip: _obscurePassword
+                                            ? 'Afficher le mot de passe'
+                                            : 'Masquer le mot de passe',
+                                        color: KitchenColors.espresso,
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility_off_outlined
+                                              : Icons.visibility_outlined,
+                                        ),
+                                        onPressed: () => setState(
+                                          () => _obscurePassword =
+                                              !_obscurePassword,
+                                        ),
                                       ),
-                                      onPressed: () => setState(
-                                        () => _obscurePassword =
-                                            !_obscurePassword,
+                                      validator: (v) =>
+                                          (v == null || v.length < 8)
+                                              ? l10n.authPasswordMinLength
+                                              : null,
+                                    ),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        onPressed: () => context.push(
+                                          AppRoutes.forgotPassword,
+                                        ),
+                                        child:
+                                            Text(l10n.authForgotPasswordLink),
                                       ),
                                     ),
-                                    validator: (v) =>
-                                        (v == null || v.length < 8)
-                                            ? l10n.authPasswordMinLength
-                                            : null,
-                                  ),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TextButton(
-                                      onPressed: () => context.push(
-                                        AppRoutes.forgotPassword,
+                                    const SizedBox(height: 8),
+                                    KitchenEmbossedButton(
+                                      onPressed: isLoading ? null : _submit,
+                                      isLoading: isLoading,
+                                      semanticLabel: l10n.authLoginSubmitButton,
+                                      child: Text(
+                                        l10n.authLoginSubmitButton
+                                            .toUpperCase(),
                                       ),
-                                      child: Text(l10n.authForgotPasswordLink),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  KitchenEmbossedButton(
-                                    onPressed: isLoading ? null : _submit,
-                                    isLoading: isLoading,
-                                    semanticLabel: l10n.authLoginSubmitButton,
-                                    child: Text(
-                                      l10n.authLoginSubmitButton.toUpperCase(),
+                                  ] else
+                                    PhoneAuthFlow(
+                                      createAccount: false,
+                                      onAuthenticated: () => context.go(
+                                        widget.redirectTo ?? AppRoutes.home,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 18),
-                                  Text(
-                                    l10n.authOrDivider.toUpperCase(),
-                                    textAlign: TextAlign.center,
-                                    style: KitchenTypography.label.copyWith(
-                                      color: KitchenColors.textMuted,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 4),
                                   TextButton(
                                     onPressed: () {
                                       final redirect = widget.redirectTo;
@@ -273,6 +286,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AuthMethodSwitch extends StatelessWidget {
+  const _AuthMethodSwitch({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final _AuthMethod value;
+  final ValueChanged<_AuthMethod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<_AuthMethod>(
+      segments: const [
+        ButtonSegment(
+          value: _AuthMethod.email,
+          icon: Icon(Icons.email_outlined),
+          label: Text('Email'),
+        ),
+        ButtonSegment(
+          value: _AuthMethod.phone,
+          icon: Icon(Icons.phone_outlined),
+          label: Text('Téléphone'),
+        ),
+      ],
+      selected: {value},
+      onSelectionChanged: (selection) => onChanged(selection.first),
     );
   }
 }

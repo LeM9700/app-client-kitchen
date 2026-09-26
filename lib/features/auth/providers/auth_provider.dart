@@ -117,6 +117,47 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
     });
   }
 
+  Future<void> startPhoneAuth({required String phone}) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.startPhoneAuth(phone: phone);
+    });
+  }
+
+  Future<void> registerPhone({
+    required String phone,
+    required String firstName,
+    required String lastName,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.registerPhone(
+        phone: phone,
+        firstName: firstName,
+        lastName: lastName,
+      );
+    });
+  }
+
+  Future<void> verifyPhone({
+    required String phone,
+    required String code,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final tokens = await _repo.verifyPhone(phone: phone, code: code);
+      _ref.read(accessTokenProvider.notifier).state = tokens.accessToken;
+      _ref.read(currentSessionIdProvider.notifier).state = tokens.sessionId;
+      final user = await _repo.getMe();
+      _ref.read(currentUserProvider.notifier).state = user;
+      unawaited(
+        PushNotificationService.registerDeviceToken(
+          _ref.read(apiClientProvider),
+        ),
+      );
+    });
+  }
+
   /// Déconnexion — efface les tokens et le profil utilisateur.
   ///
   /// Le router détecte `accessTokenProvider == null` et redirige vers `/home`.

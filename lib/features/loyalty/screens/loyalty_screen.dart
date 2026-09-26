@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/core/theme/app_typography.dart';
@@ -34,6 +37,25 @@ class LoyaltyScreen extends ConsumerStatefulWidget {
 
 class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
   final Set<int> _redeemingRewardIds = {};
+  LoyaltyQrToken? _qrToken;
+  Timer? _qrClock;
+  bool _qrLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _qrClock = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted && _qrToken != null) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _qrClock?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +115,12 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                         : 'Impossible de récupérer votre fidélité.',
                     onRetry: () => ref.invalidate(loyaltyAccountProvider),
                   ),
+                ),
+                const SizedBox(height: KitchenSpacing.md),
+                _LoyaltyQrPanel(
+                  qrToken: _qrToken,
+                  loading: _qrLoading,
+                  onGenerate: _generateQrToken,
                 ),
                 const SizedBox(height: KitchenSpacing.xl),
                 const _SectionTitle('Vos récompenses'),
@@ -201,6 +229,26 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
       builder: (_) => _RedeemResultDialog(result: result),
     );
   }
+
+  Future<void> _generateQrToken() async {
+    if (_qrLoading) return;
+    setState(() => _qrLoading = true);
+    try {
+      final token = await ref.read(loyaltyRepositoryProvider).createQrToken();
+      if (!mounted) return;
+      setState(() => _qrToken = token);
+    } on AppException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _qrLoading = false);
+      }
+    }
+  }
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -215,6 +263,203 @@ class _SectionTitle extends StatelessWidget {
       style: KitchenTypography.label.copyWith(
         color: KitchenColors.brown700,
         fontSize: 13,
+      ),
+    );
+  }
+}
+
+class _LoyaltyQrPanel extends StatelessWidget {
+  const _LoyaltyQrPanel({
+    required this.qrToken,
+    required this.loading,
+    required this.onGenerate,
+  });
+
+  final LoyaltyQrToken? qrToken;
+  final bool loading;
+  final VoidCallback onGenerate;
+
+  @override
+  Widget build(BuildContext context) {
+    final token = qrToken;
+    final isExpired = token != null && !token.expiresAt.isAfter(DateTime.now());
+    final remainingSeconds = token == null || isExpired
+        ? 0
+        : token.expiresAt.difference(DateTime.now()).inSeconds;
+    return KitchenSurface(
+      padding: const EdgeInsets.all(KitchenSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.qr_code_2_outlined, color: KitchenColors.cognac),
+              const SizedBox(width: KitchenSpacing.sm),
+              Expanded(
+                child: Text(
+                  'QR code fidélité',
+                  style: KitchenTypography.label.copyWith(fontSize: 14),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: loading ? null : onGenerate,
+                icon: loading
+                    ? const SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        token == null || isExpired
+                            ? Icons.qr_code_2_outlined
+                            : Icons.refresh,
+                      ),
+                label: Text(
+                  token == null
+                      ? 'Afficher mon QR code'
+                      : isExpired
+                          ? 'Nouveau QR'
+                          : 'Renouveler',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: KitchenSpacing.sm),
+          Text(
+            'Présentez-le au comptoir. Il change à chaque génération et reste valable 2 minutes.',
+            style: KitchenTypography.body.copyWith(
+              color: KitchenColors.textMuted,
+              fontSize: 12,
+            ),
+          ),
+          if (isExpired) ...[
+            const SizedBox(height: KitchenSpacing.md),
+            _ExpiredQrNotice(onGenerate: loading ? null : onGenerate),
+          ] else if (token != null) ...[
+            const SizedBox(height: KitchenSpacing.md),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: KitchenColors.espresso,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: QrImageView(
+                      data: token.token,
+                      version: QrVersions.auto,
+                      errorCorrectionLevel: QrErrorCorrectLevel.M,
+                      size: 204,
+                      backgroundColor: Colors.white,
+                      eyeStyle: const QrEyeStyle(
+                        eyeShape: QrEyeShape.square,
+                        color: Colors.black,
+                      ),
+                      dataModuleStyle: const QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton.icon(
+                    onPressed: () => _copyToken(context, token.token),
+                    icon: const Icon(Icons.copy, size: 18),
+                    label: const Text('Copier le code de secours'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  SelectableText(
+                    token.token,
+                    textAlign: TextAlign.center,
+                    style: KitchenTypography.body.copyWith(
+                      color: Colors.white70,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: KitchenSpacing.sm),
+            Text(
+              remainingSeconds > 0
+                  ? 'Expire dans ${_formatRemaining(remainingSeconds)}'
+                  : 'Expire à ${_formatDate(token.expiresAt)}',
+              textAlign: TextAlign.center,
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.textMuted,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _copyToken(BuildContext context, String token) {
+    Clipboard.setData(ClipboardData(text: token));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Code fidelite copie')),
+    );
+  }
+}
+
+String _formatRemaining(int seconds) {
+  final minutes = seconds ~/ 60;
+  final rest = seconds % 60;
+  if (minutes <= 0) {
+    return '$rest s';
+  }
+  return '$minutes min ${rest.toString().padLeft(2, '0')} s';
+}
+
+class _ExpiredQrNotice extends StatelessWidget {
+  const _ExpiredQrNotice({required this.onGenerate});
+
+  final VoidCallback? onGenerate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(KitchenSpacing.md),
+      decoration: BoxDecoration(
+        color: KitchenColors.cognac.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: KitchenColors.cognac.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.timer_off_outlined, color: KitchenColors.cognac),
+          const SizedBox(height: KitchenSpacing.xs),
+          Text(
+            'Ce QR code a expiré.',
+            style: KitchenTypography.label.copyWith(fontSize: 13),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Générez-en un nouveau lorsque le staff vous le demande.',
+            textAlign: TextAlign.center,
+            style: KitchenTypography.body.copyWith(
+              color: KitchenColors.textMuted,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: KitchenSpacing.sm),
+          TextButton.icon(
+            onPressed: onGenerate,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Afficher un nouveau QR code'),
+          ),
+        ],
       ),
     );
   }

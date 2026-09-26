@@ -166,11 +166,47 @@ void main() {
     expect(find.text('TARGET_ROUTE'), findsOneWidget);
   });
 
+  testWidgets('phone login verifies SMS code and navigates', (tester) async {
+    when(
+      () => authRepository.startPhoneAuth(phone: any(named: 'phone')),
+    ).thenAnswer((_) async {});
+    when(
+      () => authRepository.verifyPhone(
+        phone: any(named: 'phone'),
+        code: any(named: 'code'),
+      ),
+    ).thenAnswer((_) async => _tokens);
+    when(() => authRepository.getMe()).thenAnswer((_) async => _user);
+
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Téléphone').first);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).first, '0600000000');
+    await tester.ensureVisible(find.text('ENVOYER LE CODE'));
+    await tester.tap(find.text('ENVOYER LE CODE'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).last, '123456');
+    await tester.tap(find.text('VÉRIFIER LE CODE'));
+    await tester.pumpAndSettle();
+
+    verify(() => authRepository.startPhoneAuth(phone: '0600000000')).called(1);
+    verify(
+      () => authRepository.verifyPhone(phone: '0600000000', code: '123456'),
+    ).called(1);
+    expect(find.text('HOME_ROUTE'), findsOneWidget);
+  });
+
   testWidgets('forgot password and register links keep navigation',
       (tester) async {
     await tester.pumpWidget(buildApp());
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Mot de passe oublié ?'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Mot de passe oublié ?'));
     await tester.pumpAndSettle();
     expect(find.text('FORGOT_ROUTE'), findsOneWidget);
