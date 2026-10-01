@@ -228,8 +228,8 @@ class _Actions extends ConsumerWidget {
 
     if (actions.isEmpty) {
       return Text(
-        order.status == OrderStatusCode.cancelled
-            ? 'Aucune action disponible pour une commande annulee.'
+        order.status.isFailure
+            ? 'Aucune action disponible pour une commande non aboutie.'
             : 'Commande terminee.',
         style: KitchenTypography.body.copyWith(color: KitchenColors.textMuted),
         textAlign: TextAlign.center,

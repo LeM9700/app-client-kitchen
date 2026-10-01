@@ -138,6 +138,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     required String displayAddress,
     required double lat,
     required double lng,
+    String? phone,
+    String? instructions,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
@@ -159,6 +161,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         address: displayAddress,
         lat: lat,
         lng: lng,
+        phone: phone,
+        instructions: instructions,
         deliveryInfo: info,
         currentStep: CheckoutStep.recap,
       );
@@ -203,12 +207,17 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     );
     try {
       final cart = _ref.read(cartProvider);
+      final isDelivery = state.deliveryMode == DeliveryMode.delivery;
       final orderId = await _checkoutRepo.createOrder(
         items: cart.itemList,
-        orderType:
-            state.deliveryMode == DeliveryMode.delivery ? 'delivery' : 'pickup',
+        orderType: isDelivery ? 'delivery' : 'pickup',
         deliveryAddress: state.address,
         deliveryZoneId: state.deliveryInfo?.zoneId,
+        // Retrait : aucune donnee de livraison n'est envoyee.
+        deliveryLat: isDelivery ? state.lat : null,
+        deliveryLng: isDelivery ? state.lng : null,
+        customerPhone: isDelivery ? state.phone : null,
+        deliveryInstructions: isDelivery ? state.instructions : null,
         promoCode: cart.promoCode,
         idempotencyKey: idempotencyKey,
       );

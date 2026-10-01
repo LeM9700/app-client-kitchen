@@ -260,6 +260,26 @@ class AppLocalizationsSr extends AppLocalizations {
   String get checkoutCheckZoneButton => 'Proveri zonu';
 
   @override
+  String get checkoutPhoneLabel => 'Telefon (za dostavljača)';
+
+  @override
+  String get checkoutPhoneHint => '064 123 4567';
+
+  @override
+  String get checkoutPhoneMissingError =>
+      'Unesite broj telefona kako bi vas dostavljač mogao pozvati.';
+
+  @override
+  String get checkoutPhoneInvalidError =>
+      'Ovaj broj telefona izgleda neispravno.';
+
+  @override
+  String get checkoutInstructionsLabel => 'Uputstva za dostavu (opciono)';
+
+  @override
+  String get checkoutInstructionsHint => 'Sprat, šifra, interfon…';
+
+  @override
   String get checkoutRecapArticlesTitle => 'Stavke';
 
   @override
@@ -705,6 +725,26 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get checkoutCheckZoneButton => 'Proveri zonu';
+
+  @override
+  String get checkoutPhoneLabel => 'Telefon (za dostavljača)';
+
+  @override
+  String get checkoutPhoneHint => '064 123 4567';
+
+  @override
+  String get checkoutPhoneMissingError =>
+      'Unesite broj telefona kako bi vas dostavljač mogao pozvati.';
+
+  @override
+  String get checkoutPhoneInvalidError =>
+      'Ovaj broj telefona izgleda neispravno.';
+
+  @override
+  String get checkoutInstructionsLabel => 'Uputstva za dostavu (opciono)';
+
+  @override
+  String get checkoutInstructionsHint => 'Sprat, šifra, interfon…';
 
   @override
   String get checkoutRecapArticlesTitle => 'Stavke';

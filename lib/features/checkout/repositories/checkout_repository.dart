@@ -50,6 +50,10 @@ class CheckoutRepository {
     required String idempotencyKey,
     String? deliveryAddress,
     int? deliveryZoneId,
+    double? deliveryLat,
+    double? deliveryLng,
+    String? customerPhone,
+    String? deliveryInstructions,
     String? promoCode,
   }) async {
     try {
@@ -73,6 +77,13 @@ class CheckoutRepository {
               .toList(),
           if (deliveryAddress != null) 'delivery_address': deliveryAddress,
           if (deliveryZoneId != null) 'delivery_zone_id': deliveryZoneId,
+          // [Phase 0 livraison] Le serveur retrouve la zone a partir du point GPS et
+          // refuse une livraison sans coordonnees ni telephone.
+          if (deliveryLat != null) 'delivery_lat': deliveryLat,
+          if (deliveryLng != null) 'delivery_lng': deliveryLng,
+          if (customerPhone != null) 'customer_phone': customerPhone,
+          if (deliveryInstructions != null)
+            'delivery_instructions': deliveryInstructions,
           if (promoCode != null) 'promo_code': promoCode,
         },
         options: Options(headers: {'Idempotency-Key': idempotencyKey}),

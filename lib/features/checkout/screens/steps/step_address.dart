@@ -10,6 +10,7 @@ import 'package:app_client/core/theme/kitchen_tokens.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_text_field.dart';
+import 'package:app_client/features/auth/providers/auth_provider.dart';
 import 'package:app_client/features/checkout/models/checkout_state.dart';
 import 'package:app_client/features/checkout/providers/checkout_provider.dart';
 import 'package:app_client/features/checkout/widgets/kitchen_delivery_status.dart';
@@ -24,6 +25,14 @@ final addressMapTileLayerProvider = Provider<Widget>(
 
 final addressInitialPointProvider = Provider<LatLng?>((ref) => null);
 
+/// Meme regle que le serveur (`orders/schemas.py::_PHONE_RE`) : chiffres, espaces,
+/// `+ ( ) . -`, 6 a 32 caracteres, avec au moins 6 chiffres.
+bool isValidDeliveryPhone(String value) {
+  final phone = value.trim();
+  if (!RegExp(r'^\+?[0-9 ().-]{6,32}$').hasMatch(phone)) return false;
+  return phone.replaceAll(RegExp(r'[^0-9]'), '').length >= 6;
+}
+
 /// Etape 2 : selection de l'adresse de livraison.
 ///
 /// `POST /delivery/check` exige lat/lng. La carte OpenStreetMap reste donc la
@@ -37,6 +46,8 @@ class StepAddress extends ConsumerStatefulWidget {
 
 class _StepAddressState extends ConsumerState<StepAddress> {
   final _addressController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _instructionsController = TextEditingController();
 
   static const _defaultCenter = LatLng(48.8566, 2.3522);
 
@@ -46,10 +57,15 @@ class _StepAddressState extends ConsumerState<StepAddress> {
   void initState() {
     super.initState();
     _selectedPoint = ref.read(addressInitialPointProvider);
+    // Prerempli depuis le profil (modifiable) pour ne pas ressaisir son numero.
+    final user = ref.read(currentUserProvider);
+    _phoneController.text = user?.phoneE164 ?? user?.phone ?? '';
   }
 
   @override
   void dispose() {
+    _phoneController.dispose();
+    _instructionsController.dispose();
     _addressController.dispose();
     super.dispose();
   }
@@ -71,10 +87,27 @@ class _StepAddressState extends ConsumerState<StepAddress> {
       );
       return;
     }
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty || !isValidDeliveryPhone(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            phone.isEmpty
+                ? l10n.checkoutPhoneMissingError
+                : l10n.checkoutPhoneInvalidError,
+          ),
+        ),
+      );
+      return;
+    }
+
+    final instructions = _instructionsController.text.trim();
     ref.read(checkoutProvider.notifier).checkDeliveryAddress(
           displayAddress: address,
           lat: point.latitude,
           lng: point.longitude,
+          phone: phone,
+          instructions: instructions.isEmpty ? null : instructions,
         );
   }
 
@@ -141,10 +174,31 @@ class _StepAddressState extends ConsumerState<StepAddress> {
           ),
           const SizedBox(height: KitchenSpacing.md),
           KitchenTextField(
+            key: const ValueKey('delivery-address-field'),
             controller: _addressController,
             label: l10n.checkoutStepAddressTitle,
             hintText: '12 rue des Oliviers, 69007 Lyon',
             prefixIcon: Icons.home_outlined,
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: KitchenSpacing.md),
+          KitchenTextField(
+            key: const ValueKey('delivery-phone-field'),
+            controller: _phoneController,
+            label: l10n.checkoutPhoneLabel,
+            hintText: l10n.checkoutPhoneHint,
+            prefixIcon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.telephoneNumber],
+          ),
+          const SizedBox(height: KitchenSpacing.md),
+          KitchenTextField(
+            key: const ValueKey('delivery-instructions-field'),
+            controller: _instructionsController,
+            label: l10n.checkoutInstructionsLabel,
+            hintText: l10n.checkoutInstructionsHint,
+            prefixIcon: Icons.notes_outlined,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _onCheckZone(),
           ),

@@ -107,7 +107,7 @@ void main() {
     testWidgets('requires a map pin after the address is entered',
         (tester) async {
       await pumpStepAddress(tester);
-      await tester.enterText(find.byType(TextField), '12 rue de la Paix');
+      await tester.enterText(find.byKey(const ValueKey('delivery-address-field')), '12 rue de la Paix');
 
       await tapCheckZone(tester);
 
@@ -142,7 +142,11 @@ void main() {
         tester,
         initialPoint: const LatLng(48.8566, 2.3522),
       );
-      await tester.enterText(find.byType(TextField), '12 rue de la Paix');
+      await tester.enterText(find.byKey(const ValueKey('delivery-address-field')), '12 rue de la Paix');
+      await tester.enterText(
+        find.byKey(const ValueKey('delivery-phone-field')),
+        '06 12 34 56 78',
+      );
 
       await tapCheckZone(tester);
       await tester.pump();
@@ -174,7 +178,11 @@ void main() {
         tester,
         initialPoint: const LatLng(48.8566, 2.3522),
       );
-      await tester.enterText(find.byType(TextField), '12 rue de la Paix');
+      await tester.enterText(find.byKey(const ValueKey('delivery-address-field')), '12 rue de la Paix');
+      await tester.enterText(
+        find.byKey(const ValueKey('delivery-phone-field')),
+        '06 12 34 56 78',
+      );
 
       await tapCheckZone(tester);
       await tester.pump();
@@ -184,6 +192,107 @@ void main() {
       expect(state.deliveryInfo, isNull);
       expect(state.error, contains('hors zone'));
       expect(find.textContaining('hors zone'), findsOneWidget);
+    });
+
+    testWidgets('requires a phone number before checking the zone',
+        (tester) async {
+      await pumpStepAddress(
+        tester,
+        initialPoint: const LatLng(48.8566, 2.3522),
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('delivery-address-field')),
+        '12 rue de la Paix',
+      );
+
+      await tapCheckZone(tester);
+
+      expect(find.textContaining('numéro de téléphone'), findsOneWidget);
+      verifyNever(
+        () => mockCheckoutRepo.checkDeliveryZone(
+          lat: any(named: 'lat'),
+          lng: any(named: 'lng'),
+          displayAddress: any(named: 'displayAddress'),
+        ),
+      );
+    });
+
+    testWidgets('rejects an invalid phone number', (tester) async {
+      await pumpStepAddress(
+        tester,
+        initialPoint: const LatLng(48.8566, 2.3522),
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('delivery-address-field')),
+        '12 rue de la Paix',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('delivery-phone-field')),
+        'abc',
+      );
+
+      await tapCheckZone(tester);
+
+      expect(find.textContaining('semble invalide'), findsOneWidget);
+      verifyNever(
+        () => mockCheckoutRepo.checkDeliveryZone(
+          lat: any(named: 'lat'),
+          lng: any(named: 'lng'),
+          displayAddress: any(named: 'displayAddress'),
+        ),
+      );
+    });
+
+    testWidgets('keeps phone and instructions in the checkout state',
+        (tester) async {
+      when(
+        () => mockCheckoutRepo.checkDeliveryZone(
+          lat: any(named: 'lat'),
+          lng: any(named: 'lng'),
+          displayAddress: any(named: 'displayAddress'),
+        ),
+      ).thenAnswer(
+        (_) async => const DeliveryInfo(
+          zoneId: 7,
+          name: 'Centre',
+          fee: 2.5,
+          estimatedMinutes: 30,
+        ),
+      );
+
+      await pumpStepAddress(
+        tester,
+        initialPoint: const LatLng(48.8566, 2.3522),
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('delivery-address-field')),
+        '12 rue de la Paix',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('delivery-phone-field')),
+        ' 06 12 34 56 78 ',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('delivery-instructions-field')),
+        '3e etage, code 4521',
+      );
+
+      await tapCheckZone(tester);
+      await tester.pump();
+
+      final state = container.read(checkoutProvider);
+      expect(state.phone, '06 12 34 56 78');
+      expect(state.instructions, '3e etage, code 4521');
+      expect(state.lat, 48.8566);
+      expect(state.lng, 2.3522);
+    });
+
+    test('isValidDeliveryPhone mirrors the server rule', () {
+      expect(isValidDeliveryPhone('+33 6 12 34 56 78'), isTrue);
+      expect(isValidDeliveryPhone('064/123-4567'), isFalse);
+      expect(isValidDeliveryPhone('12345'), isFalse);
+      expect(isValidDeliveryPhone('abc'), isFalse);
+      expect(isValidDeliveryPhone(''), isFalse);
     });
   });
 }

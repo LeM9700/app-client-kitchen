@@ -118,6 +118,12 @@
   },
   "checkoutSwitchToPickup": "Passer en retrait en boutique",
   "checkoutCheckZoneButton": "Vérifier la zone",
+  "checkoutPhoneLabel": "Téléphone (pour le livreur)",
+  "checkoutPhoneHint": "06 12 34 56 78",
+  "checkoutPhoneMissingError": "Saisissez un numéro de téléphone pour que le livreur puisse vous joindre.",
+  "checkoutPhoneInvalidError": "Ce numéro de téléphone semble invalide.",
+  "checkoutInstructionsLabel": "Instructions de livraison (optionnel)",
+  "checkoutInstructionsHint": "Étage, digicode, interphone…",
 
   "checkoutRecapArticlesTitle": "Articles",
   "checkoutRecapLineItem": "{quantity} × {name}",

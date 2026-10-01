@@ -138,6 +138,10 @@ void main() {
           idempotencyKey: any(named: 'idempotencyKey'),
           deliveryAddress: any(named: 'deliveryAddress'),
           deliveryZoneId: any(named: 'deliveryZoneId'),
+          deliveryLat: any(named: 'deliveryLat'),
+          deliveryLng: any(named: 'deliveryLng'),
+          customerPhone: any(named: 'customerPhone'),
+          deliveryInstructions: any(named: 'deliveryInstructions'),
           promoCode: any(named: 'promoCode'),
         ),
       ).thenAnswer((invocation) async {
@@ -163,6 +167,10 @@ void main() {
           idempotencyKey: any(named: 'idempotencyKey'),
           deliveryAddress: any(named: 'deliveryAddress'),
           deliveryZoneId: any(named: 'deliveryZoneId'),
+          deliveryLat: any(named: 'deliveryLat'),
+          deliveryLng: any(named: 'deliveryLng'),
+          customerPhone: any(named: 'customerPhone'),
+          deliveryInstructions: any(named: 'deliveryInstructions'),
           promoCode: any(named: 'promoCode'),
         ),
       ).thenAnswer((invocation) async {
@@ -189,6 +197,10 @@ void main() {
           idempotencyKey: any(named: 'idempotencyKey'),
           deliveryAddress: any(named: 'deliveryAddress'),
           deliveryZoneId: any(named: 'deliveryZoneId'),
+          deliveryLat: any(named: 'deliveryLat'),
+          deliveryLng: any(named: 'deliveryLng'),
+          customerPhone: any(named: 'customerPhone'),
+          deliveryInstructions: any(named: 'deliveryInstructions'),
           promoCode: any(named: 'promoCode'),
         ),
       ).thenAnswer((_) => completer.future);
@@ -209,6 +221,10 @@ void main() {
           idempotencyKey: any(named: 'idempotencyKey'),
           deliveryAddress: any(named: 'deliveryAddress'),
           deliveryZoneId: any(named: 'deliveryZoneId'),
+          deliveryLat: any(named: 'deliveryLat'),
+          deliveryLng: any(named: 'deliveryLng'),
+          customerPhone: any(named: 'customerPhone'),
+          deliveryInstructions: any(named: 'deliveryInstructions'),
           promoCode: any(named: 'promoCode'),
         ),
       ).called(1);

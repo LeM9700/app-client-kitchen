@@ -25,7 +25,7 @@ class KitchenStatusBadge extends StatelessWidget {
       status,
       orderType: orderType,
     );
-    final isCancelled = status == OrderStatusCode.cancelled;
+    final isCancelled = status.isFailure;
     final isDelivered = status == OrderStatusCode.delivered;
     final foreground = isCancelled
         ? KitchenColors.terracotta

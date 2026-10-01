@@ -35,6 +35,9 @@ class CheckoutState with _$CheckoutState {
     double?
         lat, // [TECH DEBT corrigé] requis par /delivery/check, pas dans le plan initial
     double? lng,
+    // [Phase 0 livraison] Contact et consignes transmis au livreur avec la commande.
+    String? phone,
+    String? instructions,
     DeliveryInfo?
         deliveryInfo, // Résultat /delivery/check (null tant que non vérifié)
     double? serverTotal, // Total officiel du serveur

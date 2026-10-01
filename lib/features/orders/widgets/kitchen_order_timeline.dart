@@ -22,8 +22,8 @@ class KitchenOrderTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statuses = currentStatus == OrderStatusCode.cancelled
-        ? const [OrderStatusCode.cancelled]
+    final statuses = currentStatus.isFailure
+        ? [currentStatus]
         : kitchenTimelineStatusesFor(orderType);
 
     return Semantics(

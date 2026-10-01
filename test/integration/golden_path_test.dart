@@ -155,6 +155,10 @@ void main() {
             idempotencyKey: any(named: 'idempotencyKey'),
             deliveryAddress: any(named: 'deliveryAddress'),
             deliveryZoneId: any(named: 'deliveryZoneId'),
+            deliveryLat: any(named: 'deliveryLat'),
+            deliveryLng: any(named: 'deliveryLng'),
+            customerPhone: any(named: 'customerPhone'),
+            deliveryInstructions: any(named: 'deliveryInstructions'),
             promoCode: any(named: 'promoCode'),
           ),
         ).thenAnswer((_) async => 42);
@@ -234,6 +238,11 @@ void main() {
             idempotencyKey: any(named: 'idempotencyKey'),
             deliveryAddress: null,
             deliveryZoneId: null,
+            // Retrait : aucune donnee de livraison n'est envoyee au serveur.
+            deliveryLat: null,
+            deliveryLng: null,
+            customerPhone: null,
+            deliveryInstructions: null,
             promoCode: null,
           ),
         ).called(1);

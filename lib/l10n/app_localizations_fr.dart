@@ -260,6 +260,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get checkoutCheckZoneButton => 'Vérifier la zone';
 
   @override
+  String get checkoutPhoneLabel => 'Téléphone (pour le livreur)';
+
+  @override
+  String get checkoutPhoneHint => '06 12 34 56 78';
+
+  @override
+  String get checkoutPhoneMissingError =>
+      'Saisissez un numéro de téléphone pour que le livreur puisse vous joindre.';
+
+  @override
+  String get checkoutPhoneInvalidError =>
+      'Ce numéro de téléphone semble invalide.';
+
+  @override
+  String get checkoutInstructionsLabel =>
+      'Instructions de livraison (optionnel)';
+
+  @override
+  String get checkoutInstructionsHint => 'Étage, digicode, interphone…';
+
+  @override
   String get checkoutRecapArticlesTitle => 'Articles';
 
   @override

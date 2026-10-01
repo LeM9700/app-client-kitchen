@@ -12,8 +12,16 @@
 /// valide pas les transitions, il ne fait qu'afficher l'état reçu) :
 /// `pending→{confirmed,cancelled}`, `confirmed→{preparing,cancelled}`,
 /// `queued→{confirmed,cancelled}`, `preparing→{ready,cancelled}`,
-/// `ready→{out_for_delivery,delivered}`, `out_for_delivery→{delivered,cancelled}`.
-/// `delivered` et `cancelled` sont terminaux.
+/// `ready→{out_for_delivery,delivered}`,
+/// `out_for_delivery→{delivered,cancelled,delivery_failed}`,
+/// `pending→rejected`.
+/// `delivered`, `cancelled`, `delivery_failed` et `rejected` sont terminaux.
+///
+/// [Phase 0 livraison] `deliveryFailed` et `rejected` existent côté API depuis
+/// longtemps mais manquaient ici : une commande en échec de livraison faisait
+/// planter l'écran de suivi. [unknown] absorbe tout statut futur ou inconnu au
+/// lieu de lever une erreur : l'écran reste utilisable, l'état exact est
+/// simplement présenté comme « en cours de mise à jour ».
 enum OrderStatusCode {
   pending,
   confirmed,
@@ -23,18 +31,30 @@ enum OrderStatusCode {
   outForDelivery,
   delivered,
   cancelled,
+  deliveryFailed,
+  rejected,
+  unknown,
 }
 
 /// Parse la valeur `status` brute de l'API (`snake_case`) vers
-/// [OrderStatusCode]. Lève [ArgumentError] sur une valeur inconnue plutôt que
-/// de silencieusement retomber sur un état par défaut — un statut inconnu
-/// signale un écart API/client qu'il vaut mieux voir planter en dev que
-/// masquer.
+/// [OrderStatusCode].
+///
+/// Une valeur inconnue (nouveau statut serveur, entrée d'historique interne
+/// comme `item_ready`) donne [OrderStatusCode.unknown] — jamais d'exception :
+/// une seule valeur imprévue ne doit pas casser la liste des commandes ni
+/// l'écran de suivi. L'écart reste visible en développement via `assert`.
 OrderStatusCode orderStatusFromApi(String value) {
-  return OrderStatusCode.values.firstWhere(
-    (status) => status.apiValue == value,
-    orElse: () => throw ArgumentError('Statut de commande inconnu: $value'),
-  );
+  for (final status in OrderStatusCode.values) {
+    if (status != OrderStatusCode.unknown && status.apiValue == value) {
+      return status;
+    }
+  }
+  assert(() {
+    // ignore: avoid_print
+    print("[order_status] statut inconnu recu de l'API: $value");
+    return true;
+  }());
+  return OrderStatusCode.unknown;
 }
 
 extension OrderStatusCodeX on OrderStatusCode {
@@ -48,12 +68,25 @@ extension OrderStatusCodeX on OrderStatusCode {
         OrderStatusCode.outForDelivery => 'out_for_delivery',
         OrderStatusCode.delivered => 'delivered',
         OrderStatusCode.cancelled => 'cancelled',
+        OrderStatusCode.deliveryFailed => 'delivery_failed',
+        OrderStatusCode.rejected => 'rejected',
+        OrderStatusCode.unknown => 'unknown',
       };
 
   /// États terminaux — plus aucune transition possible, la reconnexion
   /// WebSocket et le polling de secours doivent s'arrêter.
   bool get isTerminal =>
-      this == OrderStatusCode.delivered || this == OrderStatusCode.cancelled;
+      this == OrderStatusCode.delivered ||
+      this == OrderStatusCode.cancelled ||
+      this == OrderStatusCode.deliveryFailed ||
+      this == OrderStatusCode.rejected;
+
+  /// Terminaux « négatifs » : la commande n'ira pas au bout. Affichés seuls
+  /// dans la chronologie, hors de l'ordre canonique.
+  bool get isFailure =>
+      this == OrderStatusCode.cancelled ||
+      this == OrderStatusCode.deliveryFailed ||
+      this == OrderStatusCode.rejected;
 
   String get label => switch (this) {
         OrderStatusCode.pending => 'Commande reçue',
@@ -64,6 +97,9 @@ extension OrderStatusCodeX on OrderStatusCode {
         OrderStatusCode.outForDelivery => 'En chemin',
         OrderStatusCode.delivered => 'Livrée',
         OrderStatusCode.cancelled => 'Annulée',
+        OrderStatusCode.deliveryFailed => 'Livraison échouée',
+        OrderStatusCode.rejected => 'Refusée',
+        OrderStatusCode.unknown => 'Mise à jour en cours',
       };
 
   String get icon => switch (this) {
@@ -75,6 +111,9 @@ extension OrderStatusCodeX on OrderStatusCode {
         OrderStatusCode.outForDelivery => '🛵',
         OrderStatusCode.delivered => '🎉',
         OrderStatusCode.cancelled => '❌',
+        OrderStatusCode.deliveryFailed => '⚠️',
+        OrderStatusCode.rejected => '🚫',
+        OrderStatusCode.unknown => '⏳',
       };
 }
 

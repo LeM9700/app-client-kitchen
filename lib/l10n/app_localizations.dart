@@ -561,6 +561,42 @@ abstract class AppLocalizations {
   /// **'Vérifier la zone'**
   String get checkoutCheckZoneButton;
 
+  /// No description provided for @checkoutPhoneLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléphone (pour le livreur)'**
+  String get checkoutPhoneLabel;
+
+  /// No description provided for @checkoutPhoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'06 12 34 56 78'**
+  String get checkoutPhoneHint;
+
+  /// No description provided for @checkoutPhoneMissingError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez un numéro de téléphone pour que le livreur puisse vous joindre.'**
+  String get checkoutPhoneMissingError;
+
+  /// No description provided for @checkoutPhoneInvalidError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce numéro de téléphone semble invalide.'**
+  String get checkoutPhoneInvalidError;
+
+  /// No description provided for @checkoutInstructionsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Instructions de livraison (optionnel)'**
+  String get checkoutInstructionsLabel;
+
+  /// No description provided for @checkoutInstructionsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Étage, digicode, interphone…'**
+  String get checkoutInstructionsHint;
+
   /// No description provided for @checkoutRecapArticlesTitle.
   ///
   /// In fr, this message translates to:

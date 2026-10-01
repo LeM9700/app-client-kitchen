@@ -77,6 +77,26 @@ class OrderStatusPresentation {
           description: 'Cette commande a ete annulee.',
           icon: Icons.cancel_outlined,
         ),
+      OrderStatusCode.deliveryFailed => const OrderStatusPresentation(
+          status: OrderStatusCode.deliveryFailed,
+          label: 'Livraison echouee',
+          description:
+              "Nous n'avons pas pu vous livrer. Le restaurant va vous contacter.",
+          icon: Icons.report_problem_outlined,
+        ),
+      OrderStatusCode.rejected => const OrderStatusPresentation(
+          status: OrderStatusCode.rejected,
+          label: 'Refusee',
+          description: "Le restaurant n'a pas pu accepter cette commande.",
+          icon: Icons.block_outlined,
+        ),
+      OrderStatusCode.unknown => const OrderStatusPresentation(
+          status: OrderStatusCode.unknown,
+          label: 'Mise a jour en cours',
+          description:
+              'Le suivi de cette commande se met a jour. Reessayez dans un instant.',
+          icon: Icons.sync_outlined,
+        ),
     };
   }
 }
@@ -101,8 +121,8 @@ KitchenTimelineState timelineStateFor({
   required OrderStatusCode currentStatus,
   required OrderType orderType,
 }) {
-  if (currentStatus == OrderStatusCode.cancelled) {
-    return status == OrderStatusCode.cancelled
+  if (currentStatus.isFailure) {
+    return status == currentStatus
         ? KitchenTimelineState.failed
         : KitchenTimelineState.upcoming;
   }

@@ -169,7 +169,7 @@ class _StatusHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCancelled = presentation.status == OrderStatusCode.cancelled;
+    final isCancelled = presentation.status.isFailure;
     final color = isCancelled ? KitchenColors.terracotta : KitchenColors.cognac;
 
     return AnimatedContainer(
@@ -239,7 +239,9 @@ class _EtaAndAddress extends StatelessWidget {
                 ? _formatDateTime(eta)
                 : order.status == OrderStatusCode.cancelled
                     ? 'Commande annulee'
-                    : 'Votre commande est en cours de preparation.',
+                    : order.status.isFailure
+                        ? 'Commande non aboutie'
+                        : 'Votre commande est en cours de preparation.',
           ),
           const SizedBox(height: KitchenSpacing.sm),
           _InfoLine(

@@ -88,6 +88,12 @@
   "checkoutPinCoordinates": "Oznaka: {lat}, {lng}",
   "checkoutSwitchToPickup": "Pređi na preuzimanje u restoranu",
   "checkoutCheckZoneButton": "Proveri zonu",
+  "checkoutPhoneLabel": "Telefon (za dostavljača)",
+  "checkoutPhoneHint": "064 123 4567",
+  "checkoutPhoneMissingError": "Unesite broj telefona kako bi vas dostavljač mogao pozvati.",
+  "checkoutPhoneInvalidError": "Ovaj broj telefona izgleda neispravno.",
+  "checkoutInstructionsLabel": "Uputstva za dostavu (opciono)",
+  "checkoutInstructionsHint": "Sprat, šifra, interfon…",
 
   "checkoutRecapArticlesTitle": "Stavke",
   "checkoutRecapLineItem": "{quantity} × {name}",
