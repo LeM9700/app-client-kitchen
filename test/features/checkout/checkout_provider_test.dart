@@ -103,6 +103,8 @@ void main() {
           lat: any(named: 'lat'),
           lng: any(named: 'lng'),
           displayAddress: any(named: 'displayAddress'),
+          subtotal: any(named: 'subtotal'),
+          establishmentId: any(named: 'establishmentId'),
         ),
       ).thenThrow(DeliveryZoneUnreachableException());
 
@@ -119,6 +121,8 @@ void main() {
           lat: 48.87,
           lng: 2.33,
           displayAddress: '12 rue de la Paix',
+          subtotal: any(named: 'subtotal'),
+          establishmentId: any(named: 'establishmentId'),
         ),
       ).called(1);
       expect(state.deliveryInfo, isNull);
@@ -143,6 +147,7 @@ void main() {
           customerPhone: any(named: 'customerPhone'),
           deliveryInstructions: any(named: 'deliveryInstructions'),
           promoCode: any(named: 'promoCode'),
+          establishmentId: any(named: 'establishmentId'),
         ),
       ).thenAnswer((invocation) async {
         firstAttemptKey = invocation.namedArguments[#idempotencyKey] as String;
@@ -172,6 +177,7 @@ void main() {
           customerPhone: any(named: 'customerPhone'),
           deliveryInstructions: any(named: 'deliveryInstructions'),
           promoCode: any(named: 'promoCode'),
+          establishmentId: any(named: 'establishmentId'),
         ),
       ).thenAnswer((invocation) async {
         secondAttemptKey = invocation.namedArguments[#idempotencyKey] as String;
@@ -202,6 +208,7 @@ void main() {
           customerPhone: any(named: 'customerPhone'),
           deliveryInstructions: any(named: 'deliveryInstructions'),
           promoCode: any(named: 'promoCode'),
+          establishmentId: any(named: 'establishmentId'),
         ),
       ).thenAnswer((_) => completer.future);
 
@@ -226,6 +233,7 @@ void main() {
           customerPhone: any(named: 'customerPhone'),
           deliveryInstructions: any(named: 'deliveryInstructions'),
           promoCode: any(named: 'promoCode'),
+          establishmentId: any(named: 'establishmentId'),
         ),
       ).called(1);
     });

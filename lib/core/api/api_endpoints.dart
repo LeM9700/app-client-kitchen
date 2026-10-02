@@ -72,6 +72,9 @@ abstract final class ApiEndpoints {
 
   // ── Livraison ─────────────────────────────────────────────────────────────
   static const String deliveryCheck = '/delivery/check';
+  static const String deliveryGeocode = '/delivery/geocode';
+  static const String deliveryReverseGeocode = '/delivery/reverse-geocode';
+  static const String deliveryAvailability = '/delivery/availability';
 
   // ── Favoris ───────────────────────────────────────────────────────────────
   // `GET`/`POST /favorites`, `DELETE /favorites/{product_id}` — toutes

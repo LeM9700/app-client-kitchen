@@ -35,9 +35,13 @@ class StepRecap extends ConsumerWidget {
     final checkoutState = ref.watch(checkoutProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    final deliveryFee = checkoutState.deliveryMode == DeliveryMode.delivery
-        ? (checkoutState.deliveryInfo?.fee ?? 0)
-        : 0.0;
+    final isDelivery = checkoutState.deliveryMode == DeliveryMode.delivery;
+    final info = checkoutState.deliveryInfo;
+    // Un code promo « livraison offerte » prime ; sinon les frais calcules par le serveur
+    // pour ce panier (regles de zone). Le serveur recalcule de toute facon a la commande.
+    final freeDelivery =
+        isDelivery && (cart.promoFreeDelivery || (info?.freeDelivery ?? false));
+    final deliveryFee = !isDelivery || freeDelivery ? 0.0 : (info?.fee ?? 0.0);
     final discount = cart.promoDiscount ?? 0;
     final estimatedTotal = cart.subtotal - discount + deliveryFee;
 
@@ -59,6 +63,8 @@ class StepRecap extends ConsumerWidget {
                   deliveryMode: checkoutState.deliveryMode,
                   subtotal: cart.subtotal,
                   deliveryFee: deliveryFee,
+                  freeDelivery: freeDelivery,
+                  remainingForFree: isDelivery ? info?.remainingForFree : null,
                   discountTotal: discount,
                   total: estimatedTotal,
                   address: checkoutState.address,

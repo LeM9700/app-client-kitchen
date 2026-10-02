@@ -118,6 +118,40 @@
   },
   "checkoutSwitchToPickup": "Passer en retrait en boutique",
   "checkoutCheckZoneButton": "Vérifier la zone",
+  "checkoutAddressSearchUnavailable": "La recherche d'adresse est indisponible. Placez le repère sur la carte.",
+  "checkoutUseMyPosition": "Ma position",
+  "checkoutLocationDenied": "Autorisez la localisation pour utiliser votre position.",
+  "checkoutLocationUnavailable": "Impossible d'obtenir votre position. Vérifiez que la localisation est activée.",
+  "checkoutDeliveryFeeLine": "Frais de livraison : {fee}",
+  "@checkoutDeliveryFeeLine": {
+    "placeholders": {
+      "fee": { "type": "String" }
+    }
+  },
+  "checkoutDeliveryFree": "Livraison offerte",
+  "checkoutDeliveryFreeNudge": "Plus que {amount} pour la livraison offerte",
+  "@checkoutDeliveryFreeNudge": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "checkoutMinOrderError": "Minimum de commande pour cette zone : {amount}. Ajoutez des articles ou choisissez le retrait.",
+  "@checkoutMinOrderError": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "checkoutMinOrderErrorGeneric": "Le minimum de commande de cette zone n'est pas atteint. Ajoutez des articles ou choisissez le retrait.",
+  "checkoutDeliveryDisabled": "La livraison est momentanément indisponible. Choisissez le retrait en boutique.",
+  "checkoutDeliveryUnavailableMode": "Indisponible actuellement",
+  "checkoutPhoneRequiredServer": "Un numéro de téléphone est requis pour une livraison.",
+  "checkoutRateLimited": "Trop de recherches. Patientez un instant.",
+  "cartPromoFreeDeliveryApplied": "Code {code} appliqué : livraison offerte",
+  "@cartPromoFreeDeliveryApplied": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
   "checkoutPhoneLabel": "Téléphone (pour le livreur)",
   "checkoutPhoneHint": "06 12 34 56 78",
   "checkoutPhoneMissingError": "Saisissez un numéro de téléphone pour que le livreur puisse vous joindre.",

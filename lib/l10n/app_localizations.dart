@@ -561,6 +561,90 @@ abstract class AppLocalizations {
   /// **'Vérifier la zone'**
   String get checkoutCheckZoneButton;
 
+  /// No description provided for @checkoutAddressSearchUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'La recherche d\'adresse est indisponible. Placez le repère sur la carte.'**
+  String get checkoutAddressSearchUnavailable;
+
+  /// No description provided for @checkoutUseMyPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ma position'**
+  String get checkoutUseMyPosition;
+
+  /// No description provided for @checkoutLocationDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorisez la localisation pour utiliser votre position.'**
+  String get checkoutLocationDenied;
+
+  /// No description provided for @checkoutLocationUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'obtenir votre position. Vérifiez que la localisation est activée.'**
+  String get checkoutLocationUnavailable;
+
+  /// No description provided for @checkoutDeliveryFeeLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Frais de livraison : {fee}'**
+  String checkoutDeliveryFeeLine(String fee);
+
+  /// No description provided for @checkoutDeliveryFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livraison offerte'**
+  String get checkoutDeliveryFree;
+
+  /// No description provided for @checkoutDeliveryFreeNudge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus que {amount} pour la livraison offerte'**
+  String checkoutDeliveryFreeNudge(String amount);
+
+  /// No description provided for @checkoutMinOrderError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Minimum de commande pour cette zone : {amount}. Ajoutez des articles ou choisissez le retrait.'**
+  String checkoutMinOrderError(String amount);
+
+  /// No description provided for @checkoutMinOrderErrorGeneric.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le minimum de commande de cette zone n\'est pas atteint. Ajoutez des articles ou choisissez le retrait.'**
+  String get checkoutMinOrderErrorGeneric;
+
+  /// No description provided for @checkoutDeliveryDisabled.
+  ///
+  /// In fr, this message translates to:
+  /// **'La livraison est momentanément indisponible. Choisissez le retrait en boutique.'**
+  String get checkoutDeliveryDisabled;
+
+  /// No description provided for @checkoutDeliveryUnavailableMode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indisponible actuellement'**
+  String get checkoutDeliveryUnavailableMode;
+
+  /// No description provided for @checkoutPhoneRequiredServer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un numéro de téléphone est requis pour une livraison.'**
+  String get checkoutPhoneRequiredServer;
+
+  /// No description provided for @checkoutRateLimited.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trop de recherches. Patientez un instant.'**
+  String get checkoutRateLimited;
+
+  /// No description provided for @cartPromoFreeDeliveryApplied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code {code} appliqué : livraison offerte'**
+  String cartPromoFreeDeliveryApplied(String code);
+
   /// No description provided for @checkoutPhoneLabel.
   ///
   /// In fr, this message translates to:

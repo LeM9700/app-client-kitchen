@@ -160,6 +160,7 @@ void main() {
             customerPhone: any(named: 'customerPhone'),
             deliveryInstructions: any(named: 'deliveryInstructions'),
             promoCode: any(named: 'promoCode'),
+            establishmentId: any(named: 'establishmentId'),
           ),
         ).thenAnswer((_) async => 42);
         when(() => mockPaymentRepo.createPaymentIntent(42))
@@ -244,6 +245,7 @@ void main() {
             customerPhone: null,
             deliveryInstructions: null,
             promoCode: null,
+            establishmentId: null,
           ),
         ).called(1);
         verify(() => mockPaymentRepo.createPaymentIntent(42)).called(1);

@@ -260,6 +260,62 @@ class AppLocalizationsFr extends AppLocalizations {
   String get checkoutCheckZoneButton => 'Vérifier la zone';
 
   @override
+  String get checkoutAddressSearchUnavailable =>
+      'La recherche d\'adresse est indisponible. Placez le repère sur la carte.';
+
+  @override
+  String get checkoutUseMyPosition => 'Ma position';
+
+  @override
+  String get checkoutLocationDenied =>
+      'Autorisez la localisation pour utiliser votre position.';
+
+  @override
+  String get checkoutLocationUnavailable =>
+      'Impossible d\'obtenir votre position. Vérifiez que la localisation est activée.';
+
+  @override
+  String checkoutDeliveryFeeLine(String fee) {
+    return 'Frais de livraison : $fee';
+  }
+
+  @override
+  String get checkoutDeliveryFree => 'Livraison offerte';
+
+  @override
+  String checkoutDeliveryFreeNudge(String amount) {
+    return 'Plus que $amount pour la livraison offerte';
+  }
+
+  @override
+  String checkoutMinOrderError(String amount) {
+    return 'Minimum de commande pour cette zone : $amount. Ajoutez des articles ou choisissez le retrait.';
+  }
+
+  @override
+  String get checkoutMinOrderErrorGeneric =>
+      'Le minimum de commande de cette zone n\'est pas atteint. Ajoutez des articles ou choisissez le retrait.';
+
+  @override
+  String get checkoutDeliveryDisabled =>
+      'La livraison est momentanément indisponible. Choisissez le retrait en boutique.';
+
+  @override
+  String get checkoutDeliveryUnavailableMode => 'Indisponible actuellement';
+
+  @override
+  String get checkoutPhoneRequiredServer =>
+      'Un numéro de téléphone est requis pour une livraison.';
+
+  @override
+  String get checkoutRateLimited => 'Trop de recherches. Patientez un instant.';
+
+  @override
+  String cartPromoFreeDeliveryApplied(String code) {
+    return 'Code $code appliqué : livraison offerte';
+  }
+
+  @override
   String get checkoutPhoneLabel => 'Téléphone (pour le livreur)';
 
   @override

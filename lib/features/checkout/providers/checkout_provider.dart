@@ -134,19 +134,26 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   // step_address.dart — voir la décision d'architecture révisée) au lieu d'une adresse texte
   // brute que l'API ne sait pas interpréter.
 
+  /// Verifie la zone du point [lat]/[lng] et calcule les frais pour le panier courant.
+  ///
+  /// [advance] = `true` (bouton « Continuer ») : en cas de succes, memorise l'adresse et passe
+  /// au recapitulatif. `false` (apercu des que le client place son repere) : n'affiche que le
+  /// resultat (zone, frais, delai) sans changer d'etape ni memoriser l'adresse.
   Future<void> checkDeliveryAddress({
     required String displayAddress,
     required double lat,
     required double lng,
     String? phone,
     String? instructions,
+    bool advance = true,
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, errorCode: null);
     try {
       final info = await _checkoutRepo.checkDeliveryZone(
         lat: lat,
         lng: lng,
         displayAddress: displayAddress,
+        subtotal: _ref.read(cartProvider).subtotal,
       );
       _ref.read(analyticsReporterProvider).track(
         'checkout_delivery_zone_checked',
@@ -156,21 +163,36 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
           'fee': info.fee,
         },
       );
+      if (info.minOrderMet == false) {
+        // Dans la zone mais panier trop petit : on garde le resultat (l'ecran affiche le
+        // minimum a atteindre) sans avancer.
+        state = state.copyWith(
+          isLoading: false,
+          lat: lat,
+          lng: lng,
+          deliveryInfo: info,
+          error: 'Minimum de commande non atteint pour cette zone.',
+          errorCode: 'DELIVERY_MIN_ORDER_NOT_MET',
+        );
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
-        address: displayAddress,
+        address: advance ? displayAddress : state.address,
         lat: lat,
         lng: lng,
-        phone: phone,
-        instructions: instructions,
+        phone: phone ?? state.phone,
+        instructions: instructions ?? state.instructions,
         deliveryInfo: info,
-        currentStep: CheckoutStep.recap,
+        currentStep: advance ? CheckoutStep.recap : state.currentStep,
       );
-      _ref.read(clientLocationProvider.notifier).state = ClientLocation(
-        address: displayAddress,
-        lat: lat,
-        lng: lng,
-      );
+      if (advance) {
+        _ref.read(clientLocationProvider.notifier).state = ClientLocation(
+          address: displayAddress,
+          lat: lat,
+          lng: lng,
+        );
+      }
     } on DeliveryZoneUnreachableException {
       // [TECH DEBT corrigé] Pas de champ `deliverable` — l'API répond 422
       // DELIVERY_ZONE_UNREACHABLE quand aucune zone ne couvre le point. Traduit ici en état UX.
@@ -180,15 +202,22 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       );
       state = state.copyWith(
         isLoading: false,
+        deliveryInfo: null,
         error:
             'Adresse hors zone de livraison. Choisissez le retrait en boutique.',
+        errorCode: 'DELIVERY_ZONE_UNREACHABLE',
       );
     } on AppException catch (e) {
       _ref.read(analyticsReporterProvider).track(
         'checkout_delivery_zone_failed',
         {'error_type': e.runtimeType.toString()},
       );
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(
+        isLoading: false,
+        deliveryInfo: null,
+        error: e.message,
+        errorCode: e is DeliveryException ? e.code : null,
+      );
     }
   }
 
@@ -203,6 +232,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     state = state.copyWith(
       isLoading: true,
       error: null,
+      errorCode: null,
       idempotencyKey: idempotencyKey,
     );
     try {
@@ -213,6 +243,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         orderType: isDelivery ? 'delivery' : 'pickup',
         deliveryAddress: state.address,
         deliveryZoneId: state.deliveryInfo?.zoneId,
+        // L'etablissement dont la zone couvre l'adresse ; le serveur le recalcule.
+        establishmentId: isDelivery ? state.deliveryInfo?.establishmentId : null,
         // Retrait : aucune donnee de livraison n'est envoyee.
         deliveryLat: isDelivery ? state.lat : null,
         deliveryLng: isDelivery ? state.lng : null,
@@ -237,7 +269,11 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         'checkout_order_failed',
         {'error_type': e.runtimeType.toString()},
       );
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+        errorCode: e is DeliveryException ? e.code : null,
+      );
       return null;
     }
   }

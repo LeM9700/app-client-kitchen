@@ -47,6 +47,9 @@ class CheckoutState with _$CheckoutState {
     // dédupliquer, ce qui ANNULE l'intérêt même de l'Idempotency-Key (double commande possible).
     String? idempotencyKey,
     String? error,
+    // Code metier de l'erreur (ex. DELIVERY_ZONE_UNREACHABLE) : l'ecran en deduit un message
+    // traduit. `error` reste le texte de repli.
+    String? errorCode,
     @Default(false) bool isLoading,
   }) = _CheckoutState;
 }

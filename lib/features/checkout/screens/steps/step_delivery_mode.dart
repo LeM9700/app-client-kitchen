@@ -6,6 +6,8 @@ import 'package:app_client/core/theme/kitchen_spacing.dart';
 import 'package:app_client/core/theme/kitchen_tokens.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/checkout/models/checkout_state.dart';
+import 'package:app_client/features/checkout/repositories/address_repository.dart';
+import 'package:app_client/l10n/app_localizations.dart';
 import 'package:app_client/features/checkout/providers/checkout_provider.dart';
 import 'package:app_client/features/checkout/widgets/kitchen_order_mode_selector.dart';
 
@@ -20,6 +22,12 @@ class StepDeliveryMode extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedMode =
         ref.watch(checkoutProvider.select((s) => s.deliveryMode));
+    // Livraison coupee par le restaurant : on le dit avant que le client remplisse une
+    // adresse. Si la disponibilite est inconnue (reseau), on laisse ouvert : le serveur tranche.
+    final deliveryEnabled =
+        ref.watch(deliveryAvailabilityProvider).valueOrNull?.deliveryEnabled ??
+            true;
+    final l10n = AppLocalizations.of(context)!;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -42,6 +50,8 @@ class StepDeliveryMode extends ConsumerWidget {
         const SizedBox(height: KitchenSpacing.lg),
         KitchenOrderModeSelector(
           selectedMode: selectedMode,
+          deliveryEnabled: deliveryEnabled,
+          deliveryUnavailableLabel: l10n.checkoutDeliveryUnavailableMode,
           onSelected: (mode) =>
               ref.read(checkoutProvider.notifier).selectDeliveryMode(mode),
         ),

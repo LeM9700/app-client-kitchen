@@ -4,7 +4,9 @@ part 'delivery_info.freezed.dart';
 part 'delivery_info.g.dart';
 
 /// Miroir de la réponse réelle de `POST /delivery/check`
-/// (`{zone_id, name, fee, estimated_minutes}`).
+/// (`{zone_id, name, fee, estimated_minutes, ...}`). `fee` est le frais réellement appliqué
+/// au sous-total envoyé (règles de zone, livraison offerte) ; les champs ajoutés ensuite sont
+/// optionnels pour rester compatibles avec une API plus ancienne.
 ///
 /// [🔒 CORRECTIF] Pas de champ `deliverable` — l'endpoint retourne soit `200`
 /// avec ces champs (zone trouvée), soit lève un `422 DELIVERY_ZONE_UNREACHABLE`
@@ -19,6 +21,13 @@ class DeliveryInfo with _$DeliveryInfo {
     required String name,
     required double fee,
     @JsonKey(name: 'estimated_minutes') required int estimatedMinutes,
+    @JsonKey(name: 'establishment_id') int? establishmentId,
+    @JsonKey(name: 'base_fee') double? baseFee,
+    @JsonKey(name: 'free_delivery') @Default(false) bool freeDelivery,
+    @JsonKey(name: 'applied_label') String? appliedLabel,
+    @JsonKey(name: 'remaining_for_free') double? remainingForFree,
+    @JsonKey(name: 'min_order_amount') @Default(0) double minOrderAmount,
+    @JsonKey(name: 'min_order_met') bool? minOrderMet,
   }) = _DeliveryInfo;
 
   factory DeliveryInfo.fromJson(Map<String, dynamic> json) =>

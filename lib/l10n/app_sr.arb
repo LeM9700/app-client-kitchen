@@ -88,6 +88,40 @@
   "checkoutPinCoordinates": "Oznaka: {lat}, {lng}",
   "checkoutSwitchToPickup": "Pređi na preuzimanje u restoranu",
   "checkoutCheckZoneButton": "Proveri zonu",
+  "checkoutAddressSearchUnavailable": "Pretraga adresa trenutno nije dostupna. Postavite oznaku na mapi.",
+  "checkoutUseMyPosition": "Moja lokacija",
+  "checkoutLocationDenied": "Dozvolite pristup lokaciji da biste koristili svoju poziciju.",
+  "checkoutLocationUnavailable": "Nije moguće dobiti vašu lokaciju. Proverite da li je lokacija uključena.",
+  "checkoutDeliveryFeeLine": "Cena dostave: {fee}",
+  "@checkoutDeliveryFeeLine": {
+    "placeholders": {
+      "fee": { "type": "String" }
+    }
+  },
+  "checkoutDeliveryFree": "Besplatna dostava",
+  "checkoutDeliveryFreeNudge": "Još samo {amount} do besplatne dostave",
+  "@checkoutDeliveryFreeNudge": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "checkoutMinOrderError": "Minimalna porudžbina za ovu zonu: {amount}. Dodajte artikle ili izaberite preuzimanje.",
+  "@checkoutMinOrderError": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "checkoutMinOrderErrorGeneric": "Minimalna porudžbina za ovu zonu nije dostignuta. Dodajte artikle ili izaberite preuzimanje.",
+  "checkoutDeliveryDisabled": "Dostava trenutno nije dostupna. Izaberite preuzimanje u lokalu.",
+  "checkoutDeliveryUnavailableMode": "Trenutno nedostupno",
+  "checkoutPhoneRequiredServer": "Za dostavu je potreban broj telefona.",
+  "checkoutRateLimited": "Previše pretraga. Sačekajte trenutak.",
+  "cartPromoFreeDeliveryApplied": "Kod {code} primenjen: besplatna dostava",
+  "@cartPromoFreeDeliveryApplied": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
   "checkoutPhoneLabel": "Telefon (za dostavljača)",
   "checkoutPhoneHint": "064 123 4567",
   "checkoutPhoneMissingError": "Unesite broj telefona kako bi vas dostavljač mogao pozvati.",

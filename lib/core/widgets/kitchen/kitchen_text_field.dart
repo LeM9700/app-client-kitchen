@@ -19,6 +19,7 @@ class KitchenTextField extends StatelessWidget {
     this.errorText,
     this.validator,
     this.onSubmitted,
+    this.onChanged,
     this.autofillHints,
   });
 
@@ -35,6 +36,7 @@ class KitchenTextField extends StatelessWidget {
   final String? errorText;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onSubmitted;
+  final ValueChanged<String>? onChanged;
   final Iterable<String>? autofillHints;
 
   @override
@@ -53,6 +55,7 @@ class KitchenTextField extends StatelessWidget {
       readOnly: readOnly,
       enabled: enabled,
       onFieldSubmitted: onSubmitted,
+      onChanged: onChanged,
       validator: validator,
       autofillHints: autofillHints,
       cursorColor: KitchenColors.cognac,

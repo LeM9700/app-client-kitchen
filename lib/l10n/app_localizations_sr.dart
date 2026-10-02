@@ -260,6 +260,62 @@ class AppLocalizationsSr extends AppLocalizations {
   String get checkoutCheckZoneButton => 'Proveri zonu';
 
   @override
+  String get checkoutAddressSearchUnavailable =>
+      'Pretraga adresa trenutno nije dostupna. Postavite oznaku na mapi.';
+
+  @override
+  String get checkoutUseMyPosition => 'Moja lokacija';
+
+  @override
+  String get checkoutLocationDenied =>
+      'Dozvolite pristup lokaciji da biste koristili svoju poziciju.';
+
+  @override
+  String get checkoutLocationUnavailable =>
+      'Nije moguće dobiti vašu lokaciju. Proverite da li je lokacija uključena.';
+
+  @override
+  String checkoutDeliveryFeeLine(String fee) {
+    return 'Cena dostave: $fee';
+  }
+
+  @override
+  String get checkoutDeliveryFree => 'Besplatna dostava';
+
+  @override
+  String checkoutDeliveryFreeNudge(String amount) {
+    return 'Još samo $amount do besplatne dostave';
+  }
+
+  @override
+  String checkoutMinOrderError(String amount) {
+    return 'Minimalna porudžbina za ovu zonu: $amount. Dodajte artikle ili izaberite preuzimanje.';
+  }
+
+  @override
+  String get checkoutMinOrderErrorGeneric =>
+      'Minimalna porudžbina za ovu zonu nije dostignuta. Dodajte artikle ili izaberite preuzimanje.';
+
+  @override
+  String get checkoutDeliveryDisabled =>
+      'Dostava trenutno nije dostupna. Izaberite preuzimanje u lokalu.';
+
+  @override
+  String get checkoutDeliveryUnavailableMode => 'Trenutno nedostupno';
+
+  @override
+  String get checkoutPhoneRequiredServer =>
+      'Za dostavu je potreban broj telefona.';
+
+  @override
+  String get checkoutRateLimited => 'Previše pretraga. Sačekajte trenutak.';
+
+  @override
+  String cartPromoFreeDeliveryApplied(String code) {
+    return 'Kod $code primenjen: besplatna dostava';
+  }
+
+  @override
   String get checkoutPhoneLabel => 'Telefon (za dostavljača)';
 
   @override
@@ -725,6 +781,62 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get checkoutCheckZoneButton => 'Proveri zonu';
+
+  @override
+  String get checkoutAddressSearchUnavailable =>
+      'Pretraga adresa trenutno nije dostupna. Postavite oznaku na mapi.';
+
+  @override
+  String get checkoutUseMyPosition => 'Moja lokacija';
+
+  @override
+  String get checkoutLocationDenied =>
+      'Dozvolite pristup lokaciji da biste koristili svoju poziciju.';
+
+  @override
+  String get checkoutLocationUnavailable =>
+      'Nije moguće dobiti vašu lokaciju. Proverite da li je lokacija uključena.';
+
+  @override
+  String checkoutDeliveryFeeLine(String fee) {
+    return 'Cena dostave: $fee';
+  }
+
+  @override
+  String get checkoutDeliveryFree => 'Besplatna dostava';
+
+  @override
+  String checkoutDeliveryFreeNudge(String amount) {
+    return 'Još samo $amount do besplatne dostave';
+  }
+
+  @override
+  String checkoutMinOrderError(String amount) {
+    return 'Minimalna porudžbina za ovu zonu: $amount. Dodajte artikle ili izaberite preuzimanje.';
+  }
+
+  @override
+  String get checkoutMinOrderErrorGeneric =>
+      'Minimalna porudžbina za ovu zonu nije dostignuta. Dodajte artikle ili izaberite preuzimanje.';
+
+  @override
+  String get checkoutDeliveryDisabled =>
+      'Dostava trenutno nije dostupna. Izaberite preuzimanje u lokalu.';
+
+  @override
+  String get checkoutDeliveryUnavailableMode => 'Trenutno nedostupno';
+
+  @override
+  String get checkoutPhoneRequiredServer =>
+      'Za dostavu je potreban broj telefona.';
+
+  @override
+  String get checkoutRateLimited => 'Previše pretraga. Sačekajte trenutak.';
+
+  @override
+  String cartPromoFreeDeliveryApplied(String code) {
+    return 'Kod $code primenjen: besplatna dostava';
+  }
 
   @override
   String get checkoutPhoneLabel => 'Telefon (za dostavljača)';

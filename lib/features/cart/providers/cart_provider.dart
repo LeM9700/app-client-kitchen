@@ -93,10 +93,15 @@ class CartNotifier extends StateNotifier<CartState> {
 
   void clear() => state = const CartState();
 
-  void setPromoResult({required double discount, required String code}) {
+  void setPromoResult({
+    required double discount,
+    required String code,
+    bool freeDelivery = false,
+  }) {
     state = state.copyWith(
       promoCode: code,
       promoDiscount: discount,
+      promoFreeDelivery: freeDelivery,
       promoError: null,
     );
   }
@@ -105,6 +110,7 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(
       promoCode: null,
       promoDiscount: null,
+      promoFreeDelivery: false,
       promoError: error,
     );
   }

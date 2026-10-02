@@ -11,10 +11,17 @@ class KitchenOrderModeSelector extends StatelessWidget {
     super.key,
     required this.selectedMode,
     required this.onSelected,
+    this.deliveryEnabled = true,
+    this.deliveryUnavailableLabel = 'Indisponible actuellement',
   });
 
   final DeliveryMode selectedMode;
   final ValueChanged<DeliveryMode> onSelected;
+
+  /// `false` : la livraison est coupee (reglage du restaurant) ; le segment est grise et ne
+  /// peut pas etre choisi.
+  final bool deliveryEnabled;
+  final String deliveryUnavailableLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +31,9 @@ class KitchenOrderModeSelector extends StatelessWidget {
           child: _ModeSegment(
             icon: Icons.delivery_dining_outlined,
             title: 'Livraison',
-            subtitle: 'A domicile',
-            selected: selectedMode == DeliveryMode.delivery,
+            subtitle: deliveryEnabled ? 'A domicile' : deliveryUnavailableLabel,
+            selected: deliveryEnabled && selectedMode == DeliveryMode.delivery,
+            enabled: deliveryEnabled,
             onTap: () => onSelected(DeliveryMode.delivery),
           ),
         ),
@@ -51,12 +59,14 @@ class _ModeSegment extends StatefulWidget {
     required this.subtitle,
     required this.selected,
     required this.onTap,
+    this.enabled = true,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final bool selected;
+  final bool enabled;
   final VoidCallback onTap;
 
   @override
@@ -73,71 +83,80 @@ class _ModeSegmentState extends State<_ModeSegment> {
 
     return Semantics(
       button: true,
+      enabled: widget.enabled,
       selected: widget.selected,
-      label: widget.selected
-          ? '${widget.title}, selectionne'
-          : 'Choisir ${widget.title}',
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTapCancel: () => setState(() => _pressed = false),
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          duration: const Duration(milliseconds: 140),
-          scale: _pressed ? 0.985 : 1,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            constraints: const BoxConstraints(minHeight: 112),
-            padding: const EdgeInsets.all(KitchenSpacing.md),
-            decoration: BoxDecoration(
-              gradient: widget.selected
-                  ? KitchenGradients.cognac
-                  : KitchenGradients.paper,
-              color: widget.selected ? null : KitchenColors.surface,
-              borderRadius: BorderRadius.circular(KitchenRadius.lg),
-              border: Border.all(
-                color: widget.selected
-                    ? KitchenColors.whiteWarm.withValues(alpha: 0.3)
-                    : KitchenColors.brown700.withValues(alpha: 0.14),
+      label: !widget.enabled
+          ? '${widget.title}, ${widget.subtitle}'
+          : widget.selected
+              ? '${widget.title}, selectionne'
+              : 'Choisir ${widget.title}',
+      child: Opacity(
+        opacity: widget.enabled ? 1 : 0.45,
+        child: GestureDetector(
+          onTapDown:
+              widget.enabled ? (_) => setState(() => _pressed = true) : null,
+          onTapUp:
+              widget.enabled ? (_) => setState(() => _pressed = false) : null,
+          onTapCancel:
+              widget.enabled ? () => setState(() => _pressed = false) : null,
+          onTap: widget.enabled ? widget.onTap : null,
+          child: AnimatedScale(
+            duration: const Duration(milliseconds: 140),
+            scale: _pressed ? 0.985 : 1,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              constraints: const BoxConstraints(minHeight: 112),
+              padding: const EdgeInsets.all(KitchenSpacing.md),
+              decoration: BoxDecoration(
+                gradient: widget.selected
+                    ? KitchenGradients.cognac
+                    : KitchenGradients.paper,
+                color: widget.selected ? null : KitchenColors.surface,
+                borderRadius: BorderRadius.circular(KitchenRadius.lg),
+                border: Border.all(
+                  color: widget.selected
+                      ? KitchenColors.whiteWarm.withValues(alpha: 0.3)
+                      : KitchenColors.brown700.withValues(alpha: 0.14),
+                ),
+                boxShadow: widget.selected
+                    ? [
+                        BoxShadow(
+                          color: KitchenColors.cognac.withValues(alpha: 0.22),
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                        ),
+                      ]
+                    : null,
               ),
-              boxShadow: widget.selected
-                  ? [
-                      BoxShadow(
-                        color: KitchenColors.cognac.withValues(alpha: 0.22),
-                        blurRadius: 18,
-                        offset: const Offset(0, 10),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  widget.icon,
-                  color: widget.selected ? KitchenColors.whiteWarm : color,
-                  size: 28,
-                ),
-                const SizedBox(height: KitchenSpacing.lg),
-                Text(
-                  widget.title,
-                  style: KitchenTypography.label.copyWith(
-                    color: widget.selected
-                        ? KitchenColors.whiteWarm
-                        : KitchenColors.espresso,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    widget.icon,
+                    color: widget.selected ? KitchenColors.whiteWarm : color,
+                    size: 28,
                   ),
-                ),
-                const SizedBox(height: KitchenSpacing.xxs),
-                Text(
-                  widget.subtitle,
-                  style: KitchenTypography.body.copyWith(
-                    color: widget.selected
-                        ? KitchenColors.whiteWarm.withValues(alpha: 0.82)
-                        : KitchenColors.textMuted,
-                    fontSize: 13,
+                  const SizedBox(height: KitchenSpacing.lg),
+                  Text(
+                    widget.title,
+                    style: KitchenTypography.label.copyWith(
+                      color: widget.selected
+                          ? KitchenColors.whiteWarm
+                          : KitchenColors.espresso,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: KitchenSpacing.xxs),
+                  Text(
+                    widget.subtitle,
+                    style: KitchenTypography.body.copyWith(
+                      color: widget.selected
+                          ? KitchenColors.whiteWarm.withValues(alpha: 0.82)
+                          : KitchenColors.textMuted,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

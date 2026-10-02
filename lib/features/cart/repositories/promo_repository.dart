@@ -14,6 +14,8 @@ class PromoPreview with _$PromoPreview {
     required bool valid,
     required double discount,
     @JsonKey(name: 'promo_id') int? promoId,
+    // Le code offre aussi les frais de livraison (eventuellement sans remise produit).
+    @JsonKey(name: 'free_delivery') @Default(false) bool freeDelivery,
   }) = _PromoPreview;
 
   factory PromoPreview.fromJson(Map<String, dynamic> json) =>

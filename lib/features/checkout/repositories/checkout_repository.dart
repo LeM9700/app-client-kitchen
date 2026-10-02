@@ -4,6 +4,7 @@ import 'package:app_client/core/api/api_client.dart';
 import 'package:app_client/core/api/api_endpoints.dart';
 import 'package:app_client/features/cart/models/cart_item.dart';
 import 'package:app_client/features/checkout/models/delivery_info.dart';
+import 'package:app_client/features/checkout/repositories/address_repository.dart';
 
 /// Signale un 422 DELIVERY_ZONE_UNREACHABLE — distingué des autres erreurs pour que le
 /// notifier puisse afficher un message métier ("hors zone") plutôt qu'une erreur générique.
@@ -15,10 +16,15 @@ class CheckoutRepository {
 
   /// [TECH DEBT corrigé] lat/lng, pas une adresse texte — voir la note en tête de plan.
   /// L'API ne renvoie jamais {deliverable: false} : succès = 200, hors zone = 422.
+  ///
+  /// [subtotal] (sous-total du panier) permet a l'API de calculer les frais reels (livraison
+  /// offerte des X EUR, tarif du soir...) et de verifier le minimum de commande.
   Future<DeliveryInfo> checkDeliveryZone({
     required double lat,
     required double lng,
     String? displayAddress,
+    double? subtotal,
+    int? establishmentId,
   }) async {
     try {
       final response = await _client.post<Map<String, dynamic>>(
@@ -26,15 +32,21 @@ class CheckoutRepository {
         data: {
           'lat': lat,
           'lng': lng,
-          if (displayAddress != null) 'address': displayAddress,
+          if (displayAddress != null && displayAddress.isNotEmpty)
+            'address': displayAddress,
+          if (subtotal != null) 'subtotal': subtotal,
+          if (establishmentId != null) 'establishment_id': establishmentId,
         },
       );
       return DeliveryInfo.fromJson(response.data!);
     } on DioException catch (e) {
-      if (e.response?.statusCode == 422) {
+      final data = e.response?.data;
+      final code = data is Map ? data['code'] : null;
+      if (e.response?.statusCode == 422 &&
+          (code == null || code == 'DELIVERY_ZONE_UNREACHABLE')) {
         throw DeliveryZoneUnreachableException();
       }
-      throw ApiClient.handleDioError(e);
+      throw mapDeliveryError(e);
     }
   }
 
@@ -50,6 +62,7 @@ class CheckoutRepository {
     required String idempotencyKey,
     String? deliveryAddress,
     int? deliveryZoneId,
+    int? establishmentId,
     double? deliveryLat,
     double? deliveryLng,
     String? customerPhone,
@@ -77,6 +90,8 @@ class CheckoutRepository {
               .toList(),
           if (deliveryAddress != null) 'delivery_address': deliveryAddress,
           if (deliveryZoneId != null) 'delivery_zone_id': deliveryZoneId,
+          // Etablissement dont la zone couvre l'adresse (renvoye par /delivery/check).
+          if (establishmentId != null) 'establishment_id': establishmentId,
           // [Phase 0 livraison] Le serveur retrouve la zone a partir du point GPS et
           // refuse une livraison sans coordonnees ni telephone.
           if (deliveryLat != null) 'delivery_lat': deliveryLat,
@@ -90,7 +105,7 @@ class CheckoutRepository {
       );
       return response.data!['id'] as int;
     } on DioException catch (e) {
-      throw ApiClient.handleDioError(e);
+      throw mapDeliveryError(e);
     }
   }
 }

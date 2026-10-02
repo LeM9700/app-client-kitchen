@@ -128,6 +128,8 @@ void main() {
             lat: any(named: 'lat'),
             lng: any(named: 'lng'),
             displayAddress: any(named: 'displayAddress'),
+            subtotal: any(named: 'subtotal'),
+            establishmentId: any(named: 'establishmentId'),
           ),
         ).thenThrow(DeliveryZoneUnreachableException());
 
@@ -144,6 +146,8 @@ void main() {
             lat: 0,
             lng: 0,
             displayAddress: '1 rue Hors Zone, Nulle Part',
+            subtotal: any(named: 'subtotal'),
+            establishmentId: any(named: 'establishmentId'),
           ),
         ).called(1);
         expect(

@@ -14,6 +14,8 @@ class KitchenOrderSummary extends StatelessWidget {
     required this.deliveryMode,
     required this.subtotal,
     required this.deliveryFee,
+    this.freeDelivery = false,
+    this.remainingForFree,
     required this.total,
     this.discountTotal = 0,
     this.address,
@@ -25,6 +27,13 @@ class KitchenOrderSummary extends StatelessWidget {
   final DeliveryMode deliveryMode;
   final double subtotal;
   final double deliveryFee;
+
+  /// La livraison est offerte (regle de zone, code promo ou recompense) : on l'affiche
+  /// explicitement au lieu de masquer la ligne.
+  final bool freeDelivery;
+
+  /// Montant qu'il manque au panier pour debloquer une livraison offerte, si applicable.
+  final double? remainingForFree;
   final double discountTotal;
   final double total;
   final String? address;
@@ -55,6 +64,19 @@ class KitchenOrderSummary extends StatelessWidget {
         _SummaryLine(label: 'Sous-total', value: subtotal),
         if (deliveryFee > 0)
           _SummaryLine(label: 'Livraison', value: deliveryFee),
+        if (freeDelivery)
+          const _SummaryTextLine(label: 'Livraison', value: 'Offerte'),
+        if (!freeDelivery && (remainingForFree ?? 0) > 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: KitchenSpacing.xxs),
+            child: Text(
+              'Plus que ${formatPrice(remainingForFree!)} pour la livraison offerte',
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.olive,
+                fontSize: 13,
+              ),
+            ),
+          ),
         if (discountTotal > 0)
           _SummaryLine(label: 'Reduction', value: -discountTotal),
         const SizedBox(height: KitchenSpacing.sm),
@@ -120,6 +142,39 @@ class _CartSummaryRow extends StatelessWidget {
             formatPrice(item.totalPrice),
             style:
                 KitchenTypography.label.copyWith(color: KitchenColors.espresso),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryTextLine extends StatelessWidget {
+  const _SummaryTextLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: KitchenSpacing.xxs),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: KitchenTypography.body.copyWith(
+              color: KitchenColors.textMuted,
+              fontSize: 15,
+            ),
+          ),
+          Text(
+            value,
+            style: KitchenTypography.label.copyWith(
+              color: KitchenColors.olive,
+              fontSize: 15,
+            ),
           ),
         ],
       ),

@@ -16,6 +16,15 @@ abstract final class Env {
     defaultValue: 'http://127.0.0.1:8000/api/v1',
   );
 
+  /// Jeton Mapbox PUBLIC (`pk.*`) pour afficher les tuiles de la carte de livraison. Il est
+  /// fait pour etre embarque dans l'app (restreignez-le a l'identifiant du bundle dans le
+  /// tableau de bord Mapbox). Le jeton SECRET du geocodage reste cote serveur. Vide = tuiles
+  /// OpenStreetMap, acceptable en developpement uniquement (conditions d'usage OSM).
+  static const String mapboxPublicToken = String.fromEnvironment(
+    'MAPBOX_PUBLIC_TOKEN',
+    defaultValue: '',
+  );
+
   /// Stripe publishable key. Production builds must use a `pk_live_...` key.
   static const String stripePublishableKey = String.fromEnvironment(
     'STRIPE_PUBLISHABLE_KEY',

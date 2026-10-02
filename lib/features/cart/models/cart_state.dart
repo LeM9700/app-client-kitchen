@@ -13,6 +13,7 @@ class CartState with _$CartState {
     String? promoCode,
     double? promoDiscount, // Montant de remise (null si pas de promo validée)
     String? promoError,
+    @Default(false) bool promoFreeDelivery, // Le code promo valide offre la livraison
     @Default(false) bool isValidatingPromo,
   }) = _CartState;
 

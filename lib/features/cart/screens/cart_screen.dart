@@ -412,7 +412,11 @@ class _PromoCodeFieldState extends ConsumerState<_PromoCodeField> {
             orderTotal: widget.orderTotal,
           );
       if (preview.valid) {
-        notifier.setPromoResult(discount: preview.discount, code: code);
+        notifier.setPromoResult(
+          discount: preview.discount,
+          code: code,
+          freeDelivery: preview.freeDelivery,
+        );
       } else {
         notifier.setPromoError(invalidPromoMessage);
       }
@@ -498,10 +502,12 @@ class _PromoCodeFieldState extends ConsumerState<_PromoCodeField> {
           Padding(
             padding: const EdgeInsets.only(top: KitchenSpacing.xs),
             child: Text(
-              l10n.cartPromoAppliedLabel(
-                cart.promoCode!,
-                formatPrice(cart.promoDiscount!),
-              ),
+              cart.promoDiscount! == 0 && cart.promoFreeDelivery
+                  ? l10n.cartPromoFreeDeliveryApplied(cart.promoCode!)
+                  : l10n.cartPromoAppliedLabel(
+                      cart.promoCode!,
+                      formatPrice(cart.promoDiscount!),
+                    ),
               style: KitchenTypography.label.copyWith(
                 color: KitchenColors.olive,
               ),
@@ -577,7 +583,7 @@ class _CartSummary extends StatelessWidget {
             label: l10n.cartSubtotalLabel,
             value: formatPrice(cart.subtotal),
           ),
-          if (cart.promoDiscount != null)
+          if (cart.promoDiscount != null && cart.promoDiscount! > 0)
             _SummaryRow(
               label:
                   '${l10n.cartDiscountLabel}${cart.promoCode != null ? ' (${cart.promoCode})' : ''}',

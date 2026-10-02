@@ -46,6 +46,15 @@ final class ValidationException extends AppException {
   final Map<String, String> fieldErrors;
 }
 
+/// Erreur metier de la livraison, identifiee par le `code` renvoye par l'API (par exemple
+/// `DELIVERY_DISABLED`, `DELIVERY_MIN_ORDER_NOT_MET`). L'ecran choisit le message traduit
+/// d'apres le code ; [message] n'est que le texte technique du serveur.
+final class DeliveryException extends AppException {
+  const DeliveryException(this.code, super.message);
+
+  final String code;
+}
+
 /// Ressource introuvable (404).
 final class NotFoundException extends AppException {
   const NotFoundException([super.message = 'Ressource introuvable.']);
