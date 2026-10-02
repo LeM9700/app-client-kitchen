@@ -10,6 +10,7 @@ import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/orders/models/order.dart';
+import 'package:app_client/features/orders/providers/order_provider.dart';
 import 'package:app_client/features/orders/widgets/kitchen_order_timeline.dart';
 import 'package:app_client/features/orders/widgets/kitchen_status_badge.dart';
 import 'package:app_client/features/orders/widgets/order_status_presentation.dart';
@@ -144,6 +145,10 @@ class _TrackingBody extends StatelessWidget {
             ],
           ),
         ),
+        if (showsDeliveryCode(order)) ...[
+          const SizedBox(height: KitchenSpacing.md),
+          _DeliveryCodeCard(orderId: order.id),
+        ],
         const SizedBox(height: KitchenSpacing.md),
         KitchenSurface(
           padding: const EdgeInsets.all(KitchenSpacing.lg),
@@ -158,6 +163,62 @@ class _TrackingBody extends StatelessWidget {
         const SizedBox(height: KitchenSpacing.md),
         const _SupportCard(),
       ],
+    );
+  }
+}
+
+/// Le code de remise ne s'affiche que pour une livraison confirmee et pas encore terminee.
+bool showsDeliveryCode(Order order) =>
+    order.orderType == OrderType.delivery &&
+    !order.isTerminal &&
+    order.status != OrderStatusCode.pending &&
+    order.status != OrderStatusCode.unknown;
+
+/// Code a 4 chiffres a donner au livreur : prouve que la commande est remise a la bonne personne.
+class _DeliveryCodeCard extends ConsumerWidget {
+  const _DeliveryCodeCard({required this.orderId});
+
+  final int orderId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final code = ref.watch(deliveryCodeProvider(orderId)).valueOrNull;
+    if (code == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
+    return KitchenSurface(
+      padding: const EdgeInsets.all(KitchenSpacing.lg),
+      child: Semantics(
+        container: true,
+        label: '${l10n.trackingDeliveryCodeTitle} ${code.split('').join(' ')}',
+        excludeSemantics: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.trackingDeliveryCodeTitle,
+              style: KitchenTypography.label.copyWith(fontSize: 15),
+            ),
+            const SizedBox(height: KitchenSpacing.sm),
+            Center(
+              child: Text(
+                code.split('').join(' '),
+                key: const ValueKey('delivery-code'),
+                style: KitchenTypography.display.copyWith(
+                  color: KitchenColors.cognac,
+                  letterSpacing: 6,
+                ),
+              ),
+            ),
+            const SizedBox(height: KitchenSpacing.sm),
+            Text(
+              l10n.trackingDeliveryCodeHint,
+              style: KitchenTypography.body.copyWith(
+                color: KitchenColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

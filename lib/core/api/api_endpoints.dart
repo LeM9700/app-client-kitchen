@@ -59,6 +59,10 @@ abstract final class ApiEndpoints {
   /// était l'hypothèse erronée du plan d'origine.
   static String reorder(int orderId) => '/orders/$orderId/reorder';
 
+  /// Code de remise a 4 chiffres a donner au livreur : `GET /orders/{id}/delivery-code`.
+  static String orderDeliveryCode(int orderId) =>
+      '/orders/$orderId/delivery-code';
+
   // ── Notifications / temps réel (Plan 14) ─────────────────────────────────
   // [🔒 CORRECTIF api-corrections-phase-d.md §4] Canal générique par user, pas
   // par commande — il n'existe PAS de route `/ws/orders/{id}`.

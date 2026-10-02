@@ -441,6 +441,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de charger les conditions. Vérifiez votre connexion.';
 
   @override
+  String get trackingDeliveryCodeTitle => 'Votre code de remise';
+
+  @override
+  String get trackingDeliveryCodeHint =>
+      'Donnez ce code au livreur quand il vous remet la commande. Ne le partagez avec personne d\'autre.';
+
+  @override
   String trackingOrderTitle(int orderId) {
     return 'Commande #$orderId';
   }

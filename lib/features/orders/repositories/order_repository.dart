@@ -83,6 +83,24 @@ class OrderRepository {
     }
   }
 
+  /// `GET /orders/{id}/delivery-code` : le code a 4 chiffres que le client donne au livreur.
+  ///
+  /// `null` quand il n'y a (plus) rien a donner : commande a emporter, pas encore confirmee,
+  /// deja livree ou annulee (404 / 409 cote API). Les autres erreurs remontent.
+  Future<String?> getDeliveryCode(int id) async {
+    try {
+      final response = await _client.get<Map<String, dynamic>>(
+        ApiEndpoints.orderDeliveryCode(id),
+      );
+      final code = response.data?['code'];
+      return code is String && code.isNotEmpty ? code : null;
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 404 || status == 409) return null;
+      throw ApiClient.handleDioError(e);
+    }
+  }
+
   /// `POST /orders/{id}/reorder` — l'id est dans le CHEMIN, pas le body
   /// (le plan d'origine supposait `POST /orders/reorder {orderId}`, faux —
   /// voir api-corrections-phase-d.md §5). Ne crée PAS de commande : retourne

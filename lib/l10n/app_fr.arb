@@ -216,6 +216,8 @@
   },
   "paymentGuaranteeTermsError": "Impossible de charger les conditions. Vérifiez votre connexion.",
 
+  "trackingDeliveryCodeTitle": "Votre code de remise",
+  "trackingDeliveryCodeHint": "Donnez ce code au livreur quand il vous remet la commande. Ne le partagez avec personne d'autre.",
   "trackingOrderTitle": "Commande #{orderId}",
   "@trackingOrderTitle": {
     "placeholders": { "orderId": { "type": "int" } }

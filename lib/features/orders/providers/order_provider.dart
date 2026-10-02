@@ -119,6 +119,13 @@ class OrderHistoryNotifier extends StateNotifier<OrderHistoryState> {
 
 /// `.family` par id, `autoDispose` : pas de cache persistant entre deux
 /// visites de l'écran (le statut/l'historique ont pu changer entre-temps).
+/// Code de remise du client pour une commande en livraison (voir
+/// `OrderRepository.getDeliveryCode`) ; `null` s'il n'y a rien a afficher.
+final deliveryCodeProvider =
+    FutureProvider.autoDispose.family<String?, int>((ref, orderId) {
+  return ref.read(orderRepositoryProvider).getDeliveryCode(orderId);
+});
+
 final orderDetailProvider =
     FutureProvider.family.autoDispose<Order, int>((ref, orderId) {
   return ref.read(orderRepositoryProvider).getOrderById(orderId);

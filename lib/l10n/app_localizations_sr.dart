@@ -438,6 +438,13 @@ class AppLocalizationsSr extends AppLocalizations {
       'Nije moguće učitati uslove. Proverite vezu.';
 
   @override
+  String get trackingDeliveryCodeTitle => 'Vaš kod za preuzimanje';
+
+  @override
+  String get trackingDeliveryCodeHint =>
+      'Dajte ovaj kod dostavljaču kada vam preda porudžbinu. Ne delite ga ni sa kim drugim.';
+
+  @override
   String trackingOrderTitle(int orderId) {
     return 'Porudžbina #$orderId';
   }
@@ -1001,6 +1008,13 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
   @override
   String get paymentGuaranteeTermsError =>
       'Nije moguće učitati uslove. Proverite vezu.';
+
+  @override
+  String get trackingDeliveryCodeTitle => 'Vaš kod za preuzimanje';
+
+  @override
+  String get trackingDeliveryCodeHint =>
+      'Dajte ovaj kod dostavljaču kada vam preda porudžbinu. Ne delite ga ni sa kim drugim.';
 
   @override
   String trackingOrderTitle(int orderId) {

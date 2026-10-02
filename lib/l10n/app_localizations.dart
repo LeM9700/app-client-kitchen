@@ -843,6 +843,18 @@ abstract class AppLocalizations {
   /// **'Impossible de charger les conditions. Vérifiez votre connexion.'**
   String get paymentGuaranteeTermsError;
 
+  /// No description provided for @trackingDeliveryCodeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre code de remise'**
+  String get trackingDeliveryCodeTitle;
+
+  /// No description provided for @trackingDeliveryCodeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donnez ce code au livreur quand il vous remet la commande. Ne le partagez avec personne d\'autre.'**
+  String get trackingDeliveryCodeHint;
+
   /// No description provided for @trackingOrderTitle.
   ///
   /// In fr, this message translates to:
