@@ -396,6 +396,48 @@ class AppLocalizationsSr extends AppLocalizations {
   String get paymentCancelButton => 'Otkaži';
 
   @override
+  String get paymentModeOnlineTitle => 'Plati sada';
+
+  @override
+  String get paymentModeOnlineSubtitle => 'Platna kartica, naplata odmah';
+
+  @override
+  String get paymentModeOnDeliveryTitle => 'Plati pri isporuci';
+
+  @override
+  String get paymentModeOnDeliverySubtitle =>
+      'Gotovina ili kartica, uz blokadu sredstava na kartici';
+
+  @override
+  String get paymentGuaranteeHeading => 'Iznos blokiran na kartici';
+
+  @override
+  String paymentGuaranteeExplainer(String amount) {
+    return 'Blokiramo $amount na vašoj kartici kako bismo garantovali porudžbinu. Ništa se ne naplaćuje: plaćate dostavljaču (gotovina ili kartica), a blokada se ukida.';
+  }
+
+  @override
+  String get paymentGuaranteeChargeRule =>
+      'Karticu možemo teretiti samo ako isporuka propadne vašom krivicom: odsustvo, pogrešna adresa, nedostupnost ili odbijena porudžbina.';
+
+  @override
+  String paymentGuaranteeValidity(int days) {
+    return 'Ako nema naplate, blokada nestaje sama u roku od $days dana.';
+  }
+
+  @override
+  String get paymentGuaranteeAccept => 'Razumem i prihvatam ove uslove';
+
+  @override
+  String paymentGuaranteeCta(String amount) {
+    return 'Ostavi blokadu ($amount)';
+  }
+
+  @override
+  String get paymentGuaranteeTermsError =>
+      'Nije moguće učitati uslove. Proverite vezu.';
+
+  @override
   String trackingOrderTitle(int orderId) {
     return 'Porudžbina #$orderId';
   }
@@ -917,6 +959,48 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get paymentCancelButton => 'Otkaži';
+
+  @override
+  String get paymentModeOnlineTitle => 'Plati sada';
+
+  @override
+  String get paymentModeOnlineSubtitle => 'Platna kartica, naplata odmah';
+
+  @override
+  String get paymentModeOnDeliveryTitle => 'Plati pri isporuci';
+
+  @override
+  String get paymentModeOnDeliverySubtitle =>
+      'Gotovina ili kartica, uz blokadu sredstava na kartici';
+
+  @override
+  String get paymentGuaranteeHeading => 'Iznos blokiran na kartici';
+
+  @override
+  String paymentGuaranteeExplainer(String amount) {
+    return 'Blokiramo $amount na vašoj kartici kako bismo garantovali porudžbinu. Ništa se ne naplaćuje: plaćate dostavljaču (gotovina ili kartica), a blokada se ukida.';
+  }
+
+  @override
+  String get paymentGuaranteeChargeRule =>
+      'Karticu možemo teretiti samo ako isporuka propadne vašom krivicom: odsustvo, pogrešna adresa, nedostupnost ili odbijena porudžbina.';
+
+  @override
+  String paymentGuaranteeValidity(int days) {
+    return 'Ako nema naplate, blokada nestaje sama u roku od $days dana.';
+  }
+
+  @override
+  String get paymentGuaranteeAccept => 'Razumem i prihvatam ove uslove';
+
+  @override
+  String paymentGuaranteeCta(String amount) {
+    return 'Ostavi blokadu ($amount)';
+  }
+
+  @override
+  String get paymentGuaranteeTermsError =>
+      'Nije moguće učitati uslove. Proverite vezu.';
 
   @override
   String trackingOrderTitle(int orderId) {

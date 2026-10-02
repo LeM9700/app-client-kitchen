@@ -12,6 +12,7 @@ import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/orders/models/order.dart';
+import 'package:app_client/features/orders/models/payment_status_label.dart';
 import 'package:app_client/features/orders/models/reorder_result.dart';
 import 'package:app_client/features/orders/providers/order_provider.dart';
 import 'package:app_client/features/orders/widgets/kitchen_order_item_row.dart';
@@ -153,7 +154,7 @@ class _OrderDetailBody extends ConsumerWidget {
           title: 'Paiement',
           child: _InfoLine(
             icon: Icons.payments_outlined,
-            text: 'Statut : ${order.paymentStatus}',
+            text: 'Statut : ${paymentStatusLabel(order.paymentStatus)}',
           ),
         ),
         const SizedBox(height: KitchenSpacing.md),

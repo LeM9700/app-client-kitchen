@@ -68,6 +68,8 @@ abstract final class ApiEndpoints {
   // ── Paiement ──────────────────────────────────────────────────────────────
   static const String paymentIntent = '/payments/intent';
   static const String paymentConfirm = '/payments/confirm';
+  static const String guaranteeTerms = '/payments/guarantee-terms';
+  static const String guaranteeIntent = '/payments/guarantee-intent';
   static const String localTestPaymentConfirm = '/payments/local-test/confirm';
 
   // ── Livraison ─────────────────────────────────────────────────────────────

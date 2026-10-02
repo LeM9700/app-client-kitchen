@@ -397,6 +397,50 @@ class AppLocalizationsFr extends AppLocalizations {
   String get paymentCancelButton => 'Annuler';
 
   @override
+  String get paymentModeOnlineTitle => 'Payer maintenant';
+
+  @override
+  String get paymentModeOnlineSubtitle =>
+      'Carte bancaire, débitée tout de suite';
+
+  @override
+  String get paymentModeOnDeliveryTitle => 'Payer à la livraison';
+
+  @override
+  String get paymentModeOnDeliverySubtitle =>
+      'Espèces ou carte, avec une empreinte bancaire';
+
+  @override
+  String get paymentGuaranteeHeading => 'Montant bloqué sur la carte';
+
+  @override
+  String paymentGuaranteeExplainer(String amount) {
+    return 'Nous bloquons $amount sur votre carte pour garantir la commande. Aucun débit n\'est effectué : vous payez le livreur (espèces ou carte) et le blocage est levé.';
+  }
+
+  @override
+  String get paymentGuaranteeChargeRule =>
+      'Nous ne pouvons débiter votre carte que si la livraison échoue de votre fait : absence, adresse erronée, injoignable ou commande refusée.';
+
+  @override
+  String paymentGuaranteeValidity(int days) {
+    return 'Sans débit, le blocage disparaît de lui-même sous $days jours.';
+  }
+
+  @override
+  String get paymentGuaranteeAccept =>
+      'J\'ai compris et j\'accepte ces conditions';
+
+  @override
+  String paymentGuaranteeCta(String amount) {
+    return 'Laisser mon empreinte ($amount)';
+  }
+
+  @override
+  String get paymentGuaranteeTermsError =>
+      'Impossible de charger les conditions. Vérifiez votre connexion.';
+
+  @override
   String trackingOrderTitle(int orderId) {
     return 'Commande #$orderId';
   }

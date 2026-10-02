@@ -195,6 +195,27 @@
   "paymentPayNowButton": "Payer maintenant",
   "paymentCancelButton": "Annuler",
 
+  "paymentModeOnlineTitle": "Payer maintenant",
+  "paymentModeOnlineSubtitle": "Carte bancaire, débitée tout de suite",
+  "paymentModeOnDeliveryTitle": "Payer à la livraison",
+  "paymentModeOnDeliverySubtitle": "Espèces ou carte, avec une empreinte bancaire",
+  "paymentGuaranteeHeading": "Montant bloqué sur la carte",
+  "paymentGuaranteeExplainer": "Nous bloquons {amount} sur votre carte pour garantir la commande. Aucun débit n'est effectué : vous payez le livreur (espèces ou carte) et le blocage est levé.",
+  "@paymentGuaranteeExplainer": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "paymentGuaranteeChargeRule": "Nous ne pouvons débiter votre carte que si la livraison échoue de votre fait : absence, adresse erronée, injoignable ou commande refusée.",
+  "paymentGuaranteeValidity": "Sans débit, le blocage disparaît de lui-même sous {days} jours.",
+  "@paymentGuaranteeValidity": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "paymentGuaranteeAccept": "J'ai compris et j'accepte ces conditions",
+  "paymentGuaranteeCta": "Laisser mon empreinte ({amount})",
+  "@paymentGuaranteeCta": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "paymentGuaranteeTermsError": "Impossible de charger les conditions. Vérifiez votre connexion.",
+
   "trackingOrderTitle": "Commande #{orderId}",
   "@trackingOrderTitle": {
     "placeholders": { "orderId": { "type": "int" } }

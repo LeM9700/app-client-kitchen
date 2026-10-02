@@ -11,30 +11,63 @@ import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/checkout/widgets/kitchen_checkout_step_header.dart';
+import 'package:app_client/features/orders/models/order.dart';
 import 'package:app_client/features/orders/providers/order_provider.dart';
 import 'package:app_client/features/payment/providers/payment_provider.dart';
+import 'package:app_client/features/payment/repositories/payment_repository.dart';
 import 'package:app_client/features/payment/services/stripe_payment_sheet_client.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 
 /// Ecran de paiement : le CTA ouvre la vraie Stripe PaymentSheet.
-class PaymentScreen extends ConsumerWidget {
+///
+/// Une livraison peut aussi etre payee a la remise : le client laisse alors une
+/// empreinte bancaire (total pre-autorise, aucun debit) apres avoir accepte les
+/// conditions affichees.
+class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key, required this.orderId});
   final int orderId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
+}
+
+class _PaymentScreenState extends ConsumerState<PaymentScreen> {
+  bool _onDeliveryChoice = false;
+  bool _termsAccepted = false;
+
+  void _selectMode({required bool onDelivery}) {
+    if (_onDeliveryChoice == onDelivery) return;
+    setState(() {
+      _onDeliveryChoice = onDelivery;
+      _termsAccepted = false;
+    });
+    ref.read(paymentProvider.notifier).reset();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final orderId = widget.orderId;
     final paymentState = ref.watch(paymentProvider);
     final orderAsync = ref.watch(orderDetailProvider(orderId));
     final order = orderAsync.valueOrNull;
     final l10n = AppLocalizations.of(context)!;
     final total = order?.total;
+    final canChooseOnDelivery = order != null &&
+        order.orderType == OrderType.delivery &&
+        order.paymentStatus == 'pending';
+    final onDelivery = canChooseOnDelivery && _onDeliveryChoice;
+    final termsAsync = onDelivery ? ref.watch(guaranteeTermsProvider) : null;
+    final terms = termsAsync?.valueOrNull;
+    final canSubmit = !onDelivery || (terms != null && _termsAccepted);
     final isLoading = paymentState.status == PaymentStatus.loading;
     final payLabel = isLoading
         ? 'Validation du paiement...'
         : paymentState.status == PaymentStatus.failure
             ? l10n.paymentRetryButton
             : total != null
-                ? 'Payer ${formatPrice(total)}'
+                ? (onDelivery
+                    ? l10n.paymentGuaranteeCta(formatPrice(total))
+                    : 'Payer ${formatPrice(total)}')
                 : l10n.paymentPayNowButton;
 
     ref.listen(paymentProvider, (_, next) {
@@ -63,8 +96,18 @@ class PaymentScreen extends ConsumerWidget {
                   KitchenSpacing.xl,
                 ),
                 children: [
+                  if (canChooseOnDelivery) ...[
+                    _PaymentModeSelector(
+                      onDelivery: onDelivery,
+                      enabled: !isLoading,
+                      onChanged: (value) => _selectMode(onDelivery: value),
+                    ),
+                    const SizedBox(height: KitchenSpacing.lg),
+                  ],
                   Text(
-                    'Montant a regler',
+                    onDelivery
+                        ? l10n.paymentGuaranteeHeading
+                        : 'Montant a regler',
                     style: KitchenTypography.title.copyWith(fontSize: 30),
                     textAlign: TextAlign.center,
                   ),
@@ -144,6 +187,17 @@ class PaymentScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  if (onDelivery) ...[
+                    const SizedBox(height: KitchenSpacing.md),
+                    _GuaranteeTerms(
+                      amount: total != null ? formatPrice(total) : '',
+                      termsAsync: termsAsync!,
+                      accepted: _termsAccepted,
+                      onAcceptedChanged: (value) =>
+                          setState(() => _termsAccepted = value),
+                      onRetry: () => ref.invalidate(guaranteeTermsProvider),
+                    ),
+                  ],
                   if (paymentState.wasCancelled) ...[
                     const SizedBox(height: KitchenSpacing.md),
                     const _PaymentNotice(
@@ -172,11 +226,17 @@ class PaymentScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     KitchenEmbossedButton(
-                      onPressed: () =>
-                          ref.read(paymentProvider.notifier).pay(orderId),
+                      onPressed: canSubmit
+                          ? () => ref.read(paymentProvider.notifier).pay(
+                                orderId,
+                                guarantee: onDelivery ? terms : null,
+                              )
+                          : null,
                       isLoading: isLoading,
                       semanticLabel: total != null
-                          ? 'Payer ${formatPrice(total)}'
+                          ? (onDelivery
+                              ? l10n.paymentGuaranteeCta(formatPrice(total))
+                              : 'Payer ${formatPrice(total)}')
                           : 'Payer la commande',
                       child: Text(payLabel),
                     ),
@@ -208,6 +268,216 @@ class PaymentScreen extends ConsumerWidget {
       supportsNativeStripePaymentSheet &&
       !kIsWeb &&
       defaultTargetPlatform == TargetPlatform.android;
+}
+
+class _PaymentModeSelector extends StatelessWidget {
+  const _PaymentModeSelector({
+    required this.onDelivery,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final bool onDelivery;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      children: [
+        _PaymentModeOption(
+          icon: Icons.credit_card,
+          title: l10n.paymentModeOnlineTitle,
+          subtitle: l10n.paymentModeOnlineSubtitle,
+          selected: !onDelivery,
+          onTap: enabled ? () => onChanged(false) : null,
+        ),
+        const SizedBox(height: KitchenSpacing.sm),
+        _PaymentModeOption(
+          icon: Icons.delivery_dining_outlined,
+          title: l10n.paymentModeOnDeliveryTitle,
+          subtitle: l10n.paymentModeOnDeliverySubtitle,
+          selected: onDelivery,
+          onTap: enabled ? () => onChanged(true) : null,
+        ),
+      ],
+    );
+  }
+}
+
+class _PaymentModeOption extends StatelessWidget {
+  const _PaymentModeOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      label: title,
+      hint: subtitle,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 64),
+          padding: const EdgeInsets.all(KitchenSpacing.md),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? KitchenColors.cognac
+                  : KitchenColors.brown700.withValues(alpha: 0.2),
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: KitchenColors.cognac),
+              const SizedBox(width: KitchenSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: KitchenTypography.label),
+                    const SizedBox(height: KitchenSpacing.xxs),
+                    Text(
+                      subtitle,
+                      style: KitchenTypography.body.copyWith(
+                        color: KitchenColors.textMuted,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                color: selected
+                    ? KitchenColors.cognac
+                    : KitchenColors.textMuted,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GuaranteeTerms extends StatelessWidget {
+  const _GuaranteeTerms({
+    required this.amount,
+    required this.termsAsync,
+    required this.accepted,
+    required this.onAcceptedChanged,
+    required this.onRetry,
+  });
+
+  final String amount;
+  final AsyncValue<GuaranteeTerms> termsAsync;
+  final bool accepted;
+  final ValueChanged<bool> onAcceptedChanged;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final terms = termsAsync.valueOrNull;
+    return KitchenSurface(
+      elevation: KitchenElevation.inset,
+      padding: const EdgeInsets.all(KitchenSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _PaymentFact(
+            icon: Icons.shield_outlined,
+            text: l10n.paymentGuaranteeExplainer(amount),
+          ),
+          const SizedBox(height: KitchenSpacing.xs),
+          _PaymentFact(
+            icon: Icons.info_outline,
+            text: l10n.paymentGuaranteeChargeRule,
+          ),
+          if (terms != null) ...[
+            const SizedBox(height: KitchenSpacing.xs),
+            _PaymentFact(
+              icon: Icons.schedule,
+              text: l10n.paymentGuaranteeValidity(terms.holdValidityDays),
+            ),
+            const SizedBox(height: KitchenSpacing.xs),
+            // Pas de CheckboxListTile : un ListTile sous une surface decoree leve une
+            // assertion Flutter en debug (ses effets d'encre seraient masques).
+            Semantics(
+              container: true,
+              excludeSemantics: true,
+              checked: accepted,
+              label: l10n.paymentGuaranteeAccept,
+              onTap: () => onAcceptedChanged(!accepted),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onAcceptedChanged(!accepted),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: accepted,
+                        activeColor: KitchenColors.cognac,
+                        onChanged: (value) => onAcceptedChanged(value ?? false),
+                      ),
+                      Expanded(
+                        child: Text(
+                          l10n.paymentGuaranteeAccept,
+                          style: KitchenTypography.body,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ] else if (termsAsync.hasError) ...[
+            const SizedBox(height: KitchenSpacing.sm),
+            _PaymentNotice(
+              icon: Icons.error_outline,
+              color: KitchenColors.terracotta,
+              text: l10n.paymentGuaranteeTermsError,
+            ),
+            TextButton(
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                foregroundColor: KitchenColors.cognac,
+                minimumSize: const Size(44, 44),
+              ),
+              child: Text(l10n.paymentRetryButton),
+            ),
+          ] else
+            const Padding(
+              padding: EdgeInsets.only(top: KitchenSpacing.sm),
+              child: Center(
+                child: KitchenLoadingIndicator(color: KitchenColors.cognac),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 class _PaymentMethodCard extends StatelessWidget {

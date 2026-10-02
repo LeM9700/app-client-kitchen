@@ -777,6 +777,72 @@ abstract class AppLocalizations {
   /// **'Annuler'**
   String get paymentCancelButton;
 
+  /// No description provided for @paymentModeOnlineTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payer maintenant'**
+  String get paymentModeOnlineTitle;
+
+  /// No description provided for @paymentModeOnlineSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte bancaire, débitée tout de suite'**
+  String get paymentModeOnlineSubtitle;
+
+  /// No description provided for @paymentModeOnDeliveryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payer à la livraison'**
+  String get paymentModeOnDeliveryTitle;
+
+  /// No description provided for @paymentModeOnDeliverySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espèces ou carte, avec une empreinte bancaire'**
+  String get paymentModeOnDeliverySubtitle;
+
+  /// No description provided for @paymentGuaranteeHeading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant bloqué sur la carte'**
+  String get paymentGuaranteeHeading;
+
+  /// No description provided for @paymentGuaranteeExplainer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nous bloquons {amount} sur votre carte pour garantir la commande. Aucun débit n\'est effectué : vous payez le livreur (espèces ou carte) et le blocage est levé.'**
+  String paymentGuaranteeExplainer(String amount);
+
+  /// No description provided for @paymentGuaranteeChargeRule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nous ne pouvons débiter votre carte que si la livraison échoue de votre fait : absence, adresse erronée, injoignable ou commande refusée.'**
+  String get paymentGuaranteeChargeRule;
+
+  /// No description provided for @paymentGuaranteeValidity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans débit, le blocage disparaît de lui-même sous {days} jours.'**
+  String paymentGuaranteeValidity(int days);
+
+  /// No description provided for @paymentGuaranteeAccept.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai compris et j\'accepte ces conditions'**
+  String get paymentGuaranteeAccept;
+
+  /// No description provided for @paymentGuaranteeCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laisser mon empreinte ({amount})'**
+  String paymentGuaranteeCta(String amount);
+
+  /// No description provided for @paymentGuaranteeTermsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les conditions. Vérifiez votre connexion.'**
+  String get paymentGuaranteeTermsError;
+
   /// No description provided for @trackingOrderTitle.
   ///
   /// In fr, this message translates to:

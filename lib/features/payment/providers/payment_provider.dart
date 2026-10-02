@@ -14,6 +14,12 @@ final paymentRepositoryProvider = Provider<PaymentRepository>(
   (ref) => PaymentRepository(ref.read(apiClientProvider)),
 );
 
+/// Conditions de l'empreinte bancaire, chargees depuis le serveur (version
+/// incluse) pour que l'ecran affiche exactement la politique appliquee.
+final guaranteeTermsProvider = FutureProvider.autoDispose<GuaranteeTerms>(
+  (ref) => ref.read(paymentRepositoryProvider).fetchGuaranteeTerms(),
+);
+
 enum PaymentStatus { idle, loading, success, failure }
 
 class PaymentState {
@@ -23,6 +29,7 @@ class PaymentState {
     this.clientSecret,
     this.providerPaymentId,
     this.wasCancelled = false,
+    this.onDelivery = false,
   });
 
   final PaymentStatus status;
@@ -30,6 +37,10 @@ class PaymentState {
   final String? clientSecret;
   final String? providerPaymentId;
   final bool wasCancelled;
+
+  /// `true` quand l'intent en cours est une empreinte bancaire (paiement a la
+  /// livraison) : il ne doit jamais etre reutilise pour un paiement immediat.
+  final bool onDelivery;
 }
 
 class PaymentNotifier extends StateNotifier<PaymentState> {
@@ -40,11 +51,15 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
   final StripePaymentSheetClient _paymentSheetClient;
   final Ref _ref;
 
-  Future<bool> pay(int orderId) async {
+  /// Paie la commande. Avec [guarantee], le client ne paie pas maintenant : le
+  /// total est seulement pre-autorise sur sa carte (empreinte bancaire) et il
+  /// regle a la livraison.
+  Future<bool> pay(int orderId, {GuaranteeTerms? guarantee}) async {
     if (state.status == PaymentStatus.loading) return false;
+    final onDelivery = guarantee != null;
 
     if (!supportsNativeStripePaymentSheet) {
-      if (_supportsLocalWebTestPayment) {
+      if (_supportsLocalWebTestPayment && !onDelivery) {
         return _payLocalWebTest(orderId);
       }
 
@@ -56,15 +71,18 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
       return false;
     }
 
+    // Un intent d'un autre mode (empreinte vs paiement immediat) n'est jamais reutilise.
+    final reusable = state.onDelivery == onDelivery;
     state = PaymentState(
       status: PaymentStatus.loading,
-      clientSecret: state.clientSecret,
-      providerPaymentId: state.providerPaymentId,
+      clientSecret: reusable ? state.clientSecret : null,
+      providerPaymentId: reusable ? state.providerPaymentId : null,
       wasCancelled: false,
+      onDelivery: onDelivery,
     );
     _ref.read(analyticsReporterProvider).track(
       'payment_started',
-      {'order_id': orderId},
+      {'order_id': orderId, if (onDelivery) 'mode': 'guarantee'},
     );
 
     try {
@@ -78,7 +96,9 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
           {'order_id': orderId},
         );
       } else {
-        final intent = await _repo.createPaymentIntent(orderId);
+        final intent = guarantee != null
+            ? await _repo.createGuaranteeIntent(orderId, guarantee.version)
+            : await _repo.createPaymentIntent(orderId);
         clientSecret = intent.clientSecret;
         providerPaymentId = intent.providerPaymentId;
         _ref.read(analyticsReporterProvider).track(
@@ -90,6 +110,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
           clientSecret: clientSecret,
           providerPaymentId: providerPaymentId,
           wasCancelled: false,
+          onDelivery: onDelivery,
         );
       }
 
@@ -116,6 +137,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
         clientSecret: state.clientSecret,
         providerPaymentId: state.providerPaymentId,
         wasCancelled: true,
+        onDelivery: onDelivery,
       );
       _ref.read(analyticsReporterProvider).track(
         'payment_cancelled',
@@ -135,6 +157,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
         error: e.message,
         clientSecret: state.clientSecret,
         providerPaymentId: state.providerPaymentId,
+        onDelivery: onDelivery,
       );
       return false;
     } on AppException catch (e) {
@@ -150,6 +173,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
         error: e.message,
         clientSecret: state.clientSecret,
         providerPaymentId: state.providerPaymentId,
+        onDelivery: onDelivery,
       );
       return false;
     }

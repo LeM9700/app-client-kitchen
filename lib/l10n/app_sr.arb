@@ -147,6 +147,18 @@
   "paymentPayNowButton": "Plati sada",
   "paymentCancelButton": "Otkaži",
 
+  "paymentModeOnlineTitle": "Plati sada",
+  "paymentModeOnlineSubtitle": "Platna kartica, naplata odmah",
+  "paymentModeOnDeliveryTitle": "Plati pri isporuci",
+  "paymentModeOnDeliverySubtitle": "Gotovina ili kartica, uz blokadu sredstava na kartici",
+  "paymentGuaranteeHeading": "Iznos blokiran na kartici",
+  "paymentGuaranteeExplainer": "Blokiramo {amount} na vašoj kartici kako bismo garantovali porudžbinu. Ništa se ne naplaćuje: plaćate dostavljaču (gotovina ili kartica), a blokada se ukida.",
+  "paymentGuaranteeChargeRule": "Karticu možemo teretiti samo ako isporuka propadne vašom krivicom: odsustvo, pogrešna adresa, nedostupnost ili odbijena porudžbina.",
+  "paymentGuaranteeValidity": "Ako nema naplate, blokada nestaje sama u roku od {days} dana.",
+  "paymentGuaranteeAccept": "Razumem i prihvatam ove uslove",
+  "paymentGuaranteeCta": "Ostavi blokadu ({amount})",
+  "paymentGuaranteeTermsError": "Nije moguće učitati uslove. Proverite vezu.",
+
   "trackingOrderTitle": "Porudžbina #{orderId}",
   "trackingRefreshTooltip": "Osveži status",
   "trackingLoadErrorMessage": "Nije moguće učitati porudžbinu.",
