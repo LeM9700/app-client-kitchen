@@ -855,6 +855,36 @@ abstract class AppLocalizations {
   /// **'Donnez ce code au livreur quand il vous remet la commande. Ne le partagez avec personne d\'autre.'**
   String get trackingDeliveryCodeHint;
 
+  /// No description provided for @trackingDriverTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre livreur'**
+  String get trackingDriverTitle;
+
+  /// No description provided for @trackingDriverEta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrivée estimée dans environ {minutes} min'**
+  String trackingDriverEta(int minutes);
+
+  /// No description provided for @trackingDriverArrived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre livreur est arrivé'**
+  String get trackingDriverArrived;
+
+  /// No description provided for @trackingDriverNoPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'La position de votre livreur sera bientôt disponible.'**
+  String get trackingDriverNoPosition;
+
+  /// No description provided for @trackingDriverStale.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière position il y a {minutes} min'**
+  String trackingDriverStale(int minutes);
+
   /// No description provided for @trackingOrderTitle.
   ///
   /// In fr, this message translates to:

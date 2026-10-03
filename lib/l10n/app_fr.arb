@@ -218,6 +218,17 @@
 
   "trackingDeliveryCodeTitle": "Votre code de remise",
   "trackingDeliveryCodeHint": "Donnez ce code au livreur quand il vous remet la commande. Ne le partagez avec personne d'autre.",
+  "trackingDriverTitle": "Votre livreur",
+  "trackingDriverEta": "Arrivée estimée dans environ {minutes} min",
+  "@trackingDriverEta": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "trackingDriverArrived": "Votre livreur est arrivé",
+  "trackingDriverNoPosition": "La position de votre livreur sera bientôt disponible.",
+  "trackingDriverStale": "Dernière position il y a {minutes} min",
+  "@trackingDriverStale": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
   "trackingOrderTitle": "Commande #{orderId}",
   "@trackingOrderTitle": {
     "placeholders": { "orderId": { "type": "int" } }

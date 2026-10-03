@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app_client/features/tracking/models/driver_location.dart';
 
 import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/core/providers/api_client_provider.dart';
@@ -121,6 +122,32 @@ class OrderHistoryNotifier extends StateNotifier<OrderHistoryState> {
 /// visites de l'écran (le statut/l'historique ont pu changer entre-temps).
 /// Code de remise du client pour une commande en livraison (voir
 /// `OrderRepository.getDeliveryCode`) ; `null` s'il n'y a rien a afficher.
+/// Intervalle d'actualisation de la position du livreur (le serveur accepte 30 requetes/min).
+const driverLocationPollInterval = Duration(seconds: 8);
+
+/// Position du livreur, actualisee toutes les [driverLocationPollInterval] tant que l'ecran est ouvert.
+/// Une panne reseau garde la derniere position connue (le serveur dit lui-meme si elle est perimee) ;
+/// `null` quand le suivi n'est pas disponible.
+final driverLocationProvider =
+    StreamProvider.autoDispose.family<DriverLocation?, int>((ref, orderId) async* {
+  final repository = ref.read(orderRepositoryProvider);
+  // Un generateur suspendu ne voit l'annulation qu'a son prochain `yield` : sans ce drapeau, il
+  // ferait encore une requete apres la fermeture de l'ecran.
+  var disposed = false;
+  ref.onDispose(() => disposed = true);
+  DriverLocation? last;
+  while (!disposed) {
+    try {
+      last = await repository.getDriverLocation(orderId);
+    } catch (_) {
+      // Reseau coupe : on garde `last` et on reessaie au prochain tour.
+    }
+    if (disposed) return;
+    yield last;
+    await Future<void>.delayed(driverLocationPollInterval);
+  }
+});
+
 final deliveryCodeProvider =
     FutureProvider.autoDispose.family<String?, int>((ref, orderId) {
   return ref.read(orderRepositoryProvider).getDeliveryCode(orderId);

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:app_client/core/api/api_client.dart';
 import 'package:app_client/core/api/api_endpoints.dart';
 import 'package:app_client/features/orders/models/order.dart';
+import 'package:app_client/features/tracking/models/driver_location.dart';
 import 'package:app_client/features/orders/models/reorder_result.dart';
 
 /// Page de résultats paginée par OFFSET (`PaginatedResponse<OrderListOut>`,
@@ -94,6 +95,24 @@ class OrderRepository {
       );
       final code = response.data?['code'];
       return code is String && code.isNotEmpty ? code : null;
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 404 || status == 409) return null;
+      throw ApiClient.handleDioError(e);
+    }
+  }
+
+  /// `GET /orders/{id}/driver-location` : position du livreur pendant la livraison.
+  ///
+  /// `null` quand le suivi n'est pas (ou plus) disponible : commande qui n'est pas en route
+  /// (409), commande d'un autre (404). Les autres erreurs remontent.
+  Future<DriverLocation?> getDriverLocation(int id) async {
+    try {
+      final response = await _client.get<Map<String, dynamic>>(
+        ApiEndpoints.orderDriverLocation(id),
+      );
+      final data = response.data;
+      return data == null ? null : DriverLocation.fromJson(data);
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       if (status == 404 || status == 409) return null;

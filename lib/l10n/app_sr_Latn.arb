@@ -161,6 +161,11 @@
 
   "trackingDeliveryCodeTitle": "Vaš kod za preuzimanje",
   "trackingDeliveryCodeHint": "Dajte ovaj kod dostavljaču kada vam preda porudžbinu. Ne delite ga ni sa kim drugim.",
+  "trackingDriverTitle": "Vaš dostavljač",
+  "trackingDriverEta": "Dolazak za otprilike {minutes} min",
+  "trackingDriverArrived": "Vaš dostavljač je stigao",
+  "trackingDriverNoPosition": "Položaj vašeg dostavljača uskoro će biti dostupan.",
+  "trackingDriverStale": "Poslednji položaj pre {minutes} min",
   "trackingOrderTitle": "Porudžbina #{orderId}",
   "trackingRefreshTooltip": "Osveži status",
   "trackingLoadErrorMessage": "Nije moguće učitati porudžbinu.",

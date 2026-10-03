@@ -63,6 +63,10 @@ abstract final class ApiEndpoints {
   static String orderDeliveryCode(int orderId) =>
       '/orders/$orderId/delivery-code';
 
+  /// Position du livreur de la commande, pendant la livraison : `GET /orders/{id}/driver-location`.
+  static String orderDriverLocation(int orderId) =>
+      '/orders/$orderId/driver-location';
+
   // ── Notifications / temps réel (Plan 14) ─────────────────────────────────
   // [🔒 CORRECTIF api-corrections-phase-d.md §4] Canal générique par user, pas
   // par commande — il n'existe PAS de route `/ws/orders/{id}`.

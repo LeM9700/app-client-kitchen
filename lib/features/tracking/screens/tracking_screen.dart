@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,11 +11,13 @@ import 'package:app_client/core/theme/kitchen_tokens.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
+import 'package:app_client/features/checkout/screens/steps/step_address.dart' show addressMapTileLayerProvider;
 import 'package:app_client/features/orders/models/order.dart';
 import 'package:app_client/features/orders/providers/order_provider.dart';
 import 'package:app_client/features/orders/widgets/kitchen_order_timeline.dart';
 import 'package:app_client/features/orders/widgets/kitchen_status_badge.dart';
 import 'package:app_client/features/orders/widgets/order_status_presentation.dart';
+import 'package:app_client/features/tracking/models/driver_location.dart';
 import 'package:app_client/features/tracking/models/order_status.dart';
 import 'package:app_client/features/tracking/providers/tracking_provider.dart';
 import 'package:app_client/l10n/app_localizations.dart';
@@ -145,6 +149,10 @@ class _TrackingBody extends StatelessWidget {
             ],
           ),
         ),
+        if (showsDriverMap(order)) ...[
+          const SizedBox(height: KitchenSpacing.md),
+          _DriverMapCard(orderId: order.id),
+        ],
         if (showsDeliveryCode(order)) ...[
           const SizedBox(height: KitchenSpacing.md),
           _DeliveryCodeCard(orderId: order.id),
@@ -173,6 +181,186 @@ bool showsDeliveryCode(Order order) =>
     !order.isTerminal &&
     order.status != OrderStatusCode.pending &&
     order.status != OrderStatusCode.unknown;
+
+/// La carte du livreur n'existe que pendant la livraison (`out_for_delivery`), jamais avant ni apres.
+bool showsDriverMap(Order order) =>
+    order.orderType == OrderType.delivery &&
+    order.status == OrderStatusCode.outForDelivery;
+
+/// Position du livreur sur une carte, avec estimation d'arrivee et signalement d'une position perimee.
+class _DriverMapCard extends ConsumerWidget {
+  const _DriverMapCard({required this.orderId});
+
+  final int orderId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final location = ref.watch(driverLocationProvider(orderId)).valueOrNull;
+    final l10n = AppLocalizations.of(context)!;
+    // Pas de reponse (ou suivi indisponible) : aucun cadre, le reste de l'ecran suffit.
+    if (location == null) return const SizedBox.shrink();
+    final String summary;
+    if (location.arrived) {
+      summary = l10n.trackingDriverArrived;
+    } else if (!location.hasPosition) {
+      summary = l10n.trackingDriverNoPosition;
+    } else if (location.etaMinutes != null) {
+      summary = l10n.trackingDriverEta(location.etaMinutes!);
+    } else {
+      summary = l10n.trackingDriverTitle;
+    }
+    final staleMinutes = ((location.ageSeconds ?? 0) / 60).ceil().clamp(1, 999);
+    return KitchenSurface(
+      padding: const EdgeInsets.all(KitchenSpacing.lg),
+      child: Semantics(
+        container: true,
+        label: '${l10n.trackingDriverTitle}. $summary',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              location.driverFirstName == null
+                  ? l10n.trackingDriverTitle
+                  : '${l10n.trackingDriverTitle} : ${location.driverFirstName}',
+              style: KitchenTypography.label.copyWith(fontSize: 15),
+            ),
+            const SizedBox(height: KitchenSpacing.xs),
+            Text(
+              summary,
+              key: const ValueKey('driver-summary'),
+              style: KitchenTypography.body.copyWith(color: KitchenColors.cognac),
+            ),
+            if (location.hasPosition && location.stale && !location.arrived)
+              Padding(
+                padding: const EdgeInsets.only(top: KitchenSpacing.xs),
+                child: Text(
+                  l10n.trackingDriverStale(staleMinutes),
+                  key: const ValueKey('driver-stale'),
+                  style: KitchenTypography.body.copyWith(
+                    color: KitchenColors.terracotta,
+                  ),
+                ),
+              ),
+            if (location.hasPosition) ...[
+              const SizedBox(height: KitchenSpacing.sm),
+              ExcludeSemantics(child: _DriverMap(location: location)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DriverMap extends ConsumerStatefulWidget {
+  const _DriverMap({required this.location});
+
+  final DriverLocation location;
+
+  @override
+  ConsumerState<_DriverMap> createState() => _DriverMapState();
+}
+
+class _DriverMapState extends ConsumerState<_DriverMap> {
+  final MapController _controller = MapController();
+
+  LatLng get _driver => LatLng(widget.location.lat!, widget.location.lng!);
+
+  LatLng? get _destination => widget.location.hasDestination
+      ? LatLng(widget.location.destinationLat!, widget.location.destinationLng!)
+      : null;
+
+  @override
+  void didUpdateWidget(covariant _DriverMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final moved = oldWidget.location.lat != widget.location.lat ||
+        oldWidget.location.lng != widget.location.lng;
+    if (moved) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _fit();
+      });
+    }
+  }
+
+  void _fit() {
+    final destination = _destination;
+    try {
+      if (destination == null) {
+        _controller.move(_driver, 15);
+      } else {
+        _controller.fitCamera(
+          CameraFit.coordinates(
+            coordinates: [_driver, destination],
+            padding: const EdgeInsets.all(40),
+            maxZoom: 16,
+          ),
+        );
+      }
+    } catch (_) {
+      // Carte pas encore prete : le prochain mouvement recadrera.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final destination = _destination;
+    return SizedBox(
+      height: 220,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: FlutterMap(
+          key: const ValueKey('driver-map'),
+          mapController: _controller,
+          options: MapOptions(
+            initialCenter: _driver,
+            initialZoom: 15,
+            initialCameraFit: destination == null
+                ? null
+                : CameraFit.coordinates(
+                    coordinates: [_driver, destination],
+                    padding: const EdgeInsets.all(40),
+                    maxZoom: 16,
+                  ),
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+            ),
+          ),
+          children: [
+            ref.watch(addressMapTileLayerProvider),
+            MarkerLayer(
+              markers: [
+                if (destination != null)
+                  Marker(
+                    point: destination,
+                    width: 40,
+                    height: 40,
+                    child: const Icon(
+                      Icons.home_rounded,
+                      color: KitchenColors.espresso,
+                      size: 34,
+                    ),
+                  ),
+                Marker(
+                  point: _driver,
+                  width: 44,
+                  height: 44,
+                  child: Icon(
+                    Icons.delivery_dining,
+                    key: const ValueKey('driver-marker'),
+                    color: widget.location.stale
+                        ? KitchenColors.terracotta
+                        : KitchenColors.cognac,
+                    size: 38,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 /// Code a 4 chiffres a donner au livreur : prouve que la commande est remise a la bonne personne.
 class _DeliveryCodeCard extends ConsumerWidget {

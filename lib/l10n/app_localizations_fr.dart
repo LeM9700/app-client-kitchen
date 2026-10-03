@@ -448,6 +448,26 @@ class AppLocalizationsFr extends AppLocalizations {
       'Donnez ce code au livreur quand il vous remet la commande. Ne le partagez avec personne d\'autre.';
 
   @override
+  String get trackingDriverTitle => 'Votre livreur';
+
+  @override
+  String trackingDriverEta(int minutes) {
+    return 'Arrivée estimée dans environ $minutes min';
+  }
+
+  @override
+  String get trackingDriverArrived => 'Votre livreur est arrivé';
+
+  @override
+  String get trackingDriverNoPosition =>
+      'La position de votre livreur sera bientôt disponible.';
+
+  @override
+  String trackingDriverStale(int minutes) {
+    return 'Dernière position il y a $minutes min';
+  }
+
+  @override
   String trackingOrderTitle(int orderId) {
     return 'Commande #$orderId';
   }

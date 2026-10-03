@@ -445,6 +445,26 @@ class AppLocalizationsSr extends AppLocalizations {
       'Dajte ovaj kod dostavljaču kada vam preda porudžbinu. Ne delite ga ni sa kim drugim.';
 
   @override
+  String get trackingDriverTitle => 'Vaš dostavljač';
+
+  @override
+  String trackingDriverEta(int minutes) {
+    return 'Dolazak za otprilike $minutes min';
+  }
+
+  @override
+  String get trackingDriverArrived => 'Vaš dostavljač je stigao';
+
+  @override
+  String get trackingDriverNoPosition =>
+      'Položaj vašeg dostavljača uskoro će biti dostupan.';
+
+  @override
+  String trackingDriverStale(int minutes) {
+    return 'Poslednji položaj pre $minutes min';
+  }
+
+  @override
   String trackingOrderTitle(int orderId) {
     return 'Porudžbina #$orderId';
   }
@@ -1015,6 +1035,26 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
   @override
   String get trackingDeliveryCodeHint =>
       'Dajte ovaj kod dostavljaču kada vam preda porudžbinu. Ne delite ga ni sa kim drugim.';
+
+  @override
+  String get trackingDriverTitle => 'Vaš dostavljač';
+
+  @override
+  String trackingDriverEta(int minutes) {
+    return 'Dolazak za otprilike $minutes min';
+  }
+
+  @override
+  String get trackingDriverArrived => 'Vaš dostavljač je stigao';
+
+  @override
+  String get trackingDriverNoPosition =>
+      'Položaj vašeg dostavljača uskoro će biti dostupan.';
+
+  @override
+  String trackingDriverStale(int minutes) {
+    return 'Poslednji položaj pre $minutes min';
+  }
 
   @override
   String trackingOrderTitle(int orderId) {
