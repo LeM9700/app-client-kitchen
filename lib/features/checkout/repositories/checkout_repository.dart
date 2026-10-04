@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import 'package:app_client/core/api/api_client.dart';
 import 'package:app_client/core/api/api_endpoints.dart';
+import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/features/cart/models/cart_item.dart';
 import 'package:app_client/features/checkout/models/delivery_info.dart';
 import 'package:app_client/features/checkout/repositories/address_repository.dart';
@@ -105,7 +106,26 @@ class CheckoutRepository {
       );
       return response.data!['id'] as int;
     } on DioException catch (e) {
+      final haccp = _haccpError(e);
+      if (haccp != null) throw haccp;
       throw mapDeliveryError(e);
     }
+  }
+
+  HaccpOrderBlockedException? _haccpError(DioException error) {
+    final data = error.response?.data;
+    if (data is! Map) return null;
+    final code = data['code']?.toString();
+    if (code != 'HACCP_ORDERING_BLOCKED' &&
+        code != 'HACCP_STOCK_UNAVAILABLE') {
+      return null;
+    }
+    final detail = data['detail']?.toString();
+    return HaccpOrderBlockedException(
+      code,
+      detail == null || detail.trim().isEmpty
+          ? 'La commande est temporairement indisponible : le contrôle sanitaire de l’établissement n’est pas conforme.'
+          : detail,
+    );
   }
 }

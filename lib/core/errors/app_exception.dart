@@ -59,3 +59,17 @@ final class DeliveryException extends AppException {
 final class NotFoundException extends AppException {
   const NotFoundException([super.message = 'Ressource introuvable.']);
 }
+
+/// Refus métier du parcours de commande par le contrôle HACCP strict.
+///
+/// Le panier reste intact afin que le client puisse le régulariser ou réessayer
+/// après résolution par l'établissement. Le serveur reste l'autorité finale.
+final class HaccpOrderBlockedException extends AppException {
+  const HaccpOrderBlockedException(this.code, [
+    super.message =
+        'La commande est temporairement indisponible : le contrôle sanitaire '
+        "de l'établissement n'est pas conforme.",
+  ]);
+
+  final String code;
+}

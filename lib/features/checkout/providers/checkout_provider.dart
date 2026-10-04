@@ -226,6 +226,16 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   Future<int?> createOrder() async {
     if (state.isLoading) return null;
 
+    // Le catalogue peut avoir changé depuis l'ouverture du checkout. Cette
+    // seconde lecture ferme la fenêtre de course avant le POST /orders sans
+    // supprimer silencieusement le panier.
+    state = state.copyWith(isLoading: true, error: null, errorCode: null);
+    final cartStillOrderable = await _refreshCartBeforeOrder();
+    if (!cartStillOrderable) {
+      state = state.copyWith(isLoading: false);
+      return null;
+    }
+
     // [TECH DEBT corrigé] La clé est générée une seule fois et réutilisée à chaque tentative —
     // voir la note sur CheckoutState.idempotencyKey.
     final idempotencyKey = state.idempotencyKey ?? const Uuid().v4();
@@ -272,9 +282,44 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       state = state.copyWith(
         isLoading: false,
         error: e.message,
-        errorCode: e is DeliveryException ? e.code : null,
+        errorCode: e is DeliveryException
+            ? e.code
+            : e is HaccpOrderBlockedException
+                ? e.code
+                : null,
       );
       return null;
     }
+  }
+
+  Future<bool> _refreshCartBeforeOrder() async {
+    final cartItems = _ref.read(cartProvider).itemList;
+    for (final item in cartItems) {
+      try {
+        final fresh = await _catalogRepo.getProduct(item.product.id);
+        if (!fresh.isAvailable) {
+          state = state.copyWith(
+            error:
+                '« ${item.product.name} » n’est plus disponible. Retirez-le du panier pour continuer.',
+            errorCode: 'HACCP_STOCK_UNAVAILABLE',
+          );
+          return false;
+        }
+        if (fresh.price != item.unitPrice ||
+            fresh.isAvailable != item.product.isAvailable) {
+          _ref.read(cartProvider.notifier).removeItem(item.key);
+          _ref.read(cartProvider.notifier).addItem(
+                fresh,
+                quantity: item.quantity,
+                variant: item.selectedVariant,
+                extraIds: item.selectedExtraIds,
+              );
+        }
+      } catch (_) {
+        // Le POST reste autoritaire si le détail produit est momentanément
+        // inaccessible. Une erreur réseau ne doit pas vider le panier.
+      }
+    }
+    return true;
   }
 }

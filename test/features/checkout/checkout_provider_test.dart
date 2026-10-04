@@ -89,6 +89,36 @@ void main() {
       expect(state.currentStep, CheckoutStep.deliveryMode);
     });
 
+    test('createOrder bloque un produit devenu indisponible sans vider le panier',
+        () async {
+      container.read(cartProvider.notifier).addItem(_product);
+      when(() => mockCatalogRepo.getProduct(1)).thenAnswer(
+        (_) async => _product.copyWith(isAvailable: false),
+      );
+
+      final result = await container.read(checkoutProvider.notifier).createOrder();
+
+      expect(result, isNull);
+      expect(container.read(cartProvider).itemList, hasLength(1));
+      expect(container.read(checkoutProvider).errorCode,
+          'HACCP_STOCK_UNAVAILABLE');
+      verifyNever(
+        () => mockCheckoutRepo.createOrder(
+          items: any(named: 'items'),
+          orderType: any(named: 'orderType'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+          deliveryAddress: any(named: 'deliveryAddress'),
+          deliveryZoneId: any(named: 'deliveryZoneId'),
+          deliveryLat: any(named: 'deliveryLat'),
+          deliveryLng: any(named: 'deliveryLng'),
+          customerPhone: any(named: 'customerPhone'),
+          deliveryInstructions: any(named: 'deliveryInstructions'),
+          promoCode: any(named: 'promoCode'),
+          establishmentId: any(named: 'establishmentId'),
+        ),
+      );
+    });
+
     test('selectDeliveryMode pickup → skip étape adresse', () {
       final notifier = container.read(checkoutProvider.notifier);
       notifier.selectDeliveryMode(DeliveryMode.pickup);
