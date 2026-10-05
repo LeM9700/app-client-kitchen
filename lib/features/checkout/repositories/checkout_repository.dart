@@ -116,8 +116,9 @@ class CheckoutRepository {
     final data = error.response?.data;
     if (data is! Map) return null;
     final code = data['code']?.toString();
-    if (code != 'HACCP_ORDERING_BLOCKED' &&
-        code != 'HACCP_STOCK_UNAVAILABLE') {
+    if (code == null ||
+        (code != 'HACCP_ORDERING_BLOCKED' &&
+            code != 'HACCP_STOCK_UNAVAILABLE')) {
       return null;
     }
     final detail = data['detail']?.toString();
