@@ -49,7 +49,7 @@ dependencies:
   connectivity_plus: ^6.0.3
 
   # Polices
-  google_fonts: ^6.2.1
+  google_fonts: ^9.0.0
 
   # Utils
   uuid: ^4.4.2
