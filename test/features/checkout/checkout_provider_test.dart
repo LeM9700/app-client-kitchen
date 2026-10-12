@@ -96,12 +96,16 @@ void main() {
         (_) async => _product.copyWith(isAvailable: false),
       );
 
-      final result = await container.read(checkoutProvider.notifier).createOrder();
+      final result = await container
+          .read(checkoutProvider.notifier)
+          .createOrder();
 
       expect(result, isNull);
       expect(container.read(cartProvider).itemList, hasLength(1));
-      expect(container.read(checkoutProvider).errorCode,
-          'HACCP_STOCK_UNAVAILABLE');
+      expect(
+        container.read(checkoutProvider).errorCode,
+        'HACCP_STOCK_UNAVAILABLE',
+      );
       verifyNever(
         () => mockCheckoutRepo.createOrder(
           items: any(named: 'items'),
