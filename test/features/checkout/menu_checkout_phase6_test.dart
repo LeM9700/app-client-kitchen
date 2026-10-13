@@ -108,6 +108,34 @@ void main() {
     expect(container.read(cartProvider).menuItemList, hasLength(1));
   });
 
+  test('revalidation signale et applique un nouveau prix serveur', () async {
+    final checkout = _MockCheckoutRepository();
+    final catalog = _MockCatalogRepository();
+    final menus = _MockMenuRepository();
+    final container = ProviderContainer(
+      overrides: [
+        checkoutRepositoryProvider.overrideWithValue(checkout),
+        catalogRepositoryProvider.overrideWithValue(catalog),
+        menuRepositoryProvider.overrideWithValue(menus),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen(checkoutProvider, (_, __) {});
+    container.read(cartProvider.notifier).addMenuItem(_item());
+    when(() => menus.getMenu(12)).thenAnswer(
+      (_) async => _menu(fixedPrice: 18.5),
+    );
+
+    await container.read(checkoutProvider.notifier).revalidateCart();
+
+    final state = container.read(checkoutProvider);
+    expect(state.currentStep, CheckoutStep.revalidation);
+    expect(state.menuPriceAlerts, hasLength(1));
+    expect(state.menuPriceAlerts.single.oldPrice, 16.9);
+    expect(state.menuPriceAlerts.single.newPrice, 18.5);
+    expect(container.read(cartProvider).menuItemList.single.unitPrice, 18.5);
+  });
+
   test('createOrder transmet les menus revalides au repository', () async {
     final checkout = _MockCheckoutRepository();
     final catalog = _MockCatalogRepository();
@@ -176,10 +204,11 @@ MenuCartItem _item() => MenuCartItem(
       ],
     );
 
-CatalogMenu _menu({bool available = true}) => CatalogMenu(
+CatalogMenu _menu({bool available = true, double fixedPrice = 16.9}) =>
+    CatalogMenu(
       id: 12,
       name: 'Menu midi',
-      fixedPrice: 16.9,
+      fixedPrice: fixedPrice,
       displayOrder: 0,
       isAvailable: available,
       unavailableReasons: available ? const [] : const ['Produit indisponible'],

@@ -10,6 +10,7 @@ import 'package:app_client/features/catalog/models/product.dart';
 import 'package:app_client/features/catalog/providers/menu_provider.dart';
 import 'package:app_client/features/catalog/repositories/menu_repository.dart';
 import 'package:app_client/features/catalog/screens/menu_detail_screen.dart';
+import 'package:app_client/features/catalog/widgets/menu_section.dart';
 import 'package:app_client/features/orders/models/order.dart';
 import 'package:app_client/l10n/app_localizations.dart';
 import 'package:dio/dio.dart';
@@ -127,6 +128,46 @@ void main() {
     });
   });
 
+  group('MenuSection', () {
+    testWidgets('affiche les menus et ouvre leur fiche detail', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, __) => const Scaffold(body: MenuSection()),
+          ),
+          GoRoute(
+            path: '/home/menu/:id',
+            builder: (_, state) => Scaffold(
+              body: Text('Detail ${state.pathParameters['id']}'),
+            ),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            menusProvider.overrideWith((ref) async => [_menu()]),
+          ],
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Menus'), findsOneWidget);
+      expect(find.text('Formules a prix fixe'), findsOneWidget);
+      expect(find.text('Menu midi'), findsOneWidget);
+      await tester.tap(find.text('Menu midi'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Detail 12'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group('MenuDetailScreen', () {
     testWidgets('bloque puis ajoute une composition complete', (tester) async {
       tester.view.devicePixelRatio = 1;
@@ -182,6 +223,14 @@ void main() {
       final cart = container.read(cartProvider);
       expect(cart.menuItemList, hasLength(1));
       expect(cart.menuItemList.single.selections, hasLength(2));
+      expect(
+        cart.menuItemList.single.selections.first.selectedVariant?.name,
+        'Grande',
+      );
+      expect(
+        cart.menuItemList.single.selections.first.selectedExtraIds,
+        {91},
+      );
       expect(cart.subtotal, 16.9);
       expect(tester.takeException(), isNull);
     });
