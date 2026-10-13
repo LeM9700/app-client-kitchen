@@ -42,7 +42,7 @@ dependencies:
 
   # Carte (sélection manuelle de point pour l'adresse de livraison — pas de
   # SDK de géocodage disponible, voir Plan 11 / api-corrections-phase-d.md §3)
-  flutter_map: ^7.0.2
+  flutter_map: ^8.3.2
   latlong2: ^0.9.1
 
   # Connectivité réseau
