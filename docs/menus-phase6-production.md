@@ -1,5 +1,9 @@
 # Mise en production - Menus client phase 6
 
+Version candidate de l'application client : `1.1.0+2`. Elle doit etre livree
+apres l'API menus `0.2.0`, la migration Alembic `0081` et l'application admin
+`0.2.0+2`.
+
 Ce guide couvre l'affichage, la composition et la commande des menus dans
 l'application client. Il suppose que l'interface admin de phase 5 est deja
 disponible pour preparer les menus du tenant.
