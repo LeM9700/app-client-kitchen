@@ -5,12 +5,14 @@ import 'package:app_client/core/theme/kitchen_spacing.dart';
 import 'package:app_client/core/theme/kitchen_tokens.dart';
 import 'package:app_client/core/utils/price_formatter.dart';
 import 'package:app_client/features/cart/models/cart_item.dart';
+import 'package:app_client/features/cart/models/menu_cart_item.dart';
 import 'package:app_client/features/checkout/models/checkout_state.dart';
 
 class KitchenOrderSummary extends StatelessWidget {
   const KitchenOrderSummary({
     super.key,
     required this.items,
+    this.menuItems = const [],
     required this.deliveryMode,
     required this.subtotal,
     required this.deliveryFee,
@@ -24,6 +26,7 @@ class KitchenOrderSummary extends StatelessWidget {
   });
 
   final List<CartItem> items;
+  final List<MenuCartItem> menuItems;
   final DeliveryMode deliveryMode;
   final double subtotal;
   final double deliveryFee;
@@ -50,14 +53,16 @@ class KitchenOrderSummary extends StatelessWidget {
           style: KitchenTypography.title.copyWith(fontSize: 28),
         ),
         const SizedBox(height: KitchenSpacing.sm),
-        if (items.isEmpty)
+        if (items.isEmpty && menuItems.isEmpty)
           Text(
             'Aucun article dans le panier.',
             style:
                 KitchenTypography.body.copyWith(color: KitchenColors.textMuted),
           )
-        else
+        else ...[
+          for (final menuItem in menuItems) _MenuSummaryRow(item: menuItem),
           for (final item in items) _CartSummaryRow(item: item),
+        ],
         const SizedBox(height: KitchenSpacing.md),
         Divider(color: KitchenColors.brown700.withValues(alpha: 0.16)),
         const SizedBox(height: KitchenSpacing.sm),
@@ -89,6 +94,55 @@ class KitchenOrderSummary extends StatelessWidget {
           zoneName: zoneName,
         ),
       ],
+    );
+  }
+}
+
+class _MenuSummaryRow extends StatelessWidget {
+  const _MenuSummaryRow({required this.item});
+
+  final MenuCartItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: KitchenSpacing.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${item.menu.name} x ${item.quantity}',
+                  style: KitchenTypography.body.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: KitchenSpacing.xxs),
+                ...item.selections.map(
+                  (selection) => Text(
+                    '${selection.groupName} : ${selection.product.name}'
+                    '${selection.optionLabels.isEmpty ? '' : ' - ${selection.optionLabels.join(', ')}'}',
+                    style: KitchenTypography.body.copyWith(
+                      color: KitchenColors.textMuted,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: KitchenSpacing.sm),
+          Text(
+            formatPrice(item.totalPrice),
+            style: KitchenTypography.label.copyWith(
+              color: KitchenColors.espresso,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

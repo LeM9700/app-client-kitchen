@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:app_client/features/cart/models/cart_item.dart';
+import 'package:app_client/features/cart/models/menu_cart_item.dart';
 import 'package:app_client/features/checkout/models/delivery_info.dart';
 
 part 'checkout_state.freezed.dart';
@@ -24,11 +25,21 @@ class PriceAlert with _$PriceAlert {
 }
 
 @freezed
+class MenuPriceAlert with _$MenuPriceAlert {
+  const factory MenuPriceAlert({
+    required MenuCartItem item,
+    required double oldPrice,
+    required double newPrice,
+  }) = _MenuPriceAlert;
+}
+
+@freezed
 class CheckoutState with _$CheckoutState {
   const factory CheckoutState({
     @Default(CheckoutStep.revalidation) CheckoutStep currentStep,
     @Default(DeliveryMode.delivery) DeliveryMode deliveryMode,
     @Default([]) List<PriceAlert> priceAlerts,
+    @Default([]) List<MenuPriceAlert> menuPriceAlerts,
     @Default(false) bool isRevalidating,
     String?
         address, // texte affiché à l'utilisateur — informatif uniquement côté API

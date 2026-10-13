@@ -14,6 +14,7 @@ class KitchenOrderItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final extras = item.extras.map((e) => '+ ${e.name}').join(', ');
+    final isMenu = item.itemType == 'menu';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: KitchenSpacing.sm),
@@ -41,7 +42,12 @@ class KitchenOrderItemRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName ?? 'Article #${item.productId}',
+                  isMenu
+                      ? item.menuName ?? 'Menu'
+                      : item.productName ??
+                          (item.productId == null
+                              ? 'Article'
+                              : 'Article #${item.productId}'),
                   style: KitchenTypography.body.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -62,6 +68,38 @@ class KitchenOrderItemRow extends StatelessWidget {
                     style: KitchenTypography.body.copyWith(
                       color: KitchenColors.textMuted,
                       fontSize: 13,
+                    ),
+                  ),
+                ],
+                if (isMenu && item.components.isNotEmpty) ...[
+                  const SizedBox(height: KitchenSpacing.xs),
+                  ...item.components.map(
+                    (component) => Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: KitchenSpacing.xxs,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.subdirectory_arrow_right,
+                            size: 16,
+                            color: KitchenColors.textMuted,
+                          ),
+                          const SizedBox(width: KitchenSpacing.xs),
+                          Expanded(
+                            child: Text(
+                              '${component.menuGroupName ?? 'Choix'} : '
+                              '${component.productName ?? 'Produit'}'
+                              '${component.variantName == null ? '' : ' - ${component.variantName}'}',
+                              style: KitchenTypography.body.copyWith(
+                                color: KitchenColors.textMuted,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

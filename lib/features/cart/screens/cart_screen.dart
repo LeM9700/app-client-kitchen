@@ -15,6 +15,7 @@ import 'package:app_client/core/widgets/kitchen/kitchen_embossed_button.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_loading_indicator.dart';
 import 'package:app_client/core/widgets/kitchen/kitchen_surface.dart';
 import 'package:app_client/features/cart/models/cart_item.dart';
+import 'package:app_client/features/cart/models/menu_cart_item.dart';
 import 'package:app_client/features/cart/models/cart_state.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
 import 'package:app_client/l10n/app_localizations.dart';
@@ -66,6 +67,20 @@ class CartScreen extends ConsumerWidget {
                 KitchenSpacing.lg,
               ),
               children: [
+                ...cart.menuItemList.map(
+                  (item) => _MenuCartItemTile(
+                    item: item,
+                    onIncrement: () => ref
+                        .read(cartProvider.notifier)
+                        .updateMenuQuantity(item.key, item.quantity + 1),
+                    onDecrement: () => ref
+                        .read(cartProvider.notifier)
+                        .updateMenuQuantity(item.key, item.quantity - 1),
+                    onRemove: () => ref
+                        .read(cartProvider.notifier)
+                        .removeMenuItem(item.key),
+                  ),
+                ),
                 ...cart.itemList.map(
                   (item) => _CartItemTile(
                     item: item,
@@ -294,6 +309,151 @@ class _CartItemTile extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuCartItemTile extends StatelessWidget {
+  const _MenuCartItemTile({
+    required this.item,
+    required this.onIncrement,
+    required this.onDecrement,
+    required this.onRemove,
+  });
+
+  final MenuCartItem item;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KitchenSpacing.md),
+      child: KitchenSurface(
+        padding: const EdgeInsets.all(KitchenSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: KitchenColors.cognac.withValues(alpha: 0.13),
+                    borderRadius: BorderRadius.circular(KitchenRadius.md),
+                  ),
+                  child: const Icon(
+                    Icons.restaurant_menu,
+                    color: KitchenColors.cognac,
+                  ),
+                ),
+                const SizedBox(width: KitchenSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.menu.name,
+                        style: KitchenTypography.title.copyWith(fontSize: 24),
+                      ),
+                      const SizedBox(height: KitchenSpacing.xxs),
+                      Text(
+                        'Menu a prix fixe',
+                        style: KitchenTypography.label.copyWith(
+                          color: KitchenColors.olive,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Retirer le menu',
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+            const SizedBox(height: KitchenSpacing.sm),
+            ...item.selections.map(
+              (selection) => Padding(
+                padding: const EdgeInsets.only(bottom: KitchenSpacing.xs),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 5),
+                      child: Icon(
+                        Icons.subdirectory_arrow_right,
+                        size: 16,
+                        color: KitchenColors.textMuted,
+                      ),
+                    ),
+                    const SizedBox(width: KitchenSpacing.xs),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${selection.groupName} : ${selection.product.name}',
+                            style: KitchenTypography.body.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (selection.optionLabels.isNotEmpty)
+                            Text(
+                              selection.optionLabels.join(', '),
+                              style: KitchenTypography.body.copyWith(
+                                color: KitchenColors.textMuted,
+                                fontSize: 12,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(),
+            Row(
+              children: [
+                _StepperButton(
+                  icon: Icons.remove,
+                  onPressed: onDecrement,
+                  tooltip: 'Diminuer la quantite',
+                ),
+                SizedBox(
+                  width: 34,
+                  child: Text(
+                    '${item.quantity}',
+                    textAlign: TextAlign.center,
+                    style: KitchenTypography.body.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                _StepperButton(
+                  icon: Icons.add,
+                  onPressed: onIncrement,
+                  tooltip: 'Augmenter la quantite',
+                ),
+                const Spacer(),
+                Text(
+                  formatPrice(item.totalPrice),
+                  style: KitchenTypography.label.copyWith(
+                    color: KitchenColors.cognac,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

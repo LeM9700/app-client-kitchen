@@ -4,6 +4,7 @@ import 'package:app_client/core/api/api_client.dart';
 import 'package:app_client/core/api/api_endpoints.dart';
 import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/features/cart/models/cart_item.dart';
+import 'package:app_client/features/cart/models/menu_cart_item.dart';
 import 'package:app_client/features/checkout/models/delivery_info.dart';
 import 'package:app_client/features/checkout/repositories/address_repository.dart';
 
@@ -59,6 +60,7 @@ class CheckoutRepository {
   /// l'id retourné sont des `int`, pas des `String`.
   Future<int> createOrder({
     required List<CartItem> items,
+    List<MenuCartItem> menuItems = const [],
     required String orderType,
     required String idempotencyKey,
     String? deliveryAddress,
@@ -89,6 +91,8 @@ class CheckoutRepository {
                 },
               )
               .toList(),
+          'menu_items':
+              menuItems.map((menuItem) => menuItem.toOrderJson()).toList(),
           if (deliveryAddress != null) 'delivery_address': deliveryAddress,
           if (deliveryZoneId != null) 'delivery_zone_id': deliveryZoneId,
           // Etablissement dont la zone couvre l'adresse (renvoye par /delivery/check).

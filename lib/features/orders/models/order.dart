@@ -62,7 +62,13 @@ class OrderItemExtra with _$OrderItemExtra {
 class OrderItem with _$OrderItem {
   const factory OrderItem({
     required int id,
-    @JsonKey(name: 'product_id') required int productId,
+    @JsonKey(name: 'item_type') @Default('product') String itemType,
+    @JsonKey(name: 'parent_item_id') int? parentItemId,
+    @JsonKey(name: 'menu_id') int? menuId,
+    @JsonKey(name: 'menu_name') String? menuName,
+    @JsonKey(name: 'menu_group_id') int? menuGroupId,
+    @JsonKey(name: 'menu_group_name') String? menuGroupName,
+    @JsonKey(name: 'product_id') int? productId,
     @JsonKey(name: 'variant_id') int? variantId,
     @JsonKey(name: 'product_name') String? productName,
     @JsonKey(name: 'variant_name') String? variantName,
@@ -71,6 +77,7 @@ class OrderItem with _$OrderItem {
     @JsonKey(name: 'extras_total') @Default(0) double extrasTotal,
     required double total,
     @Default([]) List<OrderItemExtra> extras,
+    @Default([]) List<OrderItem> components,
   }) = _OrderItem;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) =>

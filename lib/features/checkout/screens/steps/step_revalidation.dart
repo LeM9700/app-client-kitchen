@@ -24,7 +24,7 @@ class StepRevalidation extends ConsumerWidget {
     final checkoutState = ref.watch(checkoutProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    if (checkoutState.isRevalidating || checkoutState.priceAlerts.isEmpty) {
+    if (checkoutState.isRevalidating) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -63,6 +63,32 @@ class StepRevalidation extends ConsumerWidget {
               ...checkoutState.priceAlerts.map(
                 (alert) => _PriceAlertTile(alert: alert),
               ),
+              ...checkoutState.menuPriceAlerts.map(
+                (alert) => _MenuPriceAlertTile(alert: alert),
+              ),
+              if (checkoutState.error != null)
+                KitchenSurface(
+                  elevation: KitchenElevation.inset,
+                  padding: const EdgeInsets.all(KitchenSpacing.md),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.block,
+                        color: KitchenColors.terracotta,
+                      ),
+                      const SizedBox(width: KitchenSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          checkoutState.error!,
+                          style: KitchenTypography.body.copyWith(
+                            color: KitchenColors.terracotta,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
@@ -72,14 +98,16 @@ class StepRevalidation extends ConsumerWidget {
             padding: const EdgeInsets.all(KitchenSpacing.lg),
             child: Column(
               children: [
-                KitchenEmbossedButton(
-                  onPressed: () => ref
-                      .read(checkoutProvider.notifier)
-                      .dismissAlertsAndContinue(),
-                  semanticLabel: 'Continuer avec le panier mis a jour',
-                  child: Text(l10n.checkoutContinueButton),
-                ),
-                const SizedBox(height: KitchenSpacing.xs),
+                if (checkoutState.error == null) ...[
+                  KitchenEmbossedButton(
+                    onPressed: () => ref
+                        .read(checkoutProvider.notifier)
+                        .dismissAlertsAndContinue(),
+                    semanticLabel: 'Continuer avec le panier mis a jour',
+                    child: Text(l10n.checkoutContinueButton),
+                  ),
+                  const SizedBox(height: KitchenSpacing.xs),
+                ],
                 TextButton(
                   onPressed: () => context.pop(),
                   style: TextButton.styleFrom(
@@ -93,6 +121,47 @@ class StepRevalidation extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MenuPriceAlertTile extends StatelessWidget {
+  const _MenuPriceAlertTile({required this.alert});
+
+  final MenuPriceAlert alert;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KitchenSpacing.sm),
+      child: KitchenSurface(
+        padding: const EdgeInsets.all(KitchenSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.restaurant_menu, color: KitchenColors.cognac),
+            const SizedBox(width: KitchenSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    alert.item.menu.name,
+                    style: KitchenTypography.label.copyWith(fontSize: 15),
+                  ),
+                  const SizedBox(height: KitchenSpacing.xxs),
+                  Text(
+                    'Prix mis a jour : ${_formatPrice(alert.oldPrice)} vers ${_formatPrice(alert.newPrice)}.',
+                    style: KitchenTypography.body.copyWith(
+                      color: KitchenColors.terracotta,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

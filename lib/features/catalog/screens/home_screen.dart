@@ -30,6 +30,7 @@ import 'package:app_client/features/catalog/widgets/catalog_search_box.dart';
 import 'package:app_client/features/catalog/widgets/category_chip.dart';
 import 'package:app_client/features/catalog/widgets/display_currency_button.dart';
 import 'package:app_client/features/catalog/widgets/horizontal_product_row.dart';
+import 'package:app_client/features/catalog/widgets/menu_section.dart';
 import 'package:app_client/features/catalog/widgets/promo_hero_carousel.dart';
 import 'package:app_client/features/checkout/providers/client_location_provider.dart';
 import 'package:app_client/features/loyalty/providers/loyalty_provider.dart';
@@ -80,6 +81,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SliverToBoxAdapter(child: PromoHeroCarousel()),
                 const SliverToBoxAdapter(child: _KodMomeInfoBand()),
+                const SliverToBoxAdapter(child: MenuSection()),
                 SliverToBoxAdapter(
                   child: HorizontalProductRow(
                     title: 'Incontournables',

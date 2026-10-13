@@ -60,6 +60,7 @@ class StepRecap extends ConsumerWidget {
                 padding: const EdgeInsets.all(KitchenSpacing.lg),
                 child: KitchenOrderSummary(
                   items: cart.itemList,
+                  menuItems: cart.menuItemList,
                   deliveryMode: checkoutState.deliveryMode,
                   subtotal: cart.subtotal,
                   deliveryFee: deliveryFee,

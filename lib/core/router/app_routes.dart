@@ -15,6 +15,7 @@ abstract final class AppRoutes {
 
   /// Génère le chemin vers la fiche produit : `/home/product/{id}`.
   static String productDetail(String productId) => '/home/product/$productId';
+  static String menuDetail(int menuId) => '/home/menu/$menuId';
 
   // Panier & Checkout (bottom nav — branche 1)
   static const String cart = '/cart';

@@ -5,8 +5,11 @@ import 'package:app_client/core/analytics/analytics_reporter.dart';
 import 'package:app_client/core/errors/app_exception.dart';
 import 'package:app_client/core/providers/api_client_provider.dart';
 import 'package:app_client/features/cart/providers/cart_provider.dart';
+import 'package:app_client/features/cart/models/menu_cart_item.dart';
 import 'package:app_client/features/catalog/providers/catalog_provider.dart';
 import 'package:app_client/features/catalog/repositories/catalog_repository.dart';
+import 'package:app_client/features/catalog/repositories/menu_repository.dart';
+import 'package:app_client/features/catalog/providers/menu_provider.dart';
 import 'package:app_client/features/checkout/models/checkout_state.dart';
 import 'package:app_client/features/checkout/providers/client_location_provider.dart';
 import 'package:app_client/features/checkout/repositories/checkout_repository.dart';
@@ -29,16 +32,22 @@ final checkoutProvider =
   (ref) => CheckoutNotifier(
     ref.read(checkoutRepositoryProvider),
     ref.read(catalogRepositoryProvider),
+    ref.read(menuRepositoryProvider),
     ref,
   ),
 );
 
 class CheckoutNotifier extends StateNotifier<CheckoutState> {
-  CheckoutNotifier(this._checkoutRepo, this._catalogRepo, this._ref)
-      : super(const CheckoutState());
+  CheckoutNotifier(
+    this._checkoutRepo,
+    this._catalogRepo,
+    this._menuRepo,
+    this._ref,
+  ) : super(const CheckoutState());
 
   final CheckoutRepository _checkoutRepo;
   final CatalogRepository _catalogRepo;
+  final MenuRepository _menuRepo;
   final Ref _ref;
 
   // ── Étape 0 : Revalidation ────────────────────────────────────────────────
@@ -48,6 +57,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
 
     final cartItems = _ref.read(cartProvider).itemList;
     final alerts = <PriceAlert>[];
+    final menuAlerts = <MenuPriceAlert>[];
+    String? menuError;
 
     for (final item in cartItems) {
       try {
@@ -97,11 +108,38 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       }
     }
 
+    for (final item in _ref.read(cartProvider).menuItemList) {
+      try {
+        final refreshed = await _refreshMenuItem(item);
+        if (refreshed == null) {
+          menuError =
+              '« ${item.menu.name} » a change ou n’est plus disponible. Revenez au panier pour le recomposer.';
+          break;
+        }
+        if (refreshed.unitPrice != item.unitPrice) {
+          menuAlerts.add(
+            MenuPriceAlert(
+              item: item,
+              oldPrice: item.unitPrice,
+              newPrice: refreshed.unitPrice,
+            ),
+          );
+        }
+        _ref.read(cartProvider.notifier).replaceMenuItem(item.key, refreshed);
+      } catch (_) {
+        menuError =
+            'Impossible de verifier « ${item.menu.name} ». Reessayez avant de commander.';
+        break;
+      }
+    }
+
     state = state.copyWith(
       isRevalidating: false,
       priceAlerts: alerts,
+      menuPriceAlerts: menuAlerts,
+      error: menuError,
       // On passe à l'étape suivante dans l'UI si pas d'alertes
-      currentStep: alerts.isEmpty
+      currentStep: alerts.isEmpty && menuAlerts.isEmpty && menuError == null
           ? CheckoutStep.deliveryMode
           : CheckoutStep.revalidation,
     );
@@ -110,6 +148,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   void dismissAlertsAndContinue() {
     state = state.copyWith(
       priceAlerts: [],
+      menuPriceAlerts: [],
+      error: null,
       currentStep: CheckoutStep.deliveryMode,
     );
   }
@@ -250,11 +290,13 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       final isDelivery = state.deliveryMode == DeliveryMode.delivery;
       final orderId = await _checkoutRepo.createOrder(
         items: cart.itemList,
+        menuItems: cart.menuItemList,
         orderType: isDelivery ? 'delivery' : 'pickup',
         deliveryAddress: state.address,
         deliveryZoneId: state.deliveryInfo?.zoneId,
         // L'etablissement dont la zone couvre l'adresse ; le serveur le recalcule.
-        establishmentId: isDelivery ? state.deliveryInfo?.establishmentId : null,
+        establishmentId:
+            isDelivery ? state.deliveryInfo?.establishmentId : null,
         // Retrait : aucune donnee de livraison n'est envoyee.
         deliveryLat: isDelivery ? state.lat : null,
         deliveryLng: isDelivery ? state.lng : null,
@@ -320,6 +362,78 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         // inaccessible. Une erreur réseau ne doit pas vider le panier.
       }
     }
+    for (final item in _ref.read(cartProvider).menuItemList) {
+      try {
+        final refreshed = await _refreshMenuItem(item);
+        if (refreshed == null) {
+          state = state.copyWith(
+            error:
+                '« ${item.menu.name} » a change ou n’est plus disponible. Revenez au panier pour le recomposer.',
+            errorCode: 'MENU_NOT_AVAILABLE',
+          );
+          return false;
+        }
+        _ref.read(cartProvider.notifier).replaceMenuItem(item.key, refreshed);
+      } catch (_) {
+        state = state.copyWith(
+          error:
+              'Impossible de verifier « ${item.menu.name} ». Reessayez avant de commander.',
+          errorCode: 'MENU_REVALIDATION_FAILED',
+        );
+        return false;
+      }
+    }
     return true;
+  }
+
+  Future<MenuCartItem?> _refreshMenuItem(MenuCartItem item) async {
+    final freshMenu = await _menuRepo.getMenu(item.menu.id);
+    if (!freshMenu.isAvailable) return null;
+
+    final refreshedSelections = <MenuCartSelection>[];
+    for (final selection in item.selections) {
+      final group = freshMenu.groups
+          .where((candidate) => candidate.id == selection.groupId)
+          .firstOrNull;
+      if (group == null || !group.isAvailable) return null;
+      final menuProduct = group.products
+          .where((candidate) => candidate.product.id == selection.product.id)
+          .firstOrNull;
+      if (menuProduct == null || !menuProduct.isOperationallyAvailable) {
+        return null;
+      }
+      final variantId = selection.selectedVariant?.id;
+      final variant = variantId == null
+          ? null
+          : menuProduct.product.variants
+              .where((candidate) => candidate.id == variantId)
+              .firstOrNull;
+      if (variantId != null && variant == null) return null;
+      final availableExtraIds = menuProduct.product.extras
+          .where((extra) => extra.available)
+          .map((extra) => extra.id)
+          .toSet();
+      if (!availableExtraIds.containsAll(selection.selectedExtraIds)) {
+        return null;
+      }
+      refreshedSelections.add(
+        MenuCartSelection(
+          groupId: group.id,
+          groupName: group.name,
+          product: menuProduct.product,
+          selectedVariant: variant,
+          selectedExtraIds: selection.selectedExtraIds,
+          quantity: selection.quantity,
+        ),
+      );
+    }
+
+    for (final group in freshMenu.groups) {
+      final count = refreshedSelections
+          .where((selection) => selection.groupId == group.id)
+          .fold(0, (total, selection) => total + selection.quantity);
+      if (count < group.minChoices || count > group.maxChoices) return null;
+    }
+    return item.copyWith(menu: freshMenu, selections: refreshedSelections);
   }
 }

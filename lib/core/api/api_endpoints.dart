@@ -37,6 +37,9 @@ abstract final class ApiEndpoints {
   static const String categories = '/catalog/categories';
   static const String catalogSearch = '/catalog/search';
   static const String featuredProducts = '/catalog/products/featured';
+  static const String menus = '/catalog/menus';
+
+  static String menu(int menuId) => '/catalog/menus/$menuId';
 
   /// Produits d'une catégorie : `GET /catalog/categories/{id}/products`
   static String productsByCategory(int categoryId) =>

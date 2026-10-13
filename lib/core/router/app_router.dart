@@ -22,6 +22,7 @@ import 'package:app_client/features/auth/screens/forgot_password_screen.dart';
 import 'package:app_client/features/cart/screens/cart_screen.dart';
 import 'package:app_client/features/checkout/screens/checkout_screen.dart';
 import 'package:app_client/features/catalog/screens/home_screen.dart';
+import 'package:app_client/features/catalog/screens/menu_detail_screen.dart';
 import 'package:app_client/features/catalog/screens/product_detail_screen.dart';
 import 'package:app_client/features/catalog/screens/search_screen.dart';
 import 'package:app_client/features/legal/screens/legal_document_screen.dart';
@@ -164,6 +165,22 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (_, state) => ProductDetailScreen(
                       productId: state.pathParameters['id']!,
                     ),
+                  ),
+                  GoRoute(
+                    path: 'menu/:id',
+                    builder: (_, state) {
+                      final menuId =
+                          int.tryParse(state.pathParameters['id'] ?? '');
+                      if (menuId == null) {
+                        return const _RouteMessageScreen(
+                          title: 'Menu introuvable',
+                          message: 'Ce menu n’est pas disponible.',
+                          actionLabel: 'Retour au catalogue',
+                          actionRoute: AppRoutes.home,
+                        );
+                      }
+                      return MenuDetailScreen(menuId: menuId);
+                    },
                   ),
                   GoRoute(
                     path: 'search',

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app_client/core/providers/api_client_provider.dart';
 import 'package:app_client/features/cart/models/cart_item.dart';
+import 'package:app_client/features/cart/models/menu_cart_item.dart';
 import 'package:app_client/features/cart/models/cart_state.dart';
 import 'package:app_client/features/cart/repositories/promo_repository.dart';
 import 'package:app_client/features/catalog/models/product.dart';
@@ -75,6 +76,46 @@ class CartNotifier extends StateNotifier<CartState> {
   void removeItem(String key) {
     final updated = Map<String, CartItem>.from(state.items)..remove(key);
     state = state.copyWith(items: updated);
+  }
+
+  void addMenuItem(MenuCartItem item) {
+    final existing = state.menuItems[item.key];
+    state = state.copyWith(
+      menuItems: {
+        ...state.menuItems,
+        item.key: existing == null
+            ? item
+            : existing.copyWith(quantity: existing.quantity + item.quantity),
+      },
+    );
+  }
+
+  void removeMenuItem(String key) {
+    final updated = Map<String, MenuCartItem>.from(state.menuItems)
+      ..remove(key);
+    state = state.copyWith(menuItems: updated);
+  }
+
+  void updateMenuQuantity(String key, int quantity) {
+    if (quantity <= 0) {
+      removeMenuItem(key);
+      return;
+    }
+    final item = state.menuItems[key];
+    if (item == null) return;
+    state = state.copyWith(
+      menuItems: {
+        ...state.menuItems,
+        key: item.copyWith(quantity: quantity),
+      },
+    );
+  }
+
+  void replaceMenuItem(String oldKey, MenuCartItem updated) {
+    final items = Map<String, MenuCartItem>.from(state.menuItems)
+      ..remove(oldKey)
+      ..[updated.key] = updated;
+    state = state.copyWith(menuItems: items);
   }
 
   /// Met à jour la quantité de l'item de clé [key]. Supprime l'item si
